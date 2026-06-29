@@ -5,8 +5,8 @@ import "./globals.css";
 const geist = Geist({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Fluent — AI adoption for teams",
-  description: "Get your team AI-fluent with personalized paths, weekly micro-skills, and real adoption tracking.",
+  title: "LessAI — AI adoption for teams",
+  description: "Get your team AI-ready with personalized paths, weekly micro-skills, and real adoption tracking.",
 };
 
 export default function RootLayout({
