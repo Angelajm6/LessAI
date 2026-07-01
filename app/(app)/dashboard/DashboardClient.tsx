@@ -11,7 +11,7 @@ import {
   ThumbsUp, Zap, Send, Bot, User, Bookmark, BookmarkCheck,
   Copy, Trash2, ArrowRight, LayoutDashboard, BookOpen,
   MessageSquare, FolderPlus, Folder, FolderOpen, Plus, X, Pencil,
-  FileText, ChevronUp
+  FileText, ChevronUp, Home, TrendingUp, Star
 } from 'lucide-react'
 import type { StackMap, ToolCard, ToolTrack, DailyTask, Playbook, ToolPlaybook, PromptFramework } from '@/lib/claude'
 
@@ -42,9 +42,10 @@ const LEVEL_COLORS: Record<string, string> = {
   comfortable: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
 }
 
-type Section = 'tasks' | 'playbook' | 'guides' | 'saved' | 'ask'
+type Section = 'home' | 'tasks' | 'playbook' | 'guides' | 'saved' | 'ask'
 
 const NAV_ITEMS: { key: Section; icon: React.ElementType; label: string }[] = [
+  { key: 'home', icon: Home, label: 'Overview' },
   { key: 'tasks', icon: LayoutDashboard, label: 'Daily Tasks' },
   { key: 'playbook', icon: FileText, label: 'Prompt Playbook' },
   { key: 'guides', icon: BookOpen, label: 'Tool Guides' },
@@ -53,7 +54,7 @@ const NAV_ITEMS: { key: Section; icon: React.ElementType; label: string }[] = [
 ]
 
 export default function DashboardClient({ profile, stackMap, playbook, completedTasks: initialCompleted, savedPrompts: initialSaved, promptFolders: initialFolders }: Props) {
-  const [section, setSection] = useState<Section>('tasks')
+  const [section, setSection] = useState<Section>('home')
   const [completed, setCompleted] = useState<CompletedTask[]>(initialCompleted)
   const [expanded, setExpanded] = useState<string | null>(null)
   const [marking, setMarking] = useState<string | null>(null)
@@ -275,7 +276,7 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
       </nav>
 
       {/* Sidebar (desktop only) */}
-      <aside className="hidden sm:block w-56 shrink-0 border-r border-gray-100 pr-4 mr-6">
+      <aside className="hidden sm:block w-56 shrink-0 border-r border-gray-100 pr-4 mr-12">
         <div className="sticky top-24 space-y-1">
           {/* Profile + progress */}
           <div className="px-3 py-3 mb-4">
@@ -351,6 +352,204 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
             </div>
           </div>
         )}
+
+        {/* ── Overview / Home ── */}
+        {section === 'home' && (() => {
+          // Next uncompleted task per tool track
+          const todayTasks = stackMap?.tool_tracks.map(track => {
+            const nextTask = track.daily_tasks.find(t => !completed.some(c => c.tool === track.tool && c.day === t.day))
+            return nextTask ? { track, task: nextTask } : null
+          }).filter(Boolean) ?? []
+
+          // First playbook framework for a quick win preview
+          const quickWin = playbook?.tool_playbooks?.[0]?.frameworks?.[0] ?? null
+          const quickWinTool = playbook?.tool_playbooks?.[0]?.tool ?? ''
+
+          return (
+            <div className="space-y-6">
+              {/* Personalized hero card */}
+              <div className="relative overflow-hidden rounded-2xl p-6"
+                style={{ background: 'linear-gradient(135deg, #059669 0%, #0d9488 40%, #d97706 100%)' }}>
+                <div className="dot-grid-3d absolute inset-0 opacity-20" />
+                <div className="relative z-10">
+                  <p className="text-emerald-100 text-xs font-semibold uppercase tracking-widest mb-1">Your personalized dashboard</p>
+                  <h2 className="text-2xl font-black text-white mb-1">
+                    {(() => {
+                      const h = new Date().getHours()
+                      return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'
+                    })()}, {firstName}.
+                  </h2>
+                  <p className="text-white/75 text-sm mb-4 max-w-lg">
+                    You&apos;re a <strong className="text-white">{profile.role}</strong> with a prompt playbook built for your exact role and tools. Every section below is specific to how you work — not generic AI tips.
+                  </p>
+                  <div className="flex items-center gap-4 flex-wrap">
+                    <div className="bg-white/15 rounded-xl px-4 py-2.5 border border-white/20">
+                      <p className="text-xs text-white/60 mb-0.5">Tasks completed</p>
+                      <p className="text-xl font-black text-white">{totalDone}<span className="text-sm text-white/60 font-normal">/{totalTasks}</span></p>
+                    </div>
+                    <div className="bg-white/15 rounded-xl px-4 py-2.5 border border-white/20">
+                      <p className="text-xs text-white/60 mb-0.5">Tools in your stack</p>
+                      <p className="text-xl font-black text-white">{tools.length}</p>
+                    </div>
+                    <div className="bg-white/15 rounded-xl px-4 py-2.5 border border-white/20">
+                      <p className="text-xs text-white/60 mb-0.5">Prompt frameworks</p>
+                      <p className="text-xl font-black text-white">{(playbook?.tool_playbooks ?? []).reduce((s, tp) => s + tp.frameworks.length, 0) || '—'}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Progress bar full-width */}
+              {totalTasks > 0 && (
+                <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <TrendingUp className="w-4 h-4 text-emerald-600" />
+                      <span className="text-sm font-semibold text-gray-900">Your progress</span>
+                    </div>
+                    <span className="text-sm font-bold text-emerald-600">{pct}% complete</span>
+                  </div>
+                  <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden mb-3">
+                    <div className="h-2.5 rounded-full transition-all duration-700"
+                      style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #10b981, #f59e0b)' }} />
+                  </div>
+                  <div className="flex gap-3 flex-wrap">
+                    {stackMap?.tool_tracks.map(track => {
+                      const done = completed.filter(c => c.tool === track.tool).length
+                      const trackPct = Math.round((done / track.daily_tasks.length) * 100)
+                      return (
+                        <div key={track.tool} className="flex items-center gap-1.5 text-xs text-gray-500">
+                          <div className="w-1.5 h-1.5 rounded-full" style={{ background: trackPct === 100 ? '#10b981' : trackPct > 0 ? '#f59e0b' : '#e5e7eb' }} />
+                          <span>{track.tool}</span>
+                          <span className="text-gray-400">{done}/{track.daily_tasks.length}</span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Today's tasks */}
+              {todayTasks.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <Zap className="w-4 h-4 text-amber-500" />
+                    <h3 className="text-sm font-bold text-gray-900">Continue where you left off</h3>
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {todayTasks.slice(0, 4).map(item => {
+                      if (!item) return null
+                      const { track, task } = item
+                      const isDone = isCompleted(track.tool, task.day)
+                      const key = `${track.tool}-${task.day}`
+                      return (
+                        <div key={key}
+                          className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:border-emerald-200 hover:shadow-md transition-all duration-200 group">
+                          <div className="flex items-start gap-3">
+                            <button onClick={() => markTaskDone(track.tool, task.day)} disabled={isDone || marking === key}
+                              className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
+                                isDone ? 'bg-emerald-500 border-emerald-500' : 'border-gray-300 hover:border-emerald-400'
+                              }`}>
+                              {isDone && <CheckCircle className="w-3.5 h-3.5 text-white fill-white" />}
+                            </button>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-1.5 mb-1">
+                                <span className="text-xs font-bold text-emerald-600">{track.tool}</span>
+                                <span className="text-xs text-gray-400">· Day {task.day}</span>
+                              </div>
+                              <p className="text-sm font-semibold text-gray-900 mb-1">{task.title}</p>
+                              <p className="text-xs text-gray-500 leading-relaxed line-clamp-2">{task.task}</p>
+                            </div>
+                          </div>
+                          <div className="mt-3 flex items-center justify-between">
+                            <span className="flex items-center gap-1 text-xs text-gray-400"><Clock className="w-3 h-3" /> {task.time_minutes}m</span>
+                            <button onClick={() => setSection('tasks')}
+                              className="text-xs text-emerald-600 font-medium hover:text-emerald-700 flex items-center gap-1">
+                              See all tasks <ArrowRight className="w-3 h-3" />
+                            </button>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Quick win: before/after from playbook */}
+              {quickWin && (
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <Star className="w-4 h-4 text-amber-500" />
+                    <h3 className="text-sm font-bold text-gray-900">Quick win — see the before/after difference</h3>
+                    <span className="text-xs text-gray-400">{quickWinTool}</span>
+                  </div>
+                  <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
+                    <div className="px-5 pt-4 pb-3 border-b border-gray-50">
+                      <p className="text-sm font-semibold text-gray-900">{quickWin.title}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">{quickWin.use_case}</p>
+                    </div>
+                    <div className="grid sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-gray-100">
+                      <div className="p-4">
+                        <p className="text-xs font-bold text-red-500 uppercase tracking-wide mb-2 flex items-center gap-1">✗ Without this framework</p>
+                        <div className="bg-red-50 border border-red-100 rounded-xl p-3 text-xs text-red-800 italic leading-relaxed">{quickWin.before}</div>
+                      </div>
+                      <div className="p-4">
+                        <p className="text-xs font-bold text-emerald-600 uppercase tracking-wide mb-2 flex items-center gap-1">✓ With this framework</p>
+                        <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3 text-xs text-emerald-900 leading-relaxed">{quickWin.after}</div>
+                      </div>
+                    </div>
+                    <div className="px-5 py-3 bg-amber-50 border-t border-amber-100">
+                      <p className="text-xs text-amber-800 flex items-start gap-1.5">
+                        <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
+                        <span><strong>Why it works:</strong> {quickWin.why_better}</span>
+                      </p>
+                    </div>
+                    <div className="px-5 py-3 border-t border-gray-100 flex items-center justify-between">
+                      <span className="text-xs text-gray-400">Your full playbook has {(playbook?.tool_playbooks ?? []).reduce((s, tp) => s + tp.frameworks.length, 0)} frameworks like this</span>
+                      <button onClick={() => setSection('playbook')}
+                        className="text-xs text-emerald-600 font-medium hover:text-emerald-700 flex items-center gap-1">
+                        Open playbook <ArrowRight className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Feature quick-links */}
+              <div>
+                <h3 className="text-sm font-bold text-gray-900 mb-3">Everything in your dashboard</h3>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  {[
+                    { key: 'tasks' as Section, icon: LayoutDashboard, title: 'Daily Tasks', desc: '10-min practice tasks per tool, matched to your skill level', color: 'emerald' },
+                    { key: 'playbook' as Section, icon: FileText, title: 'Prompt Playbook', desc: 'Role-specific frameworks with before/after examples for every tool', color: 'teal' },
+                    { key: 'guides' as Section, icon: BookOpen, title: 'Tool Guides', desc: 'When to use which tool, what each is best for your role', color: 'amber' },
+                    { key: 'ask' as Section, icon: MessageSquare, title: 'Ask AI Coach', desc: 'Ask anything about your tools — answers tailored to your role', color: 'blue' },
+                  ].map(item => (
+                    <button key={item.key} onClick={() => setSection(item.key)}
+                      className="group text-left bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:border-emerald-200 hover:shadow-md transition-all duration-200">
+                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center mb-3 transition-colors ${
+                        item.color === 'emerald' ? 'bg-emerald-100 group-hover:bg-emerald-200' :
+                        item.color === 'teal' ? 'bg-teal-100 group-hover:bg-teal-200' :
+                        item.color === 'amber' ? 'bg-amber-100 group-hover:bg-amber-200' :
+                        'bg-blue-100 group-hover:bg-blue-200'
+                      }`}>
+                        <item.icon className={`w-4 h-4 ${
+                          item.color === 'emerald' ? 'text-emerald-600' :
+                          item.color === 'teal' ? 'text-teal-600' :
+                          item.color === 'amber' ? 'text-amber-600' :
+                          'text-blue-600'
+                        }`} />
+                      </div>
+                      <p className="text-sm font-semibold text-gray-900 mb-1">{item.title}</p>
+                      <p className="text-xs text-gray-500 leading-relaxed">{item.desc}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+            </div>
+          )
+        })()}
 
         {/* Prompt Playbook */}
         {section === 'playbook' && (
