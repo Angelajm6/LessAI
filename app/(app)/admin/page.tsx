@@ -23,7 +23,7 @@ export default async function AdminPage() {
 
   const { data: members } = await supabase
     .from('profiles')
-    .select('id, full_name, email, role, onboarded')
+    .select('id, full_name, email, role, onboarded, tools, tool_levels, company_name')
     .eq('company_id', profile.company_id)
     .neq('id', user.id)
 
@@ -32,12 +32,22 @@ export default async function AdminPage() {
     .select('id, email, used, created_at')
     .eq('company_id', profile.company_id)
 
+  const memberIds = (members ?? []).map(m => m.id)
+
+  const { data: taskCompletions } = memberIds.length > 0
+    ? await supabase
+        .from('task_completions')
+        .select('user_id, tool, day')
+        .in('user_id', memberIds)
+    : { data: [] }
+
   return (
     <AdminClient
       company={company}
       members={members ?? []}
       invites={invites ?? []}
       adminName={profile.full_name ?? ''}
+      taskCompletions={taskCompletions ?? []}
     />
   )
 }

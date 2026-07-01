@@ -9,34 +9,45 @@ export default async function DashboardPage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('*, companies(name, tools)')
+    .select('id, full_name, role, tools, tool_levels, company_name, is_admin, onboarded')
     .eq('id', user.id)
     .single()
 
   if (!profile?.onboarded) redirect('/onboarding')
   if (profile?.is_admin) redirect('/admin')
 
-  // Get AI path
   const { data: aiPath } = await supabase
     .from('ai_paths')
-    .select('*')
+    .select('use_cases')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
     .limit(1)
     .single()
 
-  // Get all skills
-  const { data: skills } = await supabase
-    .from('skills')
-    .select('*, checkins(*)')
+  const { data: completedTasks } = await supabase
+    .from('task_completions')
+    .select('tool, day')
     .eq('user_id', user.id)
-    .order('week_number', { ascending: true })
+
+  const { data: savedPrompts } = await supabase
+    .from('saved_prompts')
+    .select('id, content, label, tool, folder_id, created_at')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+
+  const { data: promptFolders } = await supabase
+    .from('prompt_folders')
+    .select('id, name, created_at')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: true })
 
   return (
     <DashboardClient
       profile={profile}
-      aiPath={aiPath}
-      skills={skills ?? []}
+      stackMap={aiPath?.use_cases ?? null}
+      completedTasks={completedTasks ?? []}
+      savedPrompts={savedPrompts ?? []}
+      promptFolders={promptFolders ?? []}
     />
   )
 }

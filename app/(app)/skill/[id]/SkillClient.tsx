@@ -75,22 +75,23 @@ export default function SkillClient({ skill, profile, existingCheckin }: Props) 
 
   return (
     <div className="max-w-2xl mx-auto">
+      {/* Back button */}
       <button
         onClick={() => router.push('/dashboard')}
-        className="flex items-center gap-1 text-sm text-gray-400 hover:text-gray-600 mb-6 transition-colors"
+        className="flex items-center gap-1.5 text-sm font-medium text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg px-3 py-2 mb-8 transition-colors"
       >
-        <ArrowLeft className="w-3.5 h-3.5" />
+        <ArrowLeft className="w-4 h-4" />
         Back to dashboard
       </button>
 
       {/* Skill header */}
       <div className="mb-6">
-        <div className="flex items-center gap-2 mb-3">
-          <Badge className="bg-indigo-100 text-indigo-700 border-0 text-xs">
+        <div className="flex items-center gap-2 mb-3 flex-wrap">
+          <Badge className="bg-emerald-100 text-emerald-700 border-0 text-xs font-semibold">
             Week {skill.week_number}
           </Badge>
           {skill.tool && (
-            <Badge variant="outline" className="text-xs">{skill.tool}</Badge>
+            <Badge variant="outline" className="text-xs border-emerald-200 text-emerald-700">{skill.tool}</Badge>
           )}
           {done && (
             <Badge className="bg-green-100 text-green-700 border-0 text-xs gap-1">
@@ -99,27 +100,27 @@ export default function SkillClient({ skill, profile, existingCheckin }: Props) 
           )}
         </div>
         <h1 className="text-2xl font-bold text-gray-900 mb-2">{skill.title}</h1>
-        <p className="text-gray-600">{skill.description}</p>
+        <p className="text-gray-600 leading-relaxed">{skill.description}</p>
       </div>
 
       {/* Task */}
-      <div className="bg-indigo-50 rounded-xl p-6 mb-6 border border-indigo-100">
-        <div className="text-xs font-medium text-indigo-600 uppercase tracking-wide mb-3">
+      <div className="bg-emerald-50 rounded-xl p-6 mb-6 border border-emerald-200 shadow-sm">
+        <div className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-3">
           Your task
         </div>
-        <p className="text-gray-700">{skill.task}</p>
+        <p className="text-gray-800 leading-relaxed">{skill.task}</p>
       </div>
 
       {/* Alternative task (if flagged) */}
       {alternativeTask && (
-        <div className="bg-amber-50 rounded-xl p-6 mb-6 border border-amber-100">
+        <div className="bg-amber-50 rounded-xl p-6 mb-6 border border-amber-200 shadow-sm">
           <div className="flex items-center gap-2 mb-3">
             <Sparkles className="w-4 h-4 text-amber-600" />
-            <div className="text-xs font-medium text-amber-600 uppercase tracking-wide">
-              Alternative task (Claude adapted this for you)
+            <div className="text-xs font-bold text-amber-700 uppercase tracking-widest">
+              Claude adapted this for you
             </div>
           </div>
-          <p className="text-gray-700">{alternativeTask}</p>
+          <p className="text-gray-800 leading-relaxed">{alternativeTask}</p>
         </div>
       )}
 
@@ -131,7 +132,7 @@ export default function SkillClient({ skill, profile, existingCheckin }: Props) 
               <Button
                 onClick={markDone}
                 disabled={loading}
-                className="bg-indigo-600 hover:bg-indigo-700 flex-1 gap-2"
+                className="bg-emerald-600 hover:bg-emerald-700 flex-1 gap-2 h-11 text-base font-semibold"
               >
                 <CheckCircle className="w-4 h-4" />
                 {loading ? 'Saving…' : 'I did it — mark as done'}
@@ -139,7 +140,7 @@ export default function SkillClient({ skill, profile, existingCheckin }: Props) 
               <Button
                 variant="outline"
                 onClick={() => setMode('flag')}
-                className="gap-2"
+                className="gap-2 border-gray-200 text-gray-600 hover:text-gray-800"
               >
                 <ThumbsDown className="w-4 h-4" />
                 Didn&apos;t work
@@ -148,23 +149,27 @@ export default function SkillClient({ skill, profile, existingCheckin }: Props) 
           )}
 
           {mode === 'flag' && (
-            <div className="space-y-3">
+            <div className="space-y-4 bg-gray-50 rounded-xl p-5 border border-gray-200">
               <div>
-                <p className="text-sm font-medium text-gray-700 mb-2">
-                  What didn&apos;t work? Claude will generate a simpler alternative.
+                <p className="text-sm font-semibold text-gray-800 mb-1">
+                  What didn&apos;t work for you?
+                </p>
+                <p className="text-xs text-gray-500 mb-3">
+                  Claude will read your feedback and generate a simpler, better-fitted alternative task just for you.
                 </p>
                 <Textarea
                   placeholder="e.g. The tool wasn't available, the prompt gave bad results, I wasn't sure where to start…"
                   value={feedback}
                   onChange={(e) => setFeedback(e.target.value)}
                   rows={3}
+                  className="border-gray-200 focus:border-emerald-400 focus:ring-emerald-400"
                 />
               </div>
               <div className="flex gap-2">
                 <Button
                   onClick={flagSkill}
                   disabled={loading || !feedback.trim()}
-                  className="bg-indigo-600 hover:bg-indigo-700 gap-2"
+                  className="bg-emerald-600 hover:bg-emerald-700 gap-2"
                 >
                   <Sparkles className="w-4 h-4" />
                   {loading ? 'Generating…' : 'Get alternative'}
@@ -178,19 +183,31 @@ export default function SkillClient({ skill, profile, existingCheckin }: Props) 
         </>
       )}
 
+      {/* Done state */}
       {done && (
-        <div className="text-center py-6">
-          <CheckCircle className="w-10 h-10 text-green-500 mx-auto mb-3" />
-          <h3 className="font-semibold text-gray-900 mb-1">Skill completed!</h3>
-          <p className="text-sm text-gray-500 mb-4">
-            Great work. Head back to your dashboard to see what&apos;s next.
+        <div className="text-center py-8 bg-green-50 rounded-2xl border border-green-200 px-6">
+          <div className="text-4xl mb-3">🎉</div>
+          <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-3" />
+          <h3 className="text-xl font-bold text-gray-900 mb-2">Skill completed!</h3>
+          <p className="text-sm text-gray-500 mb-6">
+            Amazing work. Every skill you complete compounds — keep the momentum going.
           </p>
           <Button
             onClick={() => router.push('/dashboard')}
-            className="bg-indigo-600 hover:bg-indigo-700"
+            className="bg-emerald-600 hover:bg-emerald-700 gap-2"
           >
-            Back to dashboard
+            Back to dashboard <ArrowLeft className="w-4 h-4" />
           </Button>
+        </div>
+      )}
+
+      {/* Pro tip */}
+      {!done && (
+        <div className="mt-8 flex items-start gap-3 bg-gray-50 rounded-xl p-4 border border-gray-100">
+          <span className="text-lg leading-none mt-0.5">💡</span>
+          <p className="text-sm text-gray-600">
+            <span className="font-semibold text-gray-700">Pro tip:</span> Try to complete this within 24 hours for best retention.
+          </p>
         </div>
       )}
     </div>

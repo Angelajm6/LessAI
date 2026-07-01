@@ -1,106 +1,134 @@
-import Anthropic from '@anthropic-ai/sdk'
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY
+const MODEL = 'anthropic/claude-sonnet-4.5'
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+async function chat(prompt: string, maxTokens: number): Promise<string> {
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 60_000)
 
-export interface UseCase {
-  title: string
-  description: string
-  first_task: string
-  tool: string
-  why: string
-}
-
-export interface Skill {
-  title: string
-  description: string
-  task: string
-  tool: string
-  estimated_minutes: number
-}
-
-export async function generateAIPath(
-  role: string,
-  tools: string[],
-  companyWebsite?: string
-): Promise<UseCase[]> {
-  const toolList = tools.join(', ') || 'ChatGPT, Claude'
-  const companySection = companyWebsite
-    ? `\nThe employee works at a company whose website is: ${companyWebsite}\nUse what you know about this company (industry, product, customers, and priorities) to make the use cases reflect what actually matters at this specific company.\n`
-    : ''
-
-  const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 1024,
-    messages: [
-      {
-        role: 'user',
-        content: `You are an AI adoption coach. Generate exactly 3 specific, practical AI use cases for someone with the role: "${role}".
-
-Their company uses these AI tools: ${toolList}
-${companySection}
-Return a JSON array of exactly 3 objects with this structure:
-[
-  {
-    "title": "short action-oriented title (max 6 words)",
-    "description": "2 sentences explaining the use case and why it matters for their role",
-    "first_task": "one specific, concrete task they can do in the next 30 minutes to try this — be very specific, not generic",
-    "tool": "which tool from their list to use (pick the most appropriate one)",
-    "why": "one sentence on why this use case saves them time or makes them better at their job"
+  let res: Response
+  try {
+    res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      signal: controller.signal,
+      headers: {
+        Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000',
+        'X-Title': 'LessAI',
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        max_tokens: maxTokens,
+        messages: [{ role: 'user', content: prompt }],
+      }),
+    })
+  } finally {
+    clearTimeout(timeout)
   }
-]
 
-Make them role-specific and immediately actionable. No generic advice. Return only the JSON array, no other text.`,
-      },
-    ],
-  })
+  if (!res.ok) {
+    const err = await res.text()
+    throw new Error(`OpenRouter error ${res.status}: ${err}`)
+  }
 
-  const text = message.content[0].type === 'text' ? message.content[0].text : ''
-  return JSON.parse(text)
+  const data = await res.json()
+  const content = data.choices[0].message.content as string
+  // Strip markdown fences
+  let clean = content.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim()
+  // Extract just the JSON object/array if there's surrounding text
+  const objStart = clean.indexOf('{')
+  const objEnd = clean.lastIndexOf('}')
+  if (objStart !== -1 && objEnd !== -1) clean = clean.slice(objStart, objEnd + 1)
+  return clean
 }
 
-export async function generateWeeklySkill(
+// ─── Types ───────────────────────────────────────────────────────────────────
+
+export interface ToolCard {
+  tool: string
+  tagline: string           // "Best for long-form writing and reasoning"
+  best_for: string[]        // ["Drafting emails", "Research synthesis"]
+  not_great_for: string[]   // ["Real-time web data", "Image generation"]
+  vs_others: string         // "Unlike ChatGPT, Claude is better at following nuanced instructions..."
+  killer_use_case: string   // One specific wow moment for this role
+}
+
+export interface DailyTask {
+  day: number
+  title: string
+  task: string              // Specific, concrete, 10-min task
+  time_minutes: number
+}
+
+export interface ToolTrack {
+  tool: string
+  skill_level: string       // never / learning / comfortable
+  why_this_role: string     // Why this tool specifically matters for their role
+  daily_tasks: DailyTask[]  // 5 daily tasks (Mon-Fri)
+}
+
+export interface StackMap {
+  summary: string           // 2-sentence overview of their stack
+  workflow_tip: string      // How to combine these tools together
+  tool_cards: ToolCard[]
+  tool_tracks: ToolTrack[]
+}
+
+// ─── Main generation ─────────────────────────────────────────────────────────
+
+export async function generateStackMap(
   role: string,
   tools: string[],
-  weekNumber: number,
-  previousSkills: string[]
-): Promise<Skill> {
-  const toolList = tools.join(', ') || 'ChatGPT, Claude'
-  const prevList = previousSkills.length > 0 ? previousSkills.join(', ') : 'none yet'
+  toolLevels: Record<string, string>,
+  company?: string | null
+): Promise<StackMap> {
+  const toolList = tools.map(t => `${t} (${toolLevels[t] ?? 'never'})`).join(', ')
+  const companyLine = company ? `They work at ${company}.` : ''
 
-  const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 512,
-    messages: [
-      {
-        role: 'user',
-        content: `You are an AI adoption coach. Generate one AI skill for week ${weekNumber} for a "${role}".
+  const text = await chat(
+    `You are an AI adoption coach. A ${role} has these AI tools: ${toolList}. ${companyLine}
 
-Their AI tools: ${toolList}
-Skills they already learned: ${prevList}
+Return a JSON object with this EXACT structure (no extra text, no markdown):
 
-The skill should:
-- Be NEW (not something they already learned)
-- Be learnable in 5 minutes
-- Come with a real, specific work task to try it on
-- Build progressively (week 1 = basics, later weeks = advanced)
-
-Return a single JSON object:
 {
-  "title": "short action-oriented skill name",
-  "description": "explain the skill in 2 sentences — what it is and when to use it",
-  "task": "the specific thing to try TODAY using this skill — be very concrete, mention the tool, give example prompts if relevant",
-  "tool": "which of their tools to use",
-  "estimated_minutes": 15
+  "summary": "2 sentences about their stack strengths and biggest gap",
+  "workflow_tip": "1 sentence on chaining 2-3 of their tools for a common ${role} task",
+  "tool_cards": [
+    {
+      "tool": "tool name",
+      "tagline": "max 6 words",
+      "best_for": ["use case 1 for ${role}", "use case 2", "use case 3"],
+      "not_great_for": ["limitation 1", "limitation 2"],
+      "vs_others": "1 sentence vs most similar tool in their stack",
+      "killer_use_case": "One specific 10-min task for a ${role} that would impress their manager"
+    }
+  ],
+  "tool_tracks": [
+    {
+      "tool": "tool name",
+      "skill_level": "level from input",
+      "why_this_role": "1 sentence why this matters for ${role}",
+      "daily_tasks": [
+        {"day": 1, "title": "short name", "task": "Specific 10-min task with exact steps for a ${role}. Name the feature, give example input, state expected output.", "time_minutes": 10},
+        {"day": 2, "title": "short name", "task": "...", "time_minutes": 10},
+        {"day": 3, "title": "short name", "task": "...", "time_minutes": 10},
+        {"day": 4, "title": "short name", "task": "...", "time_minutes": 10},
+        {"day": 5, "title": "short name", "task": "...", "time_minutes": 10}
+      ]
+    }
+  ]
 }
 
-Return only the JSON object, no other text.`,
-      },
-    ],
-  })
+Include ALL ${tools.length} tools in both tool_cards and tool_tracks: ${tools.join(', ')}.
+daily_tasks: exactly 5 per tool, day 1=beginner, day 5=intermediate. Be specific not generic.
+Return ONLY the JSON object.`,
+    8192
+  )
 
-  const text = message.content[0].type === 'text' ? message.content[0].text : ''
   return JSON.parse(text)
 }
+
+// ─── Legacy helpers (kept for backward compat) ───────────────────────────────
 
 export async function generateAlternativeTask(
   originalTask: string,
@@ -108,24 +136,15 @@ export async function generateAlternativeTask(
   role: string,
   tool: string
 ): Promise<string> {
-  const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 256,
-    messages: [
-      {
-        role: 'user',
-        content: `An employee with the role "${role}" tried this AI task but it didn't work out:
+  const text = await chat(
+    `An employee with the role "${role}" tried this AI task but it didn't work:
 
 Original task: "${originalTask}"
 Their feedback: "${feedback}"
-Tool they used: ${tool}
+Tool: ${tool}
 
-Generate ONE alternative, simpler version of this task that addresses their concern.
-Be specific and concrete. Return just the task description as plain text, no JSON, no preamble.`,
-      },
-    ],
-  })
-
-  const text = message.content[0].type === 'text' ? message.content[0].text : ''
+Generate ONE alternative, simpler version. Be specific and concrete. Return plain text only, no JSON, no preamble.`,
+    256
+  )
   return text.trim()
 }

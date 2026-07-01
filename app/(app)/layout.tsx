@@ -25,17 +25,18 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             </div>
             <span className="font-semibold text-gray-900">LessAI</span>
           </Link>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-500">{profile?.full_name}</span>
+          <div className="flex items-center gap-3">
+            <span className="hidden sm:block text-sm text-gray-500">{profile?.full_name}</span>
             <form action="/api/auth/signout" method="post">
-              <button className="text-gray-400 hover:text-gray-600 transition-colors">
+              <button className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-700 transition-colors">
                 <LogOut className="w-4 h-4" />
+                <span className="hidden sm:inline">Sign out</span>
               </button>
             </form>
           </div>
         </div>
       </nav>
-      <main className="max-w-5xl mx-auto px-6 py-8">{children}</main>
+      <main className="w-full px-4 sm:px-6 py-6 sm:py-8">{children}</main>
     </div>
   )
 }

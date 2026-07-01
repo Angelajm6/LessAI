@@ -162,6 +162,74 @@
   from { stroke-dashoffset: 100; }
   to { stroke-dashoffset: 0; }
 }
+@keyframes border-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-border-spin { animation: border-spin 4s linear infinite; }
+
+@keyframes grid-flow {
+  0%   { background-position: 0px 0px; }
+  100% { background-position: 0px 28px; }
+}
+@keyframes grid-flow-dark {
+  0%   { background-position: 0px 0px; }
+  100% { background-position: 0px 48px; }
+}
+
+/* 3D perspective dot grid — light */
+.dot-grid-3d {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.dot-grid-3d::before {
+  content: '';
+  position: absolute;
+  inset: -20% -10%;
+  background-image: radial-gradient(circle, #d1d5db 1px, transparent 1px);
+  background-size: 28px 28px;
+  transform: perspective(600px) rotateX(45deg);
+  transform-origin: center 40%;
+  animation: grid-flow 2.5s linear infinite;
+  opacity: 0.55;
+}
+.dot-grid-3d::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, white 0%, transparent 35%, transparent 65%, white 100%);
+}
+
+/* 3D line grid — dark sections */
+.line-grid-3d {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.line-grid-3d::before {
+  content: '';
+  position: absolute;
+  top: -60%;
+  left: -20%;
+  right: -20%;
+  bottom: -20%;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.18) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px);
+  background-size: 48px 48px;
+  transform: perspective(700px) rotateX(40deg);
+  transform-origin: center 35%;
+  animation: grid-flow-dark 3s linear infinite;
+  opacity: 1;
+}
+.line-grid-3d::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, #030712 0%, transparent 40%, transparent 60%, #030712 100%);
+}
 
 .animate-float { animation: float 4s ease-in-out infinite; }
 .animate-float-slow { animation: float-slow 6s ease-in-out infinite; }
