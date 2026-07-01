@@ -10,9 +10,10 @@ import {
   CheckCircle, ChevronDown, ChevronRight, Sparkles, Clock,
   ThumbsUp, Zap, Send, Bot, User, Bookmark, BookmarkCheck,
   Copy, Trash2, ArrowRight, LayoutDashboard, BookOpen,
-  MessageSquare, FolderPlus, Folder, FolderOpen, Plus, X, Pencil
+  MessageSquare, FolderPlus, Folder, FolderOpen, Plus, X, Pencil,
+  FileText, ChevronUp
 } from 'lucide-react'
-import type { StackMap, ToolCard, ToolTrack, DailyTask } from '@/lib/claude'
+import type { StackMap, ToolCard, ToolTrack, DailyTask, Playbook, ToolPlaybook, PromptFramework } from '@/lib/claude'
 
 interface CompletedTask { tool: string; day: number }
 interface ChatMessage { role: 'user' | 'assistant'; content: string }
@@ -29,6 +30,7 @@ interface Props {
     company_name?: string | null
   }
   stackMap: StackMap | null
+  playbook: Playbook | null
   completedTasks: CompletedTask[]
   savedPrompts: SavedPrompt[]
   promptFolders: PromptFolder[]
@@ -40,16 +42,17 @@ const LEVEL_COLORS: Record<string, string> = {
   comfortable: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
 }
 
-type Section = 'tasks' | 'guides' | 'saved' | 'ask'
+type Section = 'tasks' | 'playbook' | 'guides' | 'saved' | 'ask'
 
 const NAV_ITEMS: { key: Section; icon: React.ElementType; label: string }[] = [
   { key: 'tasks', icon: LayoutDashboard, label: 'Daily Tasks' },
+  { key: 'playbook', icon: FileText, label: 'Prompt Playbook' },
   { key: 'guides', icon: BookOpen, label: 'Tool Guides' },
   { key: 'saved', icon: Bookmark, label: 'Saved Prompts' },
   { key: 'ask', icon: MessageSquare, label: 'Ask AI' },
 ]
 
-export default function DashboardClient({ profile, stackMap, completedTasks: initialCompleted, savedPrompts: initialSaved, promptFolders: initialFolders }: Props) {
+export default function DashboardClient({ profile, stackMap, playbook, completedTasks: initialCompleted, savedPrompts: initialSaved, promptFolders: initialFolders }: Props) {
   const [section, setSection] = useState<Section>('tasks')
   const [completed, setCompleted] = useState<CompletedTask[]>(initialCompleted)
   const [expanded, setExpanded] = useState<string | null>(null)
@@ -77,10 +80,15 @@ export default function DashboardClient({ profile, stackMap, completedTasks: ini
   const [chatInput, setChatInput] = useState('')
   const [chatLoading, setChatLoading] = useState(false)
   const chatBottomRef = useRef<HTMLDivElement>(null)
+  // Playbook state
+  const [activeTool, setActiveTool] = useState<string | null>(null)
+  const [expandedFramework, setExpandedFramework] = useState<string | null>(null)
+  const [copiedFramework, setCopiedFramework] = useState<string | null>(null)
 
   const firstName = profile.full_name?.split(' ')[0] ?? 'there'
   const tools = profile.tools ?? []
   const toolLevels = profile.tool_levels ?? {}
+  const playbookTools = playbook?.tool_playbooks ?? []
 
   useEffect(() => { chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [chatMessages])
 
@@ -223,6 +231,12 @@ export default function DashboardClient({ profile, stackMap, completedTasks: ini
     setTimeout(() => setCopiedId(null), 2000)
   }
 
+  async function copyFramework(text: string, key: string) {
+    await navigator.clipboard.writeText(text)
+    setCopiedFramework(key)
+    setTimeout(() => setCopiedFramework(null), 2000)
+  }
+
   async function sendMessage() {
     const text = chatInput.trim()
     if (!text || chatLoading) return
@@ -335,6 +349,173 @@ export default function DashboardClient({ profile, stackMap, completedTasks: ini
                 <p className="text-white/90 text-sm">{stackMap.workflow_tip}</p>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Prompt Playbook */}
+        {section === 'playbook' && (
+          <div>
+            {/* Header */}
+            <div className="relative overflow-hidden rounded-2xl px-5 py-5 mb-5"
+              style={{ background: 'linear-gradient(135deg, #f0fdf4 0%, #fefce8 60%, #fff7ed 100%)' }}>
+              <div className="dot-grid-3d absolute inset-0 opacity-25" />
+              <div className="relative z-10">
+                <div className="flex items-center gap-2 mb-1">
+                  <FileText className="w-5 h-5 text-emerald-600" />
+                  <h2 className="text-lg font-bold text-gray-900">Prompt Playbook</h2>
+                </div>
+                <p className="text-sm text-gray-500 max-w-xl">
+                  Role-specific prompt frameworks for every tool in your stack. Copy the template, fill in the brackets, and get dramatically better results.
+                </p>
+              </div>
+            </div>
+
+            {!playbook ? (
+              <div className="text-center py-16 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+                <FileText className="w-8 h-8 text-gray-300 mx-auto mb-3" />
+                <p className="text-sm font-medium text-gray-500 mb-1">Playbook not generated yet</p>
+                <p className="text-xs text-gray-400 mb-4">Re-run onboarding to generate your prompt playbook.</p>
+                <Button size="sm" variant="outline" onClick={() => window.location.href = '/onboarding'}
+                  className="gap-1.5 text-emerald-700 border-emerald-200 hover:bg-emerald-50">
+                  <ArrowRight className="w-3.5 h-3.5" /> Go to onboarding
+                </Button>
+              </div>
+            ) : (
+              <div className="flex flex-col sm:flex-row gap-5">
+                {/* Tool tabs */}
+                <div className="w-full sm:w-44 shrink-0">
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 px-1">Tools</p>
+                  <div className="flex sm:flex-col gap-1.5 sm:gap-0.5 overflow-x-auto sm:overflow-visible pb-1 sm:pb-0">
+                    {playbookTools.map((tp: ToolPlaybook) => {
+                      const isActive = (activeTool ?? playbookTools[0]?.tool) === tp.tool
+                      return (
+                        <button key={tp.tool} onClick={() => { setActiveTool(tp.tool); setExpandedFramework(null) }}
+                          className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left ${
+                            isActive ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-200' : 'text-gray-600 hover:bg-gray-100'
+                          }`}>
+                          <span className="truncate">{tp.tool}</span>
+                          <span className={`ml-auto text-xs shrink-0 ${isActive ? 'text-white/60' : 'text-gray-400'}`}>
+                            {tp.frameworks.length}
+                          </span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                {/* Frameworks */}
+                <div className="flex-1 min-w-0">
+                  {(() => {
+                    const activeToolData = playbookTools.find((tp: ToolPlaybook) => tp.tool === (activeTool ?? playbookTools[0]?.tool)) ?? playbookTools[0]
+                    if (!activeToolData) return null
+                    return (
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-base font-bold text-gray-900">{activeToolData.tool}</span>
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${LEVEL_COLORS[toolLevels[activeToolData.tool] ?? 'never']}`}>
+                            {toolLevels[activeToolData.tool] ?? 'never'}
+                          </span>
+                        </div>
+
+                        {activeToolData.frameworks.map((fw: PromptFramework, idx: number) => {
+                          const fwKey = `${activeToolData.tool}-${idx}`
+                          const isOpen = expandedFramework === fwKey
+                          return (
+                            <div key={fwKey}
+                              className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm hover:border-emerald-200 hover:shadow-md transition-all duration-200">
+                              {/* Framework header */}
+                              <button onClick={() => setExpandedFramework(isOpen ? null : fwKey)}
+                                className="w-full text-left px-5 py-4 flex items-start gap-3 group">
+                                <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-xs font-bold shrink-0 mt-0.5">
+                                  {idx + 1}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-semibold text-gray-900 text-sm">{fw.title}</p>
+                                  <p className="text-xs text-gray-500 mt-0.5">{fw.use_case}</p>
+                                </div>
+                                <div className="shrink-0 text-gray-300 group-hover:text-emerald-500 transition-colors">
+                                  {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                                </div>
+                              </button>
+
+                              {isOpen && (
+                                <div className="border-t border-gray-50 space-y-4 p-5">
+                                  {/* The framework template */}
+                                  <div>
+                                    <div className="flex items-center justify-between mb-2">
+                                      <p className="text-xs font-bold text-gray-700 uppercase tracking-wide">Prompt Framework</p>
+                                      <button
+                                        onClick={() => copyFramework(fw.framework, `${fwKey}-fw`)}
+                                        className="flex items-center gap-1 text-xs text-emerald-600 hover:text-emerald-700 font-medium transition-colors">
+                                        {copiedFramework === `${fwKey}-fw` ? <><CheckCircle className="w-3.5 h-3.5" /> Copied!</> : <><Copy className="w-3.5 h-3.5" /> Copy</>}
+                                      </button>
+                                    </div>
+                                    <div className="relative bg-gray-50 rounded-xl p-4 border border-gray-200 font-mono text-xs text-gray-800 leading-relaxed whitespace-pre-wrap">
+                                      {fw.framework}
+                                    </div>
+                                  </div>
+
+                                  {/* Before / After */}
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div>
+                                      <p className="text-xs font-bold text-red-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                                        <span className="text-base">✗</span> Without this framework
+                                      </p>
+                                      <div className="bg-red-50 border border-red-100 rounded-xl p-3 text-xs text-red-800 leading-relaxed italic">
+                                        {fw.before}
+                                      </div>
+                                    </div>
+                                    <div>
+                                      <div className="flex items-center justify-between mb-2">
+                                        <p className="text-xs font-bold text-emerald-600 uppercase tracking-wide flex items-center gap-1">
+                                          <span className="text-base">✓</span> With this framework
+                                        </p>
+                                        <button
+                                          onClick={() => copyFramework(fw.after, `${fwKey}-after`)}
+                                          className="flex items-center gap-1 text-xs text-emerald-600 hover:text-emerald-700 font-medium transition-colors">
+                                          {copiedFramework === `${fwKey}-after` ? <><CheckCircle className="w-3.5 h-3.5" /> Copied!</> : <><Copy className="w-3.5 h-3.5" /> Copy</>}
+                                        </button>
+                                      </div>
+                                      <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3 text-xs text-emerald-900 leading-relaxed">
+                                        {fw.after}
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Why better */}
+                                  <div className="relative overflow-hidden bg-amber-50 border border-amber-100 rounded-xl px-4 py-3">
+                                    <div className="dot-grid-3d absolute inset-0 opacity-20" />
+                                    <p className="relative z-10 text-xs font-semibold text-amber-700 mb-0.5 flex items-center gap-1">
+                                      <Sparkles className="w-3 h-3" /> Why it works
+                                    </p>
+                                    <p className="relative z-10 text-xs text-amber-800 leading-relaxed">{fw.why_better}</p>
+                                  </div>
+
+                                  {/* Save to library */}
+                                  <div className="flex items-center justify-between pt-1 border-t border-gray-50">
+                                    <span className="text-xs text-gray-400">Save this framework to your prompt library</span>
+                                    <button
+                                      onClick={() => savePrompt(fw.framework, `${activeToolData.tool} — ${fw.title}`, activeToolData.tool)}
+                                      disabled={isPromptSaved(fw.framework)}
+                                      className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition-all ${
+                                        isPromptSaved(fw.framework)
+                                          ? 'text-emerald-500 bg-emerald-50'
+                                          : 'text-gray-500 hover:text-amber-600 hover:bg-amber-50 border border-gray-200'
+                                      }`}>
+                                      {isPromptSaved(fw.framework) ? <><BookmarkCheck className="w-3.5 h-3.5" /> Saved</> : <><Bookmark className="w-3.5 h-3.5" /> Save to library</>}
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )
+                  })()}
+                </div>
+              </div>
+            )}
           </div>
         )}
 

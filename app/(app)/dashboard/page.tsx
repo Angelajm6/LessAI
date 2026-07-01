@@ -41,10 +41,19 @@ export default async function DashboardPage() {
     .eq('user_id', user.id)
     .order('created_at', { ascending: true })
 
+  const { data: playbookRow } = await supabase
+    .from('playbooks')
+    .select('data')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single()
+
   return (
     <DashboardClient
       profile={profile}
       stackMap={aiPath?.use_cases ?? null}
+      playbook={playbookRow?.data ?? null}
       completedTasks={completedTasks ?? []}
       savedPrompts={savedPrompts ?? []}
       promptFolders={promptFolders ?? []}

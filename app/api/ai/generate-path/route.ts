@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { generateStackMap } from '@/lib/claude'
+import { generateStackMap, generatePlaybook } from '@/lib/claude'
 import { sendWelcomeEmail } from '@/lib/email'
 
 export async function POST(req: NextRequest) {
@@ -15,25 +15,35 @@ export async function POST(req: NextRequest) {
   }
 
   let stackMap
+  let playbook
   try {
-    stackMap = await generateStackMap(role, tools, toolLevels ?? {}, company ?? null)
+    ;[stackMap, playbook] = await Promise.all([
+      generateStackMap(role, tools, toolLevels ?? {}, company ?? null),
+      generatePlaybook(role, tools, toolLevels ?? {}, company ?? null),
+    ])
   } catch (err) {
-    console.error('Stack map generation error:', err)
+    console.error('Generation error:', err)
     return NextResponse.json({ error: err instanceof Error ? err.message : 'AI generation failed' }, { status: 500 })
   }
 
-  // Delete any existing path for this user first
-  await supabase.from('ai_paths').delete().eq('user_id', user.id)
+  // Replace any existing data for this user
+  await Promise.all([
+    supabase.from('ai_paths').delete().eq('user_id', user.id),
+    supabase.from('playbooks').delete().eq('user_id', user.id),
+  ])
 
-  const { data, error } = await supabase
-    .from('ai_paths')
-    .insert({ user_id: user.id, use_cases: stackMap })
-    .select()
-    .single()
+  const [{ data, error }, { error: playbookError }] = await Promise.all([
+    supabase.from('ai_paths').insert({ user_id: user.id, use_cases: stackMap }).select().single(),
+    supabase.from('playbooks').insert({ user_id: user.id, data: playbook }),
+  ])
 
   if (error) {
     console.error('DB insert error:', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+  if (playbookError) {
+    console.error('Playbook insert error:', playbookError)
+    // Non-fatal — stack map succeeded, continue
   }
 
   // Fire welcome email (non-blocking — don't fail the request if email fails)

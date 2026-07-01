@@ -100,3 +100,16 @@ create policy "admin manages invites" on invites
 
 create policy "invite lookup by token" on invites
   for select using (true);
+
+-- Playbooks table (prompt frameworks + before/after per tool, generated at onboarding)
+create table playbooks (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references profiles(id) on delete cascade,
+  data jsonb not null,
+  created_at timestamptz default now()
+);
+
+alter table playbooks enable row level security;
+
+create policy "own playbooks" on playbooks
+  for all using (user_id = auth.uid());

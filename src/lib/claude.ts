@@ -169,6 +169,75 @@ Be specific to the ${role} role. Return ONLY the JSON array.`,
   return JSON.parse(json)
 }
 
+// ─── Prompt Playbook ─────────────────────────────────────────────────────────
+
+export interface PromptFramework {
+  title: string         // "Write a Weekly Status Update"
+  use_case: string      // When to use this (1 sentence)
+  framework: string     // Reusable template with [PLACEHOLDERS] in caps
+  before: string        // Example of a weak prompt
+  after: string         // Strong prompt using the framework
+  why_better: string    // What specifically makes the after version stronger
+}
+
+export interface ToolPlaybook {
+  tool: string
+  frameworks: PromptFramework[]
+}
+
+export interface Playbook {
+  tool_playbooks: ToolPlaybook[]
+}
+
+export async function generatePlaybook(
+  role: string,
+  tools: string[],
+  toolLevels: Record<string, string>,
+  company?: string | null
+): Promise<Playbook> {
+  const toolList = tools.map(t => `${t} (${toolLevels[t] ?? 'never'})`).join(', ')
+  const companyLine = company ? `They work at ${company}.` : ''
+
+  const text = await chat(
+    `You are an expert AI prompt coach. A ${role} uses these AI tools: ${toolList}. ${companyLine}
+
+For each tool, create 3 prompt frameworks that are genuinely useful for a ${role}.
+A framework is a reusable prompt template with [PLACEHOLDER] variables the user fills in.
+
+Return a JSON object with this EXACT structure (no extra text, no markdown):
+
+{
+  "tool_playbooks": [
+    {
+      "tool": "exact tool name from input",
+      "frameworks": [
+        {
+          "title": "What this framework accomplishes (5-8 words)",
+          "use_case": "One sentence: when a ${role} should reach for this",
+          "framework": "The full reusable prompt template. Use [CAPS_PLACEHOLDER] for variables the user fills in. Should be 3-6 sentences with clear structure. Include context, task, constraints, and output format instructions.",
+          "before": "A weak, vague prompt a beginner might write for the same goal (1-2 sentences)",
+          "after": "The same prompt but using the framework — filled in with a realistic example for a ${role}",
+          "why_better": "One sentence: the specific technique that makes the 'after' produce better results"
+        }
+      ]
+    }
+  ]
+}
+
+Rules:
+- Include ALL ${tools.length} tools: ${tools.join(', ')}
+- Each tool gets exactly 3 frameworks
+- Frameworks must be role-specific for a ${role}, not generic
+- The [PLACEHOLDERS] in the framework template should be the parts a user customizes
+- The "after" example should be filled in with realistic ${role} content, not placeholders
+- Make the before/after contrast stark and educational
+- Return ONLY the JSON object`,
+    tools.length * 3 * 500 + 2000
+  )
+
+  return JSON.parse(text)
+}
+
 // ─── Legacy helpers (kept for backward compat) ───────────────────────────────
 
 export async function generateAlternativeTask(
