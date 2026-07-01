@@ -108,9 +108,9 @@ export default function OnboardingPage() {
         <div className="w-16 h-16 bg-emerald-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-emerald-200 animate-pulse">
           <Sparkles className="w-8 h-8 text-white" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Building your AI Stack Map</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Building your prompt playbook</h2>
         <p className="text-gray-500 mb-8 max-w-sm">
-          Analyzing <span className="font-semibold text-emerald-600">{selectedTools.length} tools</span> for a <span className="font-semibold text-emerald-600">{selectedRole}</span>… this takes about 15 seconds.
+          Creating role-specific frameworks for <span className="font-semibold text-emerald-600">{selectedTools.length} tools</span> as a <span className="font-semibold text-emerald-600">{selectedRole}</span>… this takes about 15 seconds.
         </p>
         <div className="w-64 h-1.5 bg-gray-100 rounded-full overflow-hidden mb-8">
           <div className="h-full bg-emerald-500 rounded-full animate-[loading_15s_ease-in-out_forwards]" style={{ animation: 'progress 15s ease-in-out forwards' }} />
@@ -118,8 +118,8 @@ export default function OnboardingPage() {
         <div className="grid grid-cols-3 gap-3 max-w-sm w-full px-4">
           {[
             { icon: BarChart2, label: 'Comparing your tools' },
-            { icon: BookOpen, label: 'Building daily tasks' },
-            { icon: Zap, label: 'Mapping to your role' },
+            { icon: BookOpen, label: 'Writing prompt frameworks' },
+            { icon: Zap, label: 'Tailoring to your role' },
           ].map(({ icon: Icon, label }) => (
             <div key={label} className="bg-white border border-gray-100 rounded-xl p-3 text-center shadow-sm">
               <Icon className="w-5 h-5 text-emerald-500 mx-auto mb-1.5" />
@@ -175,7 +175,7 @@ export default function OnboardingPage() {
           <div className="mb-6">
             <p className="text-xs font-semibold text-emerald-600 uppercase tracking-widest mb-1">Step 1 of 4</p>
             <h1 className="text-2xl font-bold text-gray-900 mb-1">What&apos;s your role?</h1>
-            <p className="text-gray-500 text-sm">LessAI tailors every tool recommendation to how you actually work.</p>
+            <p className="text-gray-500 text-sm">Your prompt playbook is built around your role — a PM and a marketer should use AI very differently.</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
@@ -251,8 +251,8 @@ export default function OnboardingPage() {
         <div className="animate-in fade-in slide-in-from-right-4 duration-300">
           <div className="mb-6">
             <p className="text-xs font-semibold text-emerald-600 uppercase tracking-widest mb-1">Step 3 of 4</p>
-            <h1 className="text-2xl font-bold text-gray-900 mb-1">What AI tools do you have?</h1>
-            <p className="text-gray-500 text-sm">Select every tool your company has given you — even ones you&apos;ve never opened.</p>
+            <h1 className="text-2xl font-bold text-gray-900 mb-1">Which AI tools does your company give you?</h1>
+            <p className="text-gray-500 text-sm">Select all of them — even ones you&apos;ve barely touched. That&apos;s exactly what LessAI is here to fix.</p>
           </div>
 
           <div className="flex flex-wrap gap-2 mb-5">
@@ -316,7 +316,7 @@ export default function OnboardingPage() {
           <div className="mb-6">
             <p className="text-xs font-semibold text-emerald-600 uppercase tracking-widest mb-1">Step 4 of 4</p>
             <h1 className="text-2xl font-bold text-gray-900 mb-1">How well do you know each tool?</h1>
-            <p className="text-gray-500 text-sm">Be honest — this sets the difficulty of your daily tasks.</p>
+            <p className="text-gray-500 text-sm">Be honest — this sets the complexity of your prompt frameworks and daily tasks.</p>
           </div>
 
           <div className="space-y-3 mb-8">
@@ -353,7 +353,7 @@ export default function OnboardingPage() {
             </Button>
             <Button onClick={handleGenerate} disabled={generating}
               className="bg-emerald-600 hover:bg-emerald-700 gap-2 h-11 px-6 shadow-md shadow-emerald-100">
-              <Sparkles className="w-4 h-4" /> Build my AI Stack Map
+              <Sparkles className="w-4 h-4" /> Build my prompt playbook
             </Button>
           </div>
         </div>
