@@ -44,6 +44,16 @@ async function chat(prompt: string, maxTokens: number): Promise<string> {
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
+export interface UseCase {
+  title: string
+  description: string
+  tool: string
+  why?: string
+  first_task?: string
+  prompt_template?: string
+  tips?: string[]
+}
+
 export interface ToolCard {
   tool: string
   tagline: string           // "Best for long-form writing and reasoning"
@@ -126,6 +136,37 @@ Return ONLY the JSON object.`,
   )
 
   return JSON.parse(text)
+}
+
+export async function generateAIPath(
+  role: string,
+  tools: string[],
+  companyWebsite?: string
+): Promise<UseCase[]> {
+  const contextLine = companyWebsite ? `Their company website: ${companyWebsite}.` : ''
+  const text = await chat(
+    `You are an AI adoption coach. A ${role} uses these tools: ${tools.join(', ')}. ${contextLine}
+
+Return a JSON array of 4-6 use cases. Each use case must match this structure:
+[
+  {
+    "title": "short action title",
+    "description": "1-2 sentences on what they'll learn",
+    "tool": "which tool to use",
+    "why": "1 sentence on why this matters for their role",
+    "first_task": "a concrete 10-minute task to try today",
+    "tips": ["tip 1", "tip 2"]
+  }
+]
+
+Be specific to the ${role} role. Return ONLY the JSON array.`,
+    2048
+  )
+
+  const arrStart = text.indexOf('[')
+  const arrEnd = text.lastIndexOf(']')
+  const json = arrStart !== -1 && arrEnd !== -1 ? text.slice(arrStart, arrEnd + 1) : text
+  return JSON.parse(json)
 }
 
 // ─── Legacy helpers (kept for backward compat) ───────────────────────────────

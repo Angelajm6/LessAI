@@ -35,7 +35,7 @@ function useInView(threshold = 0.15) {
 }
 
 const stats = [
-  { value: 77, suffix: '%', label: 'of employees say they've never been trained on how to prompt AI tools effectively', source: 'Slack Future of Work, 2024', href: 'https://slack.com/intl/en-gb/blog/news/the-state-of-work-2023' },
+  { value: 77, suffix: '%', label: "of employees say they've never been trained on how to prompt AI tools effectively", source: 'Slack Future of Work, 2024', href: 'https://slack.com/intl/en-gb/blog/news/the-state-of-work-2023' },
   { value: 40, suffix: '%', label: 'of AI time savings are lost to rework — fixing bad outputs nobody knew how to avoid', source: 'Workday, 2025', href: 'https://investor.workday.com/news-and-events/press-releases/news-details/2026/New-Workday-Research-Companies-Are-Leaving-AI-Gains-on-the-Table/default.aspx' },
   { value: 95, suffix: '%', label: 'of AI pilots produce no measurable business impact — the gap is skill, not tooling', source: 'MIT NANDA, 2025', href: 'https://fortune.com/2025/08/18/mit-report-95-percent-generative-ai-pilots-at-companies-failing-cfo/' },
 ]
