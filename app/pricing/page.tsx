@@ -110,7 +110,7 @@ export default function PricingPage() {
             <span className="bg-gradient-to-r from-emerald-600 to-amber-500 bg-clip-text text-transparent">on the table.</span>
           </h1>
           <p className="text-lg text-gray-500 max-w-2xl mx-auto">
-            Your team has the tools. LessAI teaches them how to actually use them — with role-specific prompt playbooks, daily practice tasks, and before/after benchmarking so the improvement is visible. 7-day free trial, cancel any time before day 7.
+            Your team has the tools. LessAI teaches them how to actually use them — with role-specific prompt playbooks, daily practice tasks, and before/after benchmarking so the improvement is visible.
           </p>
         </div>
 
