@@ -2,27 +2,30 @@ import Link from 'next/link'
 import { CheckCircle, X, ArrowRight, Zap, Users, Building2, MessageSquare, Sparkles } from 'lucide-react'
 
 const BASIC_FEATURES = [
-  'AI Stack Map (up to 5 tools)',
-  '10 daily tasks per tool',
-  'Tool comparison guides',
-  '50 Ask AI messages/month',
-  'Saved prompts (up to 20)',
+  'Role-based prompt playbook (up to 5 tools)',
+  'Daily 10-min practice tasks per tool',
+  'Tool-by-tool comparison guides',
+  'Before/after prompt benchmarking',
+  '50 Ask AI coaching messages/month',
+  'Saved prompts library (up to 20)',
 ]
 
 const PRO_FEATURES = [
-  'AI Stack Map for all your tools',
-  'Unlimited daily tasks',
+  'Role-based prompt playbook (unlimited tools)',
+  'Unlimited daily practice tasks',
   'Full tool comparison guides',
-  'Unlimited Ask AI',
+  'Before/after prompt benchmarking',
+  'Unlimited Ask AI coaching',
   'Unlimited saved prompts + folders',
   'Priority AI generation',
 ]
 
 const TEAM_FEATURES = [
   'Everything in Pro',
-  'Admin ROI dashboard',
-  'Tool adoption analytics',
-  'Unused tool detection',
+  'Team prompt skill dashboard',
+  'Per-member coaching gap detection',
+  'Tool adoption & usage analytics',
+  'Unused license detection',
   'Team invite management',
   'CSV export',
   'Slack nudges (coming soon)',
@@ -31,37 +34,37 @@ const TEAM_FEATURES = [
 
 const ENTERPRISE_FEATURES = [
   'Everything in Team',
-  'Custom AI tool integrations',
+  'Custom prompt playbooks per department',
   'SSO / SAML',
-  'Dedicated onboarding',
+  'Dedicated onboarding & training sessions',
   'SLA & uptime guarantee',
   'Custom contracts & invoicing',
 ]
 
 const FAQS = [
   {
-    q: 'What counts as a "user"?',
-    a: 'Anyone on your team who has an account and has completed onboarding. Admins are included in the count.',
+    q: 'What exactly does LessAI teach?',
+    a: 'LessAI teaches your team how to prompt their AI tools — ChatGPT, Claude, Gemini, Copilot, and others — in a way that\'s specific to their role, their company context, and the actual work they do. No generic AI tips. Real frameworks for real tasks.',
   },
   {
     q: 'Do I need a credit card to start?',
-    a: 'Yes — a credit card is required to start your 7-day free trial. You won\'t be charged until the trial ends, and you can cancel any time before day 7.',
+    a: 'Yes — a credit card is required to start your 7-day free trial. You won\'t be charged until the trial ends. Cancel any time before day 7 and you pay nothing.',
   },
   {
     q: 'What happens at the end of the trial?',
-    a: 'On day 4 we\'ll send a reminder that your trial is halfway through. On day 7 you\'ll get a final heads-up. If you don\'t cancel, your card is charged on day 8 for the monthly plan.',
+    a: 'On day 4 we\'ll send a reminder. On day 7 you\'ll get a final heads-up. If you don\'t cancel, your card is charged on day 8 for your chosen monthly plan.',
   },
   {
-    q: 'Can I switch plans later?',
-    a: 'Yes — upgrade or downgrade any time. Changes take effect at the start of your next billing cycle.',
+    q: 'What\'s the difference between Basic and Pro?',
+    a: 'Basic covers up to 5 tools with 50 Ask AI messages/month — great for individuals getting started. Pro removes all limits and is best if you use more than 5 tools or want unlimited coaching access.',
   },
   {
-    q: 'What happens to my data if I cancel?',
-    a: 'Your Stack Map, saved prompts, and task history are retained for 30 days after cancellation so you can export everything.',
+    q: 'Why do I need Team if my employees already have AI tools?',
+    a: 'Having tools and knowing how to use them are two different things. Team gives managers visibility into who\'s actually improving, who\'s stuck, and which tools aren\'t landing — so you can close skill gaps before they become productivity gaps.',
   },
   {
-    q: "Can I use LessAI if my company hasn't given me AI tools yet?",
-    a: "Absolutely. Pick tools you're exploring during onboarding and use the Stack Map to learn before your company commits to licenses.",
+    q: "Can I use LessAI if my company hasn't chosen AI tools yet?",
+    a: "Yes. During onboarding you pick the tools you're exploring. LessAI will teach you how to evaluate and compare them — so when your company commits to licenses, your team already knows which ones are worth it.",
   },
 ]
 
@@ -103,11 +106,11 @@ export default function PricingPage() {
             <Zap className="w-3.5 h-3.5" /> Simple, transparent pricing
           </div>
           <h1 className="text-4xl sm:text-5xl font-black mb-4 leading-tight text-gray-950">
-            7 days free.<br />
-            <span className="bg-gradient-to-r from-emerald-600 to-amber-500 bg-clip-text text-transparent">Then from $8/user/month.</span>
+            Stop leaving AI results<br />
+            <span className="bg-gradient-to-r from-emerald-600 to-amber-500 bg-clip-text text-transparent">on the table.</span>
           </h1>
-          <p className="text-lg text-gray-500 max-w-xl mx-auto">
-            Start your free trial today. No hidden fees. Cancel any time before day 7 and you won't be charged.
+          <p className="text-lg text-gray-500 max-w-2xl mx-auto">
+            Your team has the tools. LessAI teaches them how to actually use them — with role-specific prompt playbooks, daily practice tasks, and before/after benchmarking so the improvement is visible. 7-day free trial, cancel any time before day 7.
           </p>
         </div>
 
@@ -342,18 +345,17 @@ export default function PricingPage() {
           <div className="absolute inset-0 rounded-2xl pointer-events-none" style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(16,185,129,0.12), transparent 65%)' }} />
           <div className="relative">
             <div className="inline-flex items-center gap-2 bg-emerald-500/15 border border-emerald-500/30 rounded-full px-3 py-1 text-xs font-semibold text-emerald-300 mb-4">
-              <Building2 className="w-3.5 h-3.5" /> For team leads & HR
+              <Building2 className="w-3.5 h-3.5" /> For team leads & managers
             </div>
-            <h2 className="text-2xl font-bold mb-3 text-white">Know exactly what your AI spend is doing</h2>
-            <p className="text-gray-300 max-w-xl mx-auto mb-6 leading-relaxed">
-              The average company wastes 60% of its AI tool budget on licenses nobody uses.
-              LessAI's Team plan gives you a real-time adoption dashboard so you can prove ROI — or cut what's not working.
+            <h2 className="text-2xl font-bold mb-3 text-white">Your team has AI tools. Do they know how to use them?</h2>
+            <p className="text-gray-300 max-w-2xl mx-auto mb-6 leading-relaxed">
+              The problem isn't access — it's skill. Your team opens ChatGPT, types a vague prompt, gets a mediocre answer, and concludes "AI isn't that useful." LessAI's Team plan closes that gap: every member gets a role-specific prompt playbook, daily practice tasks, and before/after benchmarking. You see who's improving, who's stuck, and exactly where to focus.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-lg mx-auto mb-6">
               {[
-                { stat: '3×', label: 'faster AI adoption vs self-serve' },
-                { stat: '60%', label: 'of AI licenses go unused on average' },
-                { stat: '$15', label: 'per user/month — less than one unused license' },
+                { stat: '77%', label: 'of employees have never been trained on how to prompt AI' },
+                { stat: '40%', label: 'of AI time savings lost to rework from bad outputs' },
+                { stat: '$15', label: 'per user/month to fix the skill gap before it costs more' },
               ].map(s => (
                 <div key={s.stat} className="bg-white/6 border border-white/10 rounded-xl p-3">
                   <div className="text-2xl font-black text-amber-400 mb-0.5">{s.stat}</div>
@@ -400,9 +402,9 @@ export default function PricingPage() {
           <div className="absolute inset-[1px] rounded-2xl" style={{ background: 'rgba(15,15,15,0.95)' }} />
           <div className="absolute inset-0 rounded-2xl" style={{ background: 'radial-gradient(ellipse at 50% 100%, rgba(5,150,105,0.12), transparent 70%)' }} />
           <div className="relative">
-            <h2 className="text-2xl font-bold mb-3">Ready to stop wasting AI licenses?</h2>
-            <p className="text-gray-500 mb-6 max-w-md mx-auto">
-              Start your 7-day free trial. Cancel any time before day 7 — no charge.
+            <h2 className="text-2xl font-bold mb-3">Your team deserves better than mediocre AI output.</h2>
+            <p className="text-gray-500 mb-6 max-w-lg mx-auto">
+              Same tools, better prompts, better results. LessAI gives every person on your team the role-specific playbook they were never given. 7-day free trial — cancel before day 7 and pay nothing.
             </p>
             <div className="flex items-center justify-center gap-3 flex-wrap">
               <Link href="/signup" className="relative group">
