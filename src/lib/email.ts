@@ -1,7 +1,9 @@
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
 const FROM = 'LessAI <onboarding@resend.dev>'
+function getResend() {
+  return new Resend(process.env.RESEND_API_KEY)
+}
 
 export async function sendWelcomeEmail({
   to,
@@ -84,7 +86,7 @@ export async function sendWelcomeEmail({
 </body>
 </html>`
 
-  const { data, error } = await resend.emails.send({
+  const { data, error } = await getResend().emails.send({
     from: FROM,
     to,
     subject: `Your AI Stack Map is ready, ${firstName} ⚡`,
