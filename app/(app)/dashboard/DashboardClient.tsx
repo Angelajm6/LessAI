@@ -1115,7 +1115,7 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
 
         {/* Daily Tasks */}
         {section === 'tasks' && (
-          <div className="space-y-3">
+          <><div className="space-y-3">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-gray-900">Daily Tasks</h2>
               {playbookTools.length > 0 && (
@@ -1230,11 +1230,18 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
               )
             })}
           </div>
+          <div className="text-center pt-6 mt-2 border-t border-gray-100">
+            <p className="text-xs text-gray-400 mb-2">Added new tools to your stack?</p>
+            <Button variant="outline" size="sm" className="text-emerald-700 border-emerald-200 hover:bg-emerald-50 gap-1.5"
+              onClick={() => window.location.href = '/onboarding?from=stack'}>
+              <ArrowRight className="w-3.5 h-3.5" /> Update my stack
+            </Button>
+          </div></>
         )}
 
         {/* Tool Guides — dark section with 3D grid */}
         {section === 'guides' && (
-          <div className="space-y-4">
+          <><div className="space-y-4">
             {/* Section header with 3D grid accent */}
             <div className="relative overflow-hidden rounded-2xl px-5 py-4 mb-2"
               style={{ background: 'linear-gradient(135deg, #f0fdf4 0%, #fefce8 100%)' }}>
@@ -1289,6 +1296,13 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                 </div>
               ))}
           </div>
+          <div className="text-center pt-6 mt-2 border-t border-gray-100">
+            <p className="text-xs text-gray-400 mb-2">Missing a tool from this list?</p>
+            <Button variant="outline" size="sm" className="text-emerald-700 border-emerald-200 hover:bg-emerald-50 gap-1.5"
+              onClick={() => window.location.href = '/onboarding?from=stack'}>
+              <ArrowRight className="w-3.5 h-3.5" /> Update my stack
+            </Button>
+          </div></>
         )}
 
         {/* Saved Prompts */}
@@ -1540,14 +1554,6 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
           </div>
           </div>
         )}
-
-        <div className="text-center pt-8 mt-8 border-t border-gray-100">
-          <p className="text-xs text-gray-400 mb-2">Added new tools to your stack?</p>
-          <Button variant="outline" size="sm" className="text-emerald-700 border-emerald-200 hover:bg-emerald-50 gap-1.5"
-            onClick={() => window.location.href = '/onboarding'}>
-            <ArrowRight className="w-3.5 h-3.5" /> Update my stack
-          </Button>
-        </div>
       </main>
     </div>
     </>
