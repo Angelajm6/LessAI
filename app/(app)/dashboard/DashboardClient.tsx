@@ -1631,18 +1631,22 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                     setLabResult(null)
                     setLabSaved(false)
                     setLabCopied(false)
-                    const res = await fetch('/api/prompt/improve', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ original: labInput, tool: labTool || null }),
-                    })
-                    if (!res.ok) {
+                    try {
+                      const res = await fetch('/api/prompt/improve', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ original: labInput, tool: labTool || null }),
+                      })
                       const body = await res.json().catch(() => ({}))
-                      setLabError(body.error ?? `Error ${res.status} — try again`)
-                      setLabLoading(false)
-                      return
+                      if (!res.ok) {
+                        setLabError(body.error ?? `Error ${res.status}`)
+                        setLabLoading(false)
+                        return
+                      }
+                      setLabResult(body)
+                    } catch (e) {
+                      setLabError(`Network error: ${e instanceof Error ? e.message : String(e)}`)
                     }
-                    setLabResult(await res.json())
                     setLabLoading(false)
                   }}
                   className="bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 shadow-md shadow-emerald-200 gap-2 shrink-0 font-semibold"
