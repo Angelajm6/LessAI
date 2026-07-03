@@ -378,37 +378,60 @@ export async function improvePrompt(
   tool: string | null,
 ): Promise<PromptImprovement> {
   const toolLine = tool ? `They are using ${tool}.` : `Their tools: ${tools.join(', ')}.`
-  const text = await chat(
-    `You are an expert AI prompt coach. A ${role} wrote this prompt:
 
-"${original}"
+  // Use a direct fetch with system+user messages to avoid the shared chat() JSON extraction
+  // which can corrupt responses when the improved prompt contains { } characters
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 60_000)
+  let res: Response
+  try {
+    res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      signal: controller.signal,
+      headers: {
+        Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://lessai.io',
+        'X-Title': 'LessAI',
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        max_tokens: 1400,
+        messages: [
+          {
+            role: 'system',
+            content: 'You are an expert AI prompt coach. Always respond with valid JSON only — no markdown fences, no extra text.',
+          },
+          {
+            role: 'user',
+            content: `A ${role} wrote this prompt: "${original.replace(/"/g, "'")}"
 
 ${toolLine}
 
-Rewrite it into a much more effective prompt, then explain what changed.
-
-Return ONLY this JSON (no extra text):
-{
-  "improved": "The full rewritten prompt. Should be noticeably longer and more structured — add role context, specific output format, constraints, and examples where helpful. 3-8 sentences.",
-  "changes": [
-    {"label": "Short change name (2-4 words)", "description": "One sentence explaining what was added/changed and why it helps"},
-    {"label": "...", "description": "..."}
-  ],
-  "scores": {
-    "before": {"specificity": 3, "context": 2, "output_clarity": 2},
-    "after": {"specificity": 8, "context": 9, "output_clarity": 8}
-  },
-  "summary": "One sentence: the single most important improvement made"
-}
+Return this exact JSON structure:
+{"improved":"rewritten prompt here","changes":[{"label":"label","description":"description"}],"scores":{"before":{"specificity":3,"context":2,"output_clarity":2},"after":{"specificity":8,"context":9,"output_clarity":8}},"summary":"key improvement sentence"}
 
 Rules:
-- scores are integers 1-10
-- 3-5 changes, each genuinely distinct
-- The improved prompt must feel personal to a ${role}
-- Return ONLY valid JSON`,
-    1200
-  )
-  return JSON.parse(text)
+- improved: rewrite as a much more effective, structured prompt (3-8 sentences, role-specific for a ${role})
+- changes: 3-5 items, each a distinct improvement
+- scores: integers 1-10 for specificity, context, output_clarity
+- summary: one sentence on the most important improvement
+- Return ONLY valid JSON, no markdown`,
+          },
+        ],
+      }),
+    })
+  } finally {
+    clearTimeout(timeout)
+  }
+
+  if (!res.ok) throw new Error(`OpenRouter error ${res.status}: ${await res.text()}`)
+
+  const data = await res.json()
+  const raw = data.choices[0].message.content as string
+  // Strip any accidental markdown fences
+  const clean = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim()
+  return JSON.parse(clean)
 }
 
 // ─── Legacy helpers (kept for backward compat) ───────────────────────────────

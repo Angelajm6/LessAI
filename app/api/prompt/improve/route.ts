@@ -19,6 +19,11 @@ export async function POST(req: Request) {
   const role = profile?.role ?? 'professional'
   const tools: string[] = profile?.tools ?? []
 
-  const result = await improvePrompt(original.trim(), role, tools, tool ?? null)
-  return NextResponse.json(result)
+  try {
+    const result = await improvePrompt(original.trim(), role, tools, tool ?? null)
+    return NextResponse.json(result)
+  } catch (e) {
+    console.error('improvePrompt error:', e)
+    return NextResponse.json({ error: String(e) }, { status: 500 })
+  }
 }

@@ -1567,35 +1567,57 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
 
         {/* Prompt Lab */}
         {section === 'lab' && (
-          <div className="space-y-5">
-            {/* Header */}
-            <div className="relative overflow-hidden rounded-2xl px-5 py-5"
-              style={{ background: 'linear-gradient(135deg, #030712 0%, #0f172a 100%)', border: '1px solid rgba(255,255,255,0.07)' }}>
-              <div className="line-grid-3d absolute inset-0 opacity-30" />
-              <div className="relative z-10">
-                <div className="flex items-center gap-2 mb-1">
-                  <FlaskConical className="w-4 h-4 text-emerald-400" />
-                  <h2 className="text-base font-bold text-white">Prompt Lab</h2>
+          <div className="space-y-4">
+            {/* Header — vibrant gradient */}
+            <div className="relative overflow-hidden rounded-2xl px-5 py-6"
+              style={{ background: 'linear-gradient(135deg, #064e3b 0%, #065f46 40%, #1e3a5f 100%)' }}>
+              <div className="dot-grid-3d absolute inset-0 opacity-20" />
+              <div className="absolute top-0 right-0 w-40 h-40 bg-emerald-400/20 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute bottom-0 left-10 w-24 h-24 bg-amber-400/15 rounded-full blur-2xl pointer-events-none" />
+              <div className="relative z-10 flex items-start justify-between gap-4 flex-wrap">
+                <div>
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <div className="w-7 h-7 bg-emerald-400/20 border border-emerald-400/30 rounded-lg flex items-center justify-center">
+                      <FlaskConical className="w-3.5 h-3.5 text-emerald-300" />
+                    </div>
+                    <h2 className="text-base font-black text-white">Prompt Lab</h2>
+                    <span className="text-xs bg-amber-400/20 border border-amber-400/30 text-amber-300 font-semibold px-2 py-0.5 rounded-full">Beta</span>
+                  </div>
+                  <p className="text-xs text-emerald-200/80 max-w-sm">Paste any prompt — we'll rewrite it to be sharper, more specific, and scored so you can see exactly what improved.</p>
                 </div>
-                <p className="text-xs text-gray-400">Paste any prompt you've been using and we'll rewrite it into a more effective version — scored and explained.</p>
+                <div className="flex gap-3">
+                  {[{ emoji: '🎯', label: 'Scored' }, { emoji: '✨', label: 'Rewritten' }, { emoji: '📖', label: 'Explained' }].map(b => (
+                    <div key={b.label} className="text-center">
+                      <div className="text-lg">{b.emoji}</div>
+                      <div className="text-xs text-emerald-300/70 font-medium">{b.label}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
             {/* Input card */}
             <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-2">Your prompt</label>
+              <label className="text-xs font-bold text-gray-700 block mb-2 flex items-center gap-1.5">
+                <span className="w-4 h-4 bg-gray-100 rounded flex items-center justify-center text-gray-500 text-xs">1</span>
+                Paste your prompt
+              </label>
               <Textarea
                 value={labInput}
                 onChange={e => { setLabInput(e.target.value); setLabResult(null); setLabError('') }}
-                placeholder={`e.g. "Write me an email about the meeting"`}
-                className="min-h-[100px] text-sm border-gray-200 focus:ring-emerald-400 resize-none mb-3"
+                placeholder={'e.g. "Write me an email about the meeting"'}
+                className="min-h-[90px] text-sm border-gray-200 focus:ring-emerald-400 resize-none mb-4 bg-gray-50"
               />
+              <label className="text-xs font-bold text-gray-700 block mb-2 flex items-center gap-1.5">
+                <span className="w-4 h-4 bg-gray-100 rounded flex items-center justify-center text-gray-500 text-xs">2</span>
+                Which tool are you prompting? <span className="font-normal text-gray-400">(optional)</span>
+              </label>
               <div className="flex items-center gap-3 flex-wrap">
                 <div className="flex-1 min-w-[140px]">
                   <select
                     value={labTool}
                     onChange={e => setLabTool(e.target.value)}
-                    className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-emerald-400"
+                    className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-emerald-400"
                   >
                     <option value="">Any tool (auto-detect)</option>
                     {tools.map(t => <option key={t} value={t}>{t}</option>)}
@@ -1618,7 +1640,7 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                     setLabResult(await res.json())
                     setLabLoading(false)
                   }}
-                  className="bg-emerald-600 hover:bg-emerald-700 gap-2 shrink-0"
+                  className="bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 shadow-md shadow-emerald-200 gap-2 shrink-0 font-semibold"
                 >
                   {labLoading
                     ? <><div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Improving…</>
@@ -1631,50 +1653,61 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
             {/* Results */}
             {labResult && (
               <>
-                {/* Score comparison */}
+                {/* Score comparison — colorful */}
                 <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">Quality scores</p>
-                  <div className="space-y-3">
-                    {(['specificity', 'context', 'output_clarity'] as const).map(key => {
-                      const labels: Record<string, string> = { specificity: 'Specificity', context: 'Context', output_clarity: 'Output clarity' }
+                  <div className="flex items-center justify-between mb-4">
+                    <p className="text-sm font-bold text-gray-800 flex items-center gap-1.5"><TrendingUp className="w-4 h-4 text-emerald-500" /> Quality scores</p>
+                    <div className="bg-emerald-50 border border-emerald-200 rounded-full px-3 py-1">
+                      <p className="text-xs font-bold text-emerald-700">
+                        +{Math.round((['specificity','context','output_clarity'] as const).reduce((s,k) => s + labResult.scores.after[k] - labResult.scores.before[k], 0) / 3)} avg improvement
+                      </p>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    {([
+                      { key: 'specificity' as const, label: 'Specificity', color: 'from-blue-400 to-blue-500', bg: 'bg-blue-50', text: 'text-blue-600', emoji: '🎯' },
+                      { key: 'context' as const, label: 'Context', color: 'from-purple-400 to-purple-500', bg: 'bg-purple-50', text: 'text-purple-600', emoji: '🧠' },
+                      { key: 'output_clarity' as const, label: 'Output clarity', color: 'from-amber-400 to-amber-500', bg: 'bg-amber-50', text: 'text-amber-600', emoji: '📄' },
+                    ]).map(({ key, label, color, bg, text, emoji }) => {
                       const before = labResult.scores.before[key]
                       const after = labResult.scores.after[key]
+                      const delta = after - before
                       return (
-                        <div key={key}>
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-xs font-medium text-gray-600">{labels[key]}</span>
+                        <div key={key} className={`${bg} rounded-xl p-3`}>
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs font-bold text-gray-700 flex items-center gap-1">{emoji} {label}</span>
                             <div className="flex items-center gap-2 text-xs">
-                              <span className="text-gray-400">{before}/10</span>
-                              <ArrowRight className="w-3 h-3 text-emerald-500" />
-                              <span className="text-emerald-600 font-bold">{after}/10</span>
-                              <span className="text-emerald-500 font-semibold">+{after - before}</span>
+                              <span className="text-gray-400 line-through">{before}/10</span>
+                              <span className={`font-black text-sm ${text}`}>{after}/10</span>
+                              {delta > 0 && <span className="bg-emerald-100 text-emerald-700 font-bold px-1.5 py-0.5 rounded-full text-xs">+{delta}</span>}
                             </div>
                           </div>
-                          <div className="relative h-2 bg-gray-100 rounded-full overflow-hidden">
-                            <div className="absolute inset-y-0 left-0 bg-gray-300 rounded-full transition-all" style={{ width: `${before * 10}%` }} />
-                            <div className="absolute inset-y-0 left-0 bg-emerald-500 rounded-full transition-all" style={{ width: `${after * 10}%`, opacity: 0.85 }} />
+                          <div className="relative h-3 bg-white/70 rounded-full overflow-hidden">
+                            <div className={`absolute inset-y-0 left-0 bg-gradient-to-r ${color} rounded-full transition-all duration-700`} style={{ width: `${after * 10}%` }} />
+                            <div className="absolute inset-y-0 left-0 w-px bg-gray-400/30" style={{ left: `${before * 10}%` }} />
                           </div>
                         </div>
                       )
                     })}
                   </div>
-                  <div className="mt-4 bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-3">
-                    <p className="text-xs text-emerald-700"><span className="font-semibold">Key improvement:</span> {labResult.summary}</p>
+                  <div className="mt-4 flex items-start gap-2 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl px-4 py-3">
+                    <Sparkles className="w-3.5 h-3.5 text-emerald-500 mt-0.5 shrink-0" />
+                    <p className="text-xs text-emerald-800"><span className="font-bold">Key win:</span> {labResult.summary}</p>
                   </div>
                 </div>
 
                 {/* Before / After */}
                 <div className="grid sm:grid-cols-2 gap-3">
-                  <div className="bg-red-50 border border-red-100 rounded-2xl p-4">
-                    <div className="flex items-center gap-1.5 mb-3">
-                      <TrendingDown className="w-3.5 h-3.5 text-red-400" />
+                  <div className="rounded-2xl p-4 border border-red-200" style={{ background: 'linear-gradient(135deg, #fff5f5 0%, #fef2f2 100%)' }}>
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-6 h-6 bg-red-100 rounded-full flex items-center justify-center text-sm">😬</div>
                       <p className="text-xs font-bold text-red-500 uppercase tracking-wide">Before</p>
                     </div>
-                    <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{labInput}</p>
+                    <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap italic">&ldquo;{labInput}&rdquo;</p>
                   </div>
-                  <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4">
-                    <div className="flex items-center gap-1.5 mb-3">
-                      <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />
+                  <div className="rounded-2xl p-4 border border-emerald-200" style={{ background: 'linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%)' }}>
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-6 h-6 bg-emerald-100 rounded-full flex items-center justify-center text-sm">✨</div>
                       <p className="text-xs font-bold text-emerald-600 uppercase tracking-wide">After</p>
                     </div>
                     <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">{labResult.improved}</p>
@@ -1683,35 +1716,32 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
 
                 {/* What changed */}
                 <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">What changed</p>
-                  <div className="space-y-2.5">
-                    {labResult.changes.map((c, i) => (
-                      <div key={i} className="flex gap-3">
-                        <div className="w-5 h-5 bg-emerald-100 rounded-full flex items-center justify-center shrink-0 mt-0.5">
-                          <span className="text-emerald-700 font-bold text-xs">{i + 1}</span>
+                  <p className="text-sm font-bold text-gray-800 mb-3">What we changed</p>
+                  <div className="space-y-3">
+                    {labResult.changes.map((c, i) => {
+                      const chipColors = ['bg-blue-100 text-blue-700', 'bg-purple-100 text-purple-700', 'bg-amber-100 text-amber-700', 'bg-emerald-100 text-emerald-700', 'bg-pink-100 text-pink-700']
+                      return (
+                        <div key={i} className="flex gap-3 items-start">
+                          <span className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0 mt-0.5 ${chipColors[i % chipColors.length]}`}>{c.label}</span>
+                          <p className="text-xs text-gray-500 leading-relaxed">{c.description}</p>
                         </div>
-                        <div>
-                          <p className="text-xs font-semibold text-gray-800">{c.label}</p>
-                          <p className="text-xs text-gray-500 mt-0.5">{c.description}</p>
-                        </div>
-                      </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 </div>
 
                 {/* Actions */}
                 <div className="flex items-center gap-3 flex-wrap pb-2">
                   <Button
-                    variant="outline"
                     size="sm"
-                    className="gap-1.5"
+                    className="bg-emerald-600 hover:bg-emerald-700 gap-1.5 shadow-sm shadow-emerald-200"
                     onClick={() => {
                       navigator.clipboard.writeText(labResult.improved)
                       setLabCopied(true)
                       setTimeout(() => setLabCopied(false), 2000)
                     }}
                   >
-                    {labCopied ? <><CheckCircle className="w-3.5 h-3.5 text-emerald-500" /> Copied!</> : <><Copy className="w-3.5 h-3.5" /> Copy improved prompt</>}
+                    {labCopied ? <><CheckCircle className="w-3.5 h-3.5" /> Copied!</> : <><Copy className="w-3.5 h-3.5" /> Copy improved prompt</>}
                   </Button>
                   <Button
                     variant="outline"
@@ -1722,8 +1752,6 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                       const supabase = createClient()
                       const { data: { user } } = await supabase.auth.getUser()
                       if (!user) return
-                      const { data: profile } = await supabase.from('profiles').select('id').eq('id', user.id).single()
-                      if (!profile) return
                       const label = labInput.slice(0, 60) + (labInput.length > 60 ? '…' : '')
                       await supabase.from('saved_prompts').insert({ user_id: user.id, content: labResult.improved, label: `✨ ${label}`, tool: labTool || null })
                       setLabSaved(true)
@@ -1741,12 +1769,12 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
               </>
             )}
 
-            {/* Empty state hint */}
+            {/* Empty state */}
             {!labResult && !labLoading && (
-              <div className="text-center py-8 text-gray-400">
-                <FlaskConical className="w-8 h-8 mx-auto mb-2 opacity-30" />
-                <p className="text-sm">Paste any prompt above to see it transformed</p>
-                <p className="text-xs mt-1 text-gray-300">Works with prompts for ChatGPT, Claude, Notion AI, Gemini — any tool</p>
+              <div className="text-center py-10">
+                <div className="text-4xl mb-3">🧪</div>
+                <p className="text-sm font-semibold text-gray-600 mb-1">Drop in any prompt to get started</p>
+                <p className="text-xs text-gray-400">Works with ChatGPT, Claude, Notion AI, Gemini — any tool</p>
               </div>
             )}
           </div>
