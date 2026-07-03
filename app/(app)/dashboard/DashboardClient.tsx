@@ -1758,12 +1758,19 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                     disabled={labSaved}
                     className="gap-1.5 text-emerald-700 border-emerald-200 hover:bg-emerald-50"
                     onClick={async () => {
-                      const supabase = createClient()
-                      const { data: { user } } = await supabase.auth.getUser()
-                      if (!user) return
                       const label = labInput.slice(0, 60) + (labInput.length > 60 ? '…' : '')
-                      await supabase.from('saved_prompts').insert({ user_id: user.id, content: labResult.improved, label: `✨ ${label}`, tool: labTool || null })
-                      setLabSaved(true)
+                      const supabase = createClient()
+                      const { error } = await supabase.from('saved_prompts').insert({
+                        user_id: profile.id,
+                        content: labResult.improved,
+                        label: `✨ ${label}`,
+                        tool: labTool || null,
+                        folder_id: null,
+                      })
+                      if (!error) {
+                        setSaved(prev => [...prev, { id: crypto.randomUUID(), content: labResult.improved, label: `✨ ${label}`, tool: labTool || null, folder_id: null, created_at: new Date().toISOString() }])
+                        setLabSaved(true)
+                      }
                     }}
                   >
                     {labSaved ? <><BookmarkCheck className="w-3.5 h-3.5" /> Saved!</> : <><Bookmark className="w-3.5 h-3.5" /> Save to my prompts</>}
