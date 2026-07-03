@@ -11,10 +11,11 @@ import {
   ThumbsUp, Zap, Send, Bot, User, Bookmark, BookmarkCheck, BookMarked,
   Copy, Trash2, ArrowRight, LayoutDashboard, BookOpen,
   MessageSquare, FolderPlus, Folder, FolderOpen, Plus, X, Pencil,
-  FileText, ChevronUp, Home, TrendingUp, Star, Settings
+  FileText, ChevronUp, Home, TrendingUp, Star, Settings, FlaskConical,
+  RefreshCw, TrendingDown
 } from 'lucide-react'
 import Link from 'next/link'
-import type { StackMap, ToolCard, ToolTrack, DailyTask, Playbook, ToolPlaybook, PromptFramework, Recommendation } from '@/lib/claude'
+import type { StackMap, ToolCard, ToolTrack, DailyTask, Playbook, ToolPlaybook, PromptFramework, Recommendation, PromptImprovement } from '@/lib/claude'
 
 interface CompletedTask { tool: string; day: number; completed_at?: string }
 interface ToolTipData { wrong_tool: string; better_tool: string; reason: string }
@@ -69,13 +70,14 @@ const LEVEL_COLORS: Record<string, string> = {
   comfortable: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
 }
 
-type Section = 'home' | 'tasks' | 'playbook' | 'guides' | 'saved'
+type Section = 'home' | 'tasks' | 'playbook' | 'guides' | 'saved' | 'lab'
 
 const NAV_ITEMS: { key: Section; icon: React.ElementType; label: string }[] = [
   { key: 'home', icon: Home, label: 'Overview' },
   { key: 'tasks', icon: LayoutDashboard, label: 'Daily Tasks' },
   { key: 'guides', icon: BookOpen, label: 'Tool Guides' },
   { key: 'saved', icon: Bookmark, label: 'Saved Prompts' },
+  { key: 'lab', icon: FlaskConical, label: 'Prompt Lab' },
 ]
 
 function PlaybookGenerator({ profile, onDone }: { profile: Props['profile']; onDone: () => void }) {
@@ -180,6 +182,14 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
   const [commandTask, setCommandTask] = useState('')
   const [copiedPrompt, setCopiedPrompt] = useState(false)
   const resultRef = useRef<HTMLDivElement>(null)
+  // Prompt Lab state
+  const [labInput, setLabInput] = useState('')
+  const [labTool, setLabTool] = useState('')
+  const [labResult, setLabResult] = useState<PromptImprovement | null>(null)
+  const [labLoading, setLabLoading] = useState(false)
+  const [labError, setLabError] = useState('')
+  const [labCopied, setLabCopied] = useState(false)
+  const [labSaved, setLabSaved] = useState(false)
 
   const firstName = profile.full_name?.split(' ')[0] ?? 'there'
   const tools = profile.tools ?? []
@@ -1552,6 +1562,193 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
               )}
             </div>
           </div>
+          </div>
+        )}
+
+        {/* Prompt Lab */}
+        {section === 'lab' && (
+          <div className="space-y-5">
+            {/* Header */}
+            <div className="relative overflow-hidden rounded-2xl px-5 py-5"
+              style={{ background: 'linear-gradient(135deg, #030712 0%, #0f172a 100%)', border: '1px solid rgba(255,255,255,0.07)' }}>
+              <div className="line-grid-3d absolute inset-0 opacity-30" />
+              <div className="relative z-10">
+                <div className="flex items-center gap-2 mb-1">
+                  <FlaskConical className="w-4 h-4 text-emerald-400" />
+                  <h2 className="text-base font-bold text-white">Prompt Lab</h2>
+                </div>
+                <p className="text-xs text-gray-400">Paste any prompt you've been using and we'll rewrite it into a more effective version — scored and explained.</p>
+              </div>
+            </div>
+
+            {/* Input card */}
+            <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-2">Your prompt</label>
+              <Textarea
+                value={labInput}
+                onChange={e => { setLabInput(e.target.value); setLabResult(null); setLabError('') }}
+                placeholder={`e.g. "Write me an email about the meeting"`}
+                className="min-h-[100px] text-sm border-gray-200 focus:ring-emerald-400 resize-none mb-3"
+              />
+              <div className="flex items-center gap-3 flex-wrap">
+                <div className="flex-1 min-w-[140px]">
+                  <select
+                    value={labTool}
+                    onChange={e => setLabTool(e.target.value)}
+                    className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-emerald-400"
+                  >
+                    <option value="">Any tool (auto-detect)</option>
+                    {tools.map(t => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                </div>
+                <Button
+                  disabled={!labInput.trim() || labLoading}
+                  onClick={async () => {
+                    setLabLoading(true)
+                    setLabError('')
+                    setLabResult(null)
+                    setLabSaved(false)
+                    setLabCopied(false)
+                    const res = await fetch('/api/prompt/improve', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ original: labInput, tool: labTool || null }),
+                    })
+                    if (!res.ok) { setLabError('Something went wrong — try again'); setLabLoading(false); return }
+                    setLabResult(await res.json())
+                    setLabLoading(false)
+                  }}
+                  className="bg-emerald-600 hover:bg-emerald-700 gap-2 shrink-0"
+                >
+                  {labLoading
+                    ? <><div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Improving…</>
+                    : <><Sparkles className="w-3.5 h-3.5" /> Improve my prompt</>}
+                </Button>
+              </div>
+              {labError && <p className="text-xs text-red-500 mt-2">{labError}</p>}
+            </div>
+
+            {/* Results */}
+            {labResult && (
+              <>
+                {/* Score comparison */}
+                <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">Quality scores</p>
+                  <div className="space-y-3">
+                    {(['specificity', 'context', 'output_clarity'] as const).map(key => {
+                      const labels: Record<string, string> = { specificity: 'Specificity', context: 'Context', output_clarity: 'Output clarity' }
+                      const before = labResult.scores.before[key]
+                      const after = labResult.scores.after[key]
+                      return (
+                        <div key={key}>
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs font-medium text-gray-600">{labels[key]}</span>
+                            <div className="flex items-center gap-2 text-xs">
+                              <span className="text-gray-400">{before}/10</span>
+                              <ArrowRight className="w-3 h-3 text-emerald-500" />
+                              <span className="text-emerald-600 font-bold">{after}/10</span>
+                              <span className="text-emerald-500 font-semibold">+{after - before}</span>
+                            </div>
+                          </div>
+                          <div className="relative h-2 bg-gray-100 rounded-full overflow-hidden">
+                            <div className="absolute inset-y-0 left-0 bg-gray-300 rounded-full transition-all" style={{ width: `${before * 10}%` }} />
+                            <div className="absolute inset-y-0 left-0 bg-emerald-500 rounded-full transition-all" style={{ width: `${after * 10}%`, opacity: 0.85 }} />
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                  <div className="mt-4 bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-3">
+                    <p className="text-xs text-emerald-700"><span className="font-semibold">Key improvement:</span> {labResult.summary}</p>
+                  </div>
+                </div>
+
+                {/* Before / After */}
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <div className="bg-red-50 border border-red-100 rounded-2xl p-4">
+                    <div className="flex items-center gap-1.5 mb-3">
+                      <TrendingDown className="w-3.5 h-3.5 text-red-400" />
+                      <p className="text-xs font-bold text-red-500 uppercase tracking-wide">Before</p>
+                    </div>
+                    <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{labInput}</p>
+                  </div>
+                  <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4">
+                    <div className="flex items-center gap-1.5 mb-3">
+                      <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />
+                      <p className="text-xs font-bold text-emerald-600 uppercase tracking-wide">After</p>
+                    </div>
+                    <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">{labResult.improved}</p>
+                  </div>
+                </div>
+
+                {/* What changed */}
+                <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">What changed</p>
+                  <div className="space-y-2.5">
+                    {labResult.changes.map((c, i) => (
+                      <div key={i} className="flex gap-3">
+                        <div className="w-5 h-5 bg-emerald-100 rounded-full flex items-center justify-center shrink-0 mt-0.5">
+                          <span className="text-emerald-700 font-bold text-xs">{i + 1}</span>
+                        </div>
+                        <div>
+                          <p className="text-xs font-semibold text-gray-800">{c.label}</p>
+                          <p className="text-xs text-gray-500 mt-0.5">{c.description}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center gap-3 flex-wrap pb-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-1.5"
+                    onClick={() => {
+                      navigator.clipboard.writeText(labResult.improved)
+                      setLabCopied(true)
+                      setTimeout(() => setLabCopied(false), 2000)
+                    }}
+                  >
+                    {labCopied ? <><CheckCircle className="w-3.5 h-3.5 text-emerald-500" /> Copied!</> : <><Copy className="w-3.5 h-3.5" /> Copy improved prompt</>}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={labSaved}
+                    className="gap-1.5 text-emerald-700 border-emerald-200 hover:bg-emerald-50"
+                    onClick={async () => {
+                      const supabase = createClient()
+                      const { data: { user } } = await supabase.auth.getUser()
+                      if (!user) return
+                      const { data: profile } = await supabase.from('profiles').select('id').eq('id', user.id).single()
+                      if (!profile) return
+                      const label = labInput.slice(0, 60) + (labInput.length > 60 ? '…' : '')
+                      await supabase.from('saved_prompts').insert({ user_id: user.id, content: labResult.improved, label: `✨ ${label}`, tool: labTool || null })
+                      setLabSaved(true)
+                    }}
+                  >
+                    {labSaved ? <><BookmarkCheck className="w-3.5 h-3.5" /> Saved!</> : <><Bookmark className="w-3.5 h-3.5" /> Save to my prompts</>}
+                  </Button>
+                  <button
+                    onClick={() => { setLabResult(null); setLabInput('') }}
+                    className="text-xs text-gray-400 hover:text-gray-600 flex items-center gap-1 ml-auto"
+                  >
+                    <RefreshCw className="w-3 h-3" /> Try another
+                  </button>
+                </div>
+              </>
+            )}
+
+            {/* Empty state hint */}
+            {!labResult && !labLoading && (
+              <div className="text-center py-8 text-gray-400">
+                <FlaskConical className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                <p className="text-sm">Paste any prompt above to see it transformed</p>
+                <p className="text-xs mt-1 text-gray-300">Works with prompts for ChatGPT, Claude, Notion AI, Gemini — any tool</p>
+              </div>
+            )}
           </div>
         )}
       </main>

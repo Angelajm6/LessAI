@@ -359,6 +359,58 @@ Be conservative. If no clear mismatch, return null. Return ONLY the JSON or null
   try { return JSON.parse(trimmed) } catch { return null }
 }
 
+// ─── Prompt Lab ──────────────────────────────────────────────────────────────
+
+export interface PromptImprovement {
+  improved: string
+  changes: Array<{ label: string; description: string }>
+  scores: {
+    before: { specificity: number; context: number; output_clarity: number }
+    after: { specificity: number; context: number; output_clarity: number }
+  }
+  summary: string
+}
+
+export async function improvePrompt(
+  original: string,
+  role: string,
+  tools: string[],
+  tool: string | null,
+): Promise<PromptImprovement> {
+  const toolLine = tool ? `They are using ${tool}.` : `Their tools: ${tools.join(', ')}.`
+  const text = await chat(
+    `You are an expert AI prompt coach. A ${role} wrote this prompt:
+
+"${original}"
+
+${toolLine}
+
+Rewrite it into a much more effective prompt, then explain what changed.
+
+Return ONLY this JSON (no extra text):
+{
+  "improved": "The full rewritten prompt. Should be noticeably longer and more structured — add role context, specific output format, constraints, and examples where helpful. 3-8 sentences.",
+  "changes": [
+    {"label": "Short change name (2-4 words)", "description": "One sentence explaining what was added/changed and why it helps"},
+    {"label": "...", "description": "..."}
+  ],
+  "scores": {
+    "before": {"specificity": 3, "context": 2, "output_clarity": 2},
+    "after": {"specificity": 8, "context": 9, "output_clarity": 8}
+  },
+  "summary": "One sentence: the single most important improvement made"
+}
+
+Rules:
+- scores are integers 1-10
+- 3-5 changes, each genuinely distinct
+- The improved prompt must feel personal to a ${role}
+- Return ONLY valid JSON`,
+    1200
+  )
+  return JSON.parse(text)
+}
+
 // ─── Legacy helpers (kept for backward compat) ───────────────────────────────
 
 export async function generateAlternativeTask(
