@@ -599,7 +599,7 @@ const { ref: managerRef, inView: managerInView } = useInView()
   }, [])
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 overflow-x-hidden">
+    <div className="bg-white text-gray-900 overflow-x-hidden">
 
       <div className="fixed inset-0 pointer-events-none z-0 transition-all duration-700"
         style={{ background: `radial-gradient(500px circle at ${mousePos.x}px ${mousePos.y}px, rgba(16,185,129,0.05), transparent 70%)` }} />
