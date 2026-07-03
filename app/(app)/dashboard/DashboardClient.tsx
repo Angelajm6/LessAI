@@ -1760,15 +1760,15 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                     onClick={async () => {
                       const label = labInput.slice(0, 60) + (labInput.length > 60 ? '…' : '')
                       const supabase = createClient()
-                      const { error } = await supabase.from('saved_prompts').insert({
-                        user_id: profile.id,
-                        content: labResult.improved,
-                        label: `✨ ${label}`,
-                        tool: labTool || null,
-                        folder_id: null,
-                      })
-                      if (!error) {
-                        setSaved(prev => [...prev, { id: crypto.randomUUID(), content: labResult.improved, label: `✨ ${label}`, tool: labTool || null, folder_id: null, created_at: new Date().toISOString() }])
+                      const { data: { user } } = await supabase.auth.getUser()
+                      if (!user) return
+                      const { data } = await supabase
+                        .from('saved_prompts')
+                        .insert({ user_id: user.id, content: labResult.improved, label: `✨ ${label}`, tool: labTool || null, folder_id: null })
+                        .select('id, content, label, tool, folder_id, created_at')
+                        .single()
+                      if (data) {
+                        setSaved(prev => [data, ...prev])
                         setLabSaved(true)
                       }
                     }}
