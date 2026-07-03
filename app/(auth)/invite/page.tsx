@@ -31,7 +31,7 @@ function InviteForm() {
       .single()
       .then(({ data }) => {
         if (!data) setInvalid(true)
-        else setInvite(data as typeof invite)
+        else setInvite(data as unknown as typeof invite)
         setLoading(false)
       })
   }, [token])
