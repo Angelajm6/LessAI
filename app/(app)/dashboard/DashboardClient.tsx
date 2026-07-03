@@ -1761,12 +1761,13 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                       const label = labInput.slice(0, 60) + (labInput.length > 60 ? '…' : '')
                       const supabase = createClient()
                       const { data: { user } } = await supabase.auth.getUser()
-                      if (!user) return
-                      const { data } = await supabase
+                      if (!user) { setLabError('Not signed in'); return }
+                      const { data, error } = await supabase
                         .from('saved_prompts')
                         .insert({ user_id: user.id, content: labResult.improved, label: `✨ ${label}`, tool: labTool || null, folder_id: null })
                         .select('id, content, label, tool, folder_id, created_at')
                         .single()
+                      if (error) { setLabError(`Save failed: ${error.message}`); return }
                       if (data) {
                         setSaved(prev => [data, ...prev])
                         setLabSaved(true)
