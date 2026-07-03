@@ -1636,7 +1636,12 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({ original: labInput, tool: labTool || null }),
                     })
-                    if (!res.ok) { setLabError('Something went wrong — try again'); setLabLoading(false); return }
+                    if (!res.ok) {
+                      const body = await res.json().catch(() => ({}))
+                      setLabError(body.error ?? `Error ${res.status} — try again`)
+                      setLabLoading(false)
+                      return
+                    }
                     setLabResult(await res.json())
                     setLabLoading(false)
                   }}
