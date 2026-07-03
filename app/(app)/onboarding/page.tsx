@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -118,9 +118,11 @@ const LEVELS = [
 
 const STEP_LABELS = ['Your role', 'Your company', 'Your AI tools', 'Skill levels']
 
-export default function OnboardingPage() {
+function OnboardingFlow() {
   const router = useRouter()
-  const [step, setStep] = useState(1)
+  const searchParams = useSearchParams()
+  const updateStackMode = searchParams.get('from') === 'stack'
+  const [step, setStep] = useState(updateStackMode ? 3 : 1)
   const [role, setRole] = useState('')
   const [customRole, setCustomRole] = useState('')
   const [company, setCompany] = useState('')
@@ -500,5 +502,13 @@ export default function OnboardingPage() {
         )}
       </div>
     </>
+  )
+}
+
+export default function OnboardingPage() {
+  return (
+    <Suspense>
+      <OnboardingFlow />
+    </Suspense>
   )
 }

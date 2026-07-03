@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { User, Briefcase, Wrench, CheckCircle, ChevronLeft, Plus, X, RefreshCw, Sparkles, AlertTriangle } from 'lucide-react'
+import { User, Briefcase, Wrench, CheckCircle, ChevronLeft, Plus, X, RefreshCw, Sparkles, AlertTriangle, Building2, Lock, Trash2 } from 'lucide-react'
 
 const PRESET_TOOLS = [
   'ChatGPT', 'Claude', 'Gemini', 'Microsoft Copilot', 'Perplexity',
@@ -43,11 +43,13 @@ interface Props {
     role: string | null
     tools: string[] | null
     tool_levels: Record<string, string> | null
-    company_name?: string | null
+    company_id?: string | null
   } | null
+  companyName: string | null
+  userEmail: string
 }
 
-export default function SettingsClient({ profile }: Props) {
+export default function SettingsClient({ profile, companyName, userEmail }: Props) {
   const router = useRouter()
   const [saving, setSaving] = useState(false)
   const [saved, setSavedState] = useState(false)
@@ -67,6 +69,16 @@ export default function SettingsClient({ profile }: Props) {
   const [selectedTools, setSelectedTools] = useState<string[]>(profile?.tools ?? [])
   const [toolLevels, setToolLevels] = useState<Record<string, string>>(profile?.tool_levels ?? {})
   const [customTool, setCustomTool] = useState('')
+  const [company, setCompany] = useState(companyName ?? '')
+  const [companySaving, setCompanySaving] = useState(false)
+  const [companySaved, setCompanySaved] = useState(false)
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [passwordSaving, setPasswordSaving] = useState(false)
+  const [passwordSaved, setPasswordSaved] = useState(false)
+  const [passwordError, setPasswordError] = useState('')
+  const [deleteConfirm, setDeleteConfirm] = useState('')
+  const [deleting, setDeleting] = useState(false)
 
   const finalRole = role === 'Other' ? customRole.trim() : role
   const originalRole = profile?.role ?? ''
@@ -134,7 +146,7 @@ export default function SettingsClient({ profile }: Props) {
         role: finalRole,
         tools: selectedTools,
         toolLevels,
-        company: profile?.company_name ?? null,
+        company: company || null,
       }),
     })
 
@@ -147,6 +159,40 @@ export default function SettingsClient({ profile }: Props) {
 
     setRegenerated(true)
     setTimeout(() => router.push('/dashboard'), 1200)
+  }
+
+  async function handleSaveCompany() {
+    setCompanySaving(true)
+    const supabase = createClient()
+    if (profile?.company_id) {
+      await supabase.from('companies').update({ name: company.trim() }).eq('id', profile.company_id)
+    }
+    setCompanySaving(false)
+    setCompanySaved(true)
+    setTimeout(() => setCompanySaved(false), 2500)
+    router.refresh()
+  }
+
+  async function handleChangePassword() {
+    setPasswordSaving(true)
+    setPasswordError('')
+    const supabase = createClient()
+    const { error } = await supabase.auth.updateUser({ password: newPassword })
+    setPasswordSaving(false)
+    if (error) { setPasswordError(error.message); return }
+    setPasswordSaved(true)
+    setCurrentPassword('')
+    setNewPassword('')
+    setTimeout(() => setPasswordSaved(false), 2500)
+  }
+
+  async function handleDeleteAccount() {
+    if (deleteConfirm !== 'DELETE') return
+    setDeleting(true)
+    await fetch('/api/account/delete', { method: 'POST' })
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.push('/')
   }
 
   return (
@@ -304,6 +350,80 @@ export default function SettingsClient({ profile }: Props) {
           </div>
         </section>
       )}
+
+      {/* Company */}
+      {profile?.company_id && (
+        <section className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-7 h-7 bg-emerald-50 rounded-lg flex items-center justify-center">
+              <Building2 className="w-4 h-4 text-emerald-600" />
+            </div>
+            <h2 className="font-bold text-gray-900">Company name</h2>
+          </div>
+          <div className="flex gap-2">
+            <Input
+              value={company}
+              onChange={e => setCompany(e.target.value)}
+              placeholder="Your company name"
+              className="border-gray-200 focus:border-emerald-400 focus:ring-emerald-400"
+            />
+            <Button onClick={handleSaveCompany} disabled={companySaving || company.trim() === (companyName ?? '')}
+              className="shrink-0 bg-emerald-600 hover:bg-emerald-700 gap-1.5">
+              {companySaved ? <><CheckCircle className="w-4 h-4" /> Saved!</> : companySaving ? 'Saving…' : 'Save'}
+            </Button>
+          </div>
+        </section>
+      )}
+
+      {/* Password */}
+      <section className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="w-7 h-7 bg-emerald-50 rounded-lg flex items-center justify-center">
+            <Lock className="w-4 h-4 text-emerald-600" />
+          </div>
+          <h2 className="font-bold text-gray-900">Change password</h2>
+        </div>
+        <p className="text-xs text-gray-500 mb-3">Signed in as <span className="font-medium text-gray-700">{userEmail}</span></p>
+        <div className="space-y-3">
+          <Input
+            type="password"
+            placeholder="New password (min. 8 characters)"
+            value={newPassword}
+            onChange={e => setNewPassword(e.target.value)}
+            minLength={8}
+            className="border-gray-200 focus:border-emerald-400 focus:ring-emerald-400"
+          />
+          {passwordError && <p className="text-xs text-red-500">{passwordError}</p>}
+          <Button onClick={handleChangePassword} disabled={passwordSaving || newPassword.length < 8}
+            className="w-full bg-emerald-600 hover:bg-emerald-700 gap-1.5">
+            {passwordSaved ? <><CheckCircle className="w-4 h-4" /> Password updated!</> : passwordSaving ? 'Updating…' : 'Update password'}
+          </Button>
+        </div>
+      </section>
+
+      {/* Delete account */}
+      <section className="bg-white rounded-2xl border border-red-100 p-6 shadow-sm">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="w-7 h-7 bg-red-50 rounded-lg flex items-center justify-center">
+            <Trash2 className="w-4 h-4 text-red-500" />
+          </div>
+          <h2 className="font-bold text-gray-900">Delete account</h2>
+        </div>
+        <p className="text-sm text-gray-500 mb-4">This permanently deletes your account, profile, and all progress. This cannot be undone.</p>
+        <div className="space-y-3">
+          <Input
+            placeholder='Type DELETE to confirm'
+            value={deleteConfirm}
+            onChange={e => setDeleteConfirm(e.target.value)}
+            className="border-gray-200 focus:border-red-400 focus:ring-red-400"
+          />
+          <Button onClick={handleDeleteAccount} disabled={deleteConfirm !== 'DELETE' || deleting}
+            variant="outline"
+            className="w-full border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 gap-1.5">
+            {deleting ? 'Deleting…' : 'Delete my account'}
+          </Button>
+        </div>
+      </section>
 
       {/* Error */}
       {error && (
