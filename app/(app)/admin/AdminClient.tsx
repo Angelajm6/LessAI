@@ -125,6 +125,8 @@ export default function AdminClient({ company, members, invites, adminName, task
   const [memberList, setMemberList] = useState(members)
   const [resendingId, setResendingId] = useState<string | null>(null)
   const [resentId, setResentId] = useState<string | null>(null)
+  const [inviteList, setInviteList] = useState(invites)
+  const [deletingInviteId, setDeletingInviteId] = useState<string | null>(null)
 
   // ── Derived data ──────────────────────────────────────────────────────────
   const completionsByMember: Record<string, TaskCompletion[]> = {}
@@ -920,10 +922,10 @@ export default function AdminClient({ company, members, invites, adminName, task
             <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-semibold text-gray-700">Sent invites</h3>
-                <span className="text-xs text-gray-400">{invites.filter(i => i.used).length}/{invites.length} joined</span>
+                <span className="text-xs text-gray-400">{inviteList.filter(i => i.used).length}/{inviteList.length} joined</span>
               </div>
               <div className="space-y-2">
-                {invites.map(inv => (
+                {inviteList.map(inv => (
                   <div key={inv.id} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
                     <div>
                       <span className="text-sm text-gray-700">{inv.email}</span>
@@ -931,26 +933,42 @@ export default function AdminClient({ company, members, invites, adminName, task
                         {new Date(inv.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                       </div>
                     </div>
-                    {inv.used
-                      ? <Badge className="bg-emerald-100 text-emerald-700 border-0 text-xs gap-1"><CheckCircle className="w-3 h-3" /> Joined</Badge>
-                      : (
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="text-xs text-gray-400 gap-1"><Clock className="w-3 h-3" /> Pending</Badge>
-                          <button
-                            disabled={resendingId === inv.id}
-                            onClick={async () => {
-                              setResendingId(inv.id)
-                              await fetch('/api/invite/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: inv.email }) })
-                              setResendingId(null)
-                              setResentId(inv.id)
-                              setTimeout(() => setResentId(null), 3000)
-                            }}
-                            className="text-xs font-medium transition-colors disabled:opacity-50 text-emerald-600 hover:text-emerald-700"
-                          >
-                            {resendingId === inv.id ? 'Sending…' : resentId === inv.id ? '✓ Sent!' : 'Resend'}
-                          </button>
-                        </div>
-                      )}
+                    <div className="flex items-center gap-2">
+                      {inv.used
+                        ? <Badge className="bg-emerald-100 text-emerald-700 border-0 text-xs gap-1"><CheckCircle className="w-3 h-3" /> Joined</Badge>
+                        : (
+                          <>
+                            <Badge variant="outline" className="text-xs text-gray-400 gap-1"><Clock className="w-3 h-3" /> Pending</Badge>
+                            <button
+                              disabled={resendingId === inv.id}
+                              onClick={async () => {
+                                setResendingId(inv.id)
+                                await fetch('/api/invite/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: inv.email }) })
+                                setResendingId(null)
+                                setResentId(inv.id)
+                                setTimeout(() => setResentId(null), 3000)
+                              }}
+                              className="text-xs font-medium transition-colors disabled:opacity-50 text-emerald-600 hover:text-emerald-700"
+                            >
+                              {resendingId === inv.id ? 'Sending…' : resentId === inv.id ? '✓ Sent!' : 'Resend'}
+                            </button>
+                          </>
+                        )}
+                      <button
+                        disabled={deletingInviteId === inv.id}
+                        onClick={async () => {
+                          setDeletingInviteId(inv.id)
+                          const supabase = createClient()
+                          await supabase.from('invites').delete().eq('id', inv.id)
+                          setInviteList(prev => prev.filter(i => i.id !== inv.id))
+                          setDeletingInviteId(null)
+                        }}
+                        className="p-1 rounded-lg text-gray-300 hover:text-red-400 hover:bg-red-50 transition-colors disabled:opacity-40"
+                        title="Delete invite"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
