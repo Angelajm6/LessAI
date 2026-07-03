@@ -16,7 +16,7 @@ function InviteForm() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [invite, setInvite] = useState<{ id: string; company_id: string; email: string } | null>(null)
+  const [invite, setInvite] = useState<{ id: string; company_id: string; email: string; companies?: { name: string } | null } | null>(null)
   const [invalid, setInvalid] = useState(false)
   const [form, setForm] = useState({ fullName: '', password: '' })
 
@@ -25,13 +25,13 @@ function InviteForm() {
     const supabase = createClient()
     supabase
       .from('invites')
-      .select('id, company_id, email')
+      .select('id, company_id, email, companies(name)')
       .eq('token', token)
       .eq('used', false)
       .single()
       .then(({ data }) => {
         if (!data) setInvalid(true)
-        else setInvite(data)
+        else setInvite(data as typeof invite)
         setLoading(false)
       })
   }, [token])
@@ -42,30 +42,34 @@ function InviteForm() {
     setSubmitting(true)
     setError('')
 
-    const supabase = createClient()
-    const { data, error: signUpError } = await supabase.auth.signUp({
-      email: invite.email,
-      password: form.password,
-      options: {
-        data: { full_name: form.fullName },
-        emailRedirectTo: `${window.location.origin}/api/auth/callback?next=/onboarding`,
-      },
+    // Create account server-side with email pre-confirmed — no confirmation email sent
+    const res = await fetch('/api/invite/accept', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        token: new URLSearchParams(window.location.search).get('token'),
+        fullName: form.fullName,
+        password: form.password,
+      }),
     })
 
-    if (signUpError) { setError(signUpError.message); setSubmitting(false); return }
-
-    if (data.user) {
-      await supabase.from('profiles').insert({
-        id: data.user.id,
-        email: invite.email,
-        full_name: form.fullName,
-        company_id: invite.company_id,
-        is_admin: false,
-        onboarded: false,
-      })
-      await supabase.from('invites').update({ used: true }).eq('id', invite.id)
-      router.push('/onboarding')
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}))
+      setError(body.error ?? 'Something went wrong — try again')
+      setSubmitting(false)
+      return
     }
+
+    // Sign in immediately — account is ready, no email confirmation needed
+    const supabase = createClient()
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: invite.email,
+      password: form.password,
+    })
+
+    if (signInError) { setError(signInError.message); setSubmitting(false); return }
+
+    router.push('/onboarding')
   }
 
   // Loading skeleton
@@ -100,16 +104,30 @@ function InviteForm() {
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-      {/* Green header */}
-      <div className="bg-gradient-to-br from-emerald-600 to-emerald-800 px-8 py-7 text-white">
-        <div className="flex items-center gap-2 mb-5">
-          <div className="w-7 h-7 bg-white/20 rounded-md flex items-center justify-center">
-            <span className="text-white font-bold text-sm">L</span>
+      {/* Dark header */}
+      <div className="relative bg-gray-950 px-8 py-7 text-white overflow-hidden">
+        <div className="absolute inset-0 line-grid-3d opacity-40" />
+        <div className="absolute top-0 left-0 w-32 h-32 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 right-0 w-24 h-24 bg-amber-400/10 rounded-full blur-2xl pointer-events-none" />
+        <div className="relative">
+          <div className="flex items-center gap-2 mb-5">
+            <div className="w-7 h-7 bg-emerald-600 rounded-md flex items-center justify-center">
+              <span className="text-white font-bold text-sm">L</span>
+            </div>
+            <span className="font-bold text-white text-base">LessAI</span>
           </div>
-          <span className="font-bold text-white text-base">LessAI</span>
+          {invite?.companies?.name && (
+            <div className="inline-flex items-center gap-1.5 bg-emerald-500/15 border border-emerald-400/25 rounded-full px-3 py-1 text-xs font-semibold text-emerald-300 mb-3">
+              <Users className="w-3 h-3" /> {invite.companies.name}
+            </div>
+          )}
+          <h1 className="text-2xl font-black mb-1">You&apos;re invited 🎉</h1>
+          <p className="text-gray-400 text-sm">
+            {invite?.companies?.name
+              ? `${invite.companies.name} is using LessAI to level up their AI skills. Set up your account and build your personal prompt playbook.`
+              : 'Your team is waiting. Set up your account and build your AI Stack Map.'}
+          </p>
         </div>
-        <h1 className="text-2xl font-black mb-1">You're invited! 🎉</h1>
-        <p className="text-emerald-200 text-sm">Your team is waiting. Set up your account and build your AI Stack Map.</p>
       </div>
 
       <div className="px-8 py-7">

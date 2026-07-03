@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+
+export const maxDuration = 60
 import { createClient } from '@/lib/supabase/server'
 import { generateStackMap, generatePlaybook } from '@/lib/claude'
 import { sendWelcomeEmail } from '@/lib/email'
@@ -45,6 +47,9 @@ export async function POST(req: NextRequest) {
     console.error('Playbook insert error:', playbookError)
     // Non-fatal — stack map succeeded, continue
   }
+
+  // Mark onboarding complete server-side (reliable — avoids client-side session race)
+  await supabase.from('profiles').update({ onboarded: true }).eq('id', user.id)
 
   // Fire welcome email (non-blocking — don't fail the request if email fails)
   if (user.email) {

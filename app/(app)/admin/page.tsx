@@ -41,6 +41,26 @@ export default async function AdminPage() {
         .in('user_id', memberIds)
     : { data: [] }
 
+  const { data: teamPrompts } = await supabase
+    .from('team_prompts')
+    .select('id, title, content, tool, pinned, created_by, created_at')
+    .eq('company_id', profile.company_id)
+    .order('pinned', { ascending: false })
+    .order('created_at', { ascending: false })
+
+  // XP + streak per member — graceful if columns don't exist yet
+  const { data: memberXpRows } = memberIds.length > 0
+    ? await supabase
+        .from('profiles')
+        .select('id, xp, streak')
+        .in('id', memberIds)
+    : { data: [] }
+
+  const memberXp: Record<string, { xp: number; streak: number }> = {}
+  for (const row of memberXpRows ?? []) {
+    memberXp[row.id] = { xp: row.xp ?? 0, streak: row.streak ?? 0 }
+  }
+
   return (
     <AdminClient
       company={company}
@@ -48,6 +68,8 @@ export default async function AdminPage() {
       invites={invites ?? []}
       adminName={profile.full_name ?? ''}
       taskCompletions={taskCompletions ?? []}
+      teamPrompts={teamPrompts ?? []}
+      memberXp={memberXp}
     />
   )
 }

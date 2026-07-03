@@ -189,6 +189,43 @@ export interface Playbook {
   tool_playbooks: ToolPlaybook[]
 }
 
+export async function generatePlaybookForTool(
+  role: string,
+  tool: string,
+  level: string,
+): Promise<ToolPlaybook> {
+  const text = await chat(
+    `You are an expert AI prompt coach. A ${role} uses ${tool} (skill level: ${level}).
+
+Create 2 prompt frameworks that are genuinely useful for a ${role} using ${tool}.
+A framework is a reusable prompt template with [PLACEHOLDER] variables.
+
+Return a JSON object with this EXACT structure (no extra text, no markdown):
+
+{
+  "tool": "${tool}",
+  "frameworks": [
+    {
+      "title": "What this framework accomplishes (5-8 words)",
+      "use_case": "One sentence: when a ${role} should reach for this",
+      "framework": "The full reusable prompt template. Use [CAPS_PLACEHOLDER] for variables. 3-5 sentences with context, task, constraints, and output format.",
+      "before": "A weak, vague prompt a beginner might write (1-2 sentences)",
+      "after": "The same prompt using the framework — filled in with a realistic ${role} example",
+      "why_better": "One sentence: the specific technique that makes the after version better"
+    }
+  ]
+}
+
+Rules:
+- Exactly 2 frameworks
+- Role-specific for a ${role} using ${tool}, not generic
+- Make before/after contrast stark and educational
+- Return ONLY the JSON object`,
+    2000
+  )
+  return JSON.parse(text)
+}
+
 export async function generatePlaybook(
   role: string,
   tools: string[],
@@ -236,6 +273,90 @@ Rules:
   )
 
   return JSON.parse(text)
+}
+
+// ─── AI Command Center ────────────────────────────────────────────────────────
+
+export interface Recommendation {
+  best_tool: string
+  best_tool_why: string
+  best_tool_prompt: string
+  second_tool: string | null
+  second_tool_why: string | null
+  avoid_tool: string | null
+  avoid_why: string | null
+  sequence: Array<{ tool: string; action: string }> | null
+  time_saved: string
+  insight: string
+}
+
+export async function generateRecommendation(
+  task: string,
+  role: string,
+  tools: string[],
+  toolLevels: Record<string, string>,
+  company?: string | null
+): Promise<Recommendation> {
+  const toolList = tools.map(t => `${t} (${toolLevels[t] ?? 'never used'})`).join(', ')
+  const companyLine = company ? ` They work at ${company}.` : ''
+
+  const text = await chat(
+    `You are an expert AI tool advisor. A ${role} wants to accomplish: "${task}"
+Their AI tools: ${toolList}.${companyLine}
+
+Be extremely opinionated. Pick the single best tool from their stack for this task.
+
+Return ONLY this JSON (no extra text, no markdown):
+{
+  "best_tool": "exact tool name from their stack",
+  "best_tool_why": "2 sentences: exactly why this tool wins for this specific task. Name the specific feature or capability that makes the difference.",
+  "best_tool_prompt": "A complete, ready-to-paste prompt they can use right now. Include their role context, the task details, output format, and any constraints. 4-7 sentences. Make it feel personal to a ${role}.",
+  "second_tool": "second best tool from their stack, or null if none adds value",
+  "second_tool_why": "1 sentence on when to use this instead of the best tool, or null",
+  "avoid_tool": "the tool from their stack most people would instinctively reach for but shouldn't for THIS task — or null",
+  "avoid_why": "1 sharp sentence on why to skip it for this specific task — or null",
+  "sequence": [{"tool": "tool name", "action": "short phrase what to do"}] if using 2+ tools in sequence adds significant value, otherwise null,
+  "time_saved": "realistic time estimate vs doing this manually, e.g. '~20 minutes'",
+  "insight": "One counterintuitive or non-obvious insight about why AI specifically accelerates this for a ${role}. Something they probably haven't realized yet."
+}
+
+Only use tools from their stack. Return ONLY valid JSON.`,
+    1400
+  )
+
+  return JSON.parse(text)
+}
+
+// ─── Wrong Tool Detector ─────────────────────────────────────────────────────
+
+export interface ToolDetection {
+  wrong_tool: string
+  better_tool: string
+  reason: string
+}
+
+export async function detectWrongTool(
+  message: string,
+  role: string,
+  tools: string[]
+): Promise<ToolDetection | null> {
+  const text = await chat(
+    `A ${role} just asked: "${message}"
+Their AI tools: ${tools.join(', ')}.
+
+Does this message imply they are using (or about to use) a suboptimal tool for their task? Only flag if you're confident there is a clearly better tool in their stack.
+
+Return ONLY one of:
+- The exact string: null
+- A JSON object: {"wrong_tool": "tool they seem to be using or reaching for", "better_tool": "the better tool from their stack", "reason": "one sharp sentence — specific capability that makes the better tool win here"}
+
+Be conservative. If no clear mismatch, return null. Return ONLY the JSON or null.`,
+    300
+  )
+
+  const trimmed = text.trim().replace(/^"/, '').replace(/"$/, '')
+  if (trimmed === 'null') return null
+  try { return JSON.parse(trimmed) } catch { return null }
 }
 
 // ─── Legacy helpers (kept for backward compat) ───────────────────────────────

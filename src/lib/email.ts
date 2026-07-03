@@ -1,13 +1,13 @@
 import { Resend } from 'resend'
 
-const FROM = 'LessAI <hello@lessai.co>'
+const FROM = 'LessAI <hello@lessai.io>'
 
 function getResend() {
   return new Resend(process.env.RESEND_API_KEY)
 }
 
 const dashboardUrl = (path = '/dashboard') =>
-  `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://lessai.co'}${path}`
+  `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://lessai.io'}${path}`
 
 // ── Shared HTML helpers ────────────────────────────────────────────────────
 
@@ -23,7 +23,7 @@ function emailShell(body: string) {
     </div>
     ${body}
     <div style="padding:20px 32px;background:#f9fafb;text-align:center;border-top:1px solid #f3f4f6">
-      <p style="font-size:12px;color:#9ca3af;margin:0">LessAI · <a href="${dashboardUrl()}" style="color:#9ca3af">Dashboard</a> · <a href="mailto:hello@lessai.co" style="color:#9ca3af">hello@lessai.co</a></p>
+      <p style="font-size:12px;color:#9ca3af;margin:0">LessAI · <a href="${dashboardUrl()}" style="color:#9ca3af">Dashboard</a> · <a href="mailto:hello@lessai.io" style="color:#9ca3af">hello@lessai.io</a></p>
     </div>
   </div>
 </body>
@@ -125,7 +125,7 @@ export async function sendTrialDay4Email({
     </div>
     <div style="padding:0 32px 32px;text-align:center">
       ${ctaButton(dashboardUrl(), 'Continue my trial →')}
-      <p style="margin:12px 0 0;font-size:12px;color:#9ca3af">Or <a href="mailto:hello@lessai.co" style="color:#059669">reply to this email</a> if you have questions.</p>
+      <p style="margin:12px 0 0;font-size:12px;color:#9ca3af">Or <a href="mailto:hello@lessai.io" style="color:#059669">reply to this email</a> if you have questions.</p>
     </div>
   `)
 
@@ -164,7 +164,7 @@ export async function sendTrialDay7Email({
       ${ctaButton(dashboardUrl(), 'Keep my plan →')}
     </div>
     <div style="padding:0 32px 32px;text-align:center">
-      ${ctaButton('mailto:hello@lessai.co', 'Cancel my trial', '#f3f4f6')}
+      ${ctaButton('mailto:hello@lessai.io', 'Cancel my trial', '#f3f4f6')}
     </div>
   `)
 
@@ -174,5 +174,100 @@ export async function sendTrialDay7Email({
     html,
   })
   if (error) console.error('[email] sendTrialDay7Email error:', error)
+  return { data, error }
+}
+
+// ── Streak reminder email ────────────────────────────────────────────────────
+
+export async function sendStreakReminderEmail({
+  to, firstName, streak, toolCount,
+}: {
+  to: string; firstName: string; streak: number; toolCount: number
+}) {
+  const hasStreak = streak > 0
+  const html = emailShell(`
+    <div style="padding:32px 32px 24px">
+      <div style="font-size:40px;margin-bottom:16px">${hasStreak ? '🔥' : '⚡'}</div>
+      <h1 style="font-size:24px;font-weight:800;color:#111827;margin:0 0 12px;line-height:1.3">
+        ${hasStreak ? `Don't break your ${streak}-day streak, ${firstName}!` : `${firstName}, one quick task keeps the momentum going`}
+      </h1>
+      <p style="font-size:15px;color:#4b5563;margin:0 0 20px;line-height:1.6">
+        ${hasStreak
+          ? `You've been showing up for ${streak} days in a row — that's real skill-building. One 10-minute task today keeps your streak alive.`
+          : `You've been building your AI skills across ${toolCount} tool${toolCount !== 1 ? 's' : ''}. A quick task today keeps the momentum going.`}
+      </p>
+      <div style="background:#fef3c7;border:1px solid #fde68a;border-radius:12px;padding:14px 16px;margin-bottom:24px">
+        <p style="font-size:13px;font-weight:700;color:#92400e;margin:0 0 4px">${hasStreak ? 'Your streak is on the line.' : 'Today\'s the day.'}</p>
+        <p style="font-size:13px;color:#78350f;margin:0;line-height:1.6">
+          Each daily task takes about 10 minutes and directly improves how you use AI in your actual work.
+        </p>
+      </div>
+    </div>
+    <div style="padding:0 32px 32px;text-align:center">
+      ${ctaButton(dashboardUrl('/dashboard'), 'Do today\'s task →')}
+      <p style="font-size:12px;color:#9ca3af;margin:12px 0 0">Takes about 10 minutes. ${hasStreak ? `Protect your ${streak}-day streak.` : 'Build your AI edge.'}</p>
+    </div>
+  `)
+
+  const { data, error } = await getResend().emails.send({
+    from: FROM, to,
+    subject: hasStreak ? `🔥 Don't break your ${streak}-day streak, ${firstName}` : `⚡ One quick task today, ${firstName}`,
+    html,
+  })
+  if (error) console.error('[email] sendStreakReminderEmail error:', error)
+  return { data, error }
+}
+
+// ── Invite email ─────────────────────────────────────────────────────────────
+
+export async function sendInviteEmail({
+  to, inviteLink, adminFirstName, companyName,
+}: {
+  to: string; inviteLink: string; adminFirstName: string; companyName: string
+}) {
+  const html = emailShell(`
+    <div style="padding:32px 32px 24px">
+      <div style="display:inline-block;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:100px;padding:4px 12px;font-size:12px;font-weight:700;color:#065f46;margin-bottom:16px">🎉 You're invited</div>
+      <h1 style="font-size:24px;font-weight:800;color:#111827;margin:0 0 12px;line-height:1.3">${adminFirstName} invited you to join ${companyName} on LessAI</h1>
+      <p style="font-size:15px;color:#4b5563;margin:0 0 20px;line-height:1.6">
+        LessAI is where your team learns to get better results from AI tools — with role-specific prompts, daily practice tasks, and before/after benchmarking.
+      </p>
+      <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:16px 20px;margin-bottom:24px">
+        <p style="font-size:13px;font-weight:700;color:#111827;margin:0 0 10px">Here's what you'll get:</p>
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td style="vertical-align:top;padding-bottom:8px">
+              <span style="font-size:16px;margin-right:8px">⚡</span>
+              <span style="font-size:13px;color:#374151">A personalized prompt playbook for your role and your tools</span>
+            </td>
+          </tr>
+          <tr>
+            <td style="vertical-align:top;padding-bottom:8px">
+              <span style="font-size:16px;margin-right:8px">📅</span>
+              <span style="font-size:13px;color:#374151">Daily 10-minute practice tasks that build real AI skill</span>
+            </td>
+          </tr>
+          <tr>
+            <td style="vertical-align:top">
+              <span style="font-size:16px;margin-right:8px">🔍</span>
+              <span style="font-size:13px;color:#374151">Before/after prompt examples so you see exactly where to improve</span>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <p style="font-size:13px;color:#6b7280;margin:0 0 24px">This invite link is for <strong>${to}</strong> and expires after first use.</p>
+    </div>
+    <div style="padding:0 32px 32px;text-align:center">
+      ${ctaButton(inviteLink, 'Accept invite & set up account →')}
+      <p style="font-size:12px;color:#9ca3af;margin:12px 0 0">Takes about 5 minutes to set up your personalized stack.</p>
+    </div>
+  `)
+
+  const { data, error } = await getResend().emails.send({
+    from: FROM, to,
+    subject: `${adminFirstName} invited you to join ${companyName} on LessAI`,
+    html,
+  })
+  if (error) console.error('[email] sendInviteEmail error:', error)
   return { data, error }
 }

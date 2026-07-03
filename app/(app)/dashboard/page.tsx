@@ -9,7 +9,22 @@ export default async function DashboardPage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('id, full_name, role, tools, tool_levels, company_name, is_admin, onboarded')
+    .select('id, full_name, role, tools, tool_levels, company_name, is_admin, onboarded, company_id')
+    .eq('id', user.id)
+    .single()
+
+  const { data: teamPromptsData } = profile?.company_id
+    ? await supabase
+        .from('team_prompts')
+        .select('id, title, content, tool, pinned, created_at')
+        .eq('company_id', profile.company_id)
+        .order('pinned', { ascending: false })
+        .order('created_at', { ascending: false })
+    : { data: [] }
+
+  const { data: profileXp } = await supabase
+    .from('profiles')
+    .select('xp, streak')
     .eq('id', user.id)
     .single()
 
@@ -26,7 +41,7 @@ export default async function DashboardPage() {
 
   const { data: completedTasks } = await supabase
     .from('task_completions')
-    .select('tool, day')
+    .select('tool, day, completed_at:created_at')
     .eq('user_id', user.id)
 
   const { data: savedPrompts } = await supabase
@@ -57,6 +72,9 @@ export default async function DashboardPage() {
       completedTasks={completedTasks ?? []}
       savedPrompts={savedPrompts ?? []}
       promptFolders={promptFolders ?? []}
+      initialXp={profileXp?.xp ?? 0}
+      initialStreak={profileXp?.streak ?? 0}
+      teamPrompts={teamPromptsData ?? []}
     />
   )
 }

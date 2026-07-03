@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { ArrowRight, CheckCircle, Zap, BarChart3, Sparkles, ThumbsUp, Brain, Target, TrendingUp, Shield, BookOpen, MessageSquare } from 'lucide-react'
+import { ArrowRight, CheckCircle, Zap, BarChart3, Sparkles, Brain, Target, TrendingUp, Shield, BookOpen, MessageSquare, Mail } from 'lucide-react'
 
 function useCounter(target: number, duration = 1800, start = false) {
   const [count, setCount] = useState(0)
@@ -35,7 +35,7 @@ function useInView(threshold = 0.15) {
 }
 
 const stats = [
-  { value: 77, suffix: '%', label: "of employees say they've never been trained on how to prompt AI tools effectively", source: 'Slack Future of Work, 2024', href: 'https://slack.com/intl/en-gb/blog/news/the-state-of-work-2023' },
+  { value: 70, suffix: '%', label: "of employees have received zero formal AI training from their employer — yet executives keep buying more tools", source: 'Slack Workforce Index, 2024', href: 'https://slack.com/blog/news/the-workforce-index-june-2024' },
   { value: 40, suffix: '%', label: 'of AI time savings are lost to rework — fixing bad outputs nobody knew how to avoid', source: 'Workday, 2025', href: 'https://investor.workday.com/news-and-events/press-releases/news-details/2026/New-Workday-Research-Companies-Are-Leaving-AI-Gains-on-the-Table/default.aspx' },
   { value: 95, suffix: '%', label: 'of AI pilots produce no measurable business impact — the gap is skill, not tooling', source: 'MIT NANDA, 2025', href: 'https://fortune.com/2025/08/18/mit-report-95-percent-generative-ai-pilots-at-companies-failing-cfo/' },
 ]
@@ -43,70 +43,21 @@ const stats = [
 const logos = ['Claude', 'ChatGPT', 'Gemini', 'Copilot', 'Notion AI', 'Perplexity', 'GitHub Copilot', 'Grammarly', 'Midjourney', 'HeyGen', 'Runway', 'Salesforce AI']
 
 const steps = [
-  {
-    icon: Target,
-    title: 'Tell us your role and your tools',
-    desc: 'You\'re a Content Marketer with ChatGPT, Notion AI, and Grammarly. Or a Sales Rep with Claude and Salesforce AI. We map your exact stack to your exact job.',
-    color: 'green',
-  },
-  {
-    icon: BookOpen,
-    title: 'Get your prompt playbook',
-    desc: 'Not generic AI tips. Role-specific prompt frameworks for every tool you have — what context to include, how to structure your ask, what makes the difference between a mediocre and great output.',
-    color: 'dark',
-  },
-  {
-    icon: Zap,
-    title: 'Practice with daily 10-minute tasks',
-    desc: 'One concrete task per day per tool. Not a course — actual work you\'d do at your job. Do it, get the result, see the before/after. Build the muscle in weeks, not months.',
-    color: 'yellow',
-  },
-  {
-    icon: BarChart3,
-    title: 'Manager sees who\'s leveling up',
-    desc: 'The admin dashboard shows skill gaps by person and tool. See who needs coaching, which tools aren\'t landing, and prove AI ROI with real adoption data.',
-    color: 'green',
-  },
+  { icon: Target, title: 'Tell us your role and your tools', desc: 'You\'re a Content Marketer with ChatGPT, Notion AI, and Grammarly. Or a Sales Rep with Claude and Salesforce AI. We map your exact stack to your exact job.', color: 'green' },
+  { icon: BookOpen, title: 'Get your prompt playbook', desc: 'Not generic AI tips. Role-specific prompt frameworks for every tool you have — what context to include, how to structure your ask, what makes the difference between a mediocre and great output.', color: 'dark' },
+  { icon: Zap, title: 'Practice with daily 10-minute tasks', desc: 'One concrete task per day per tool. Not a course — actual work you\'d do at your job. Do it, get the result, see the before/after. Build the muscle in weeks, not months.', color: 'yellow' },
+  { icon: BarChart3, title: 'Manager sees who\'s leveling up', desc: 'The admin dashboard shows skill gaps by person and tool. See who needs coaching, which tools aren\'t landing, and prove AI ROI with real adoption data.', color: 'green' },
 ]
 
 const features = [
-  {
-    icon: MessageSquare,
-    title: 'Role-based prompt coaching',
-    description: 'How a PM prompts Claude for a PRD is nothing like how a marketer prompts it for a campaign. LessAI gives you the exact frameworks, context structure, and phrasing for your job — not generic advice.',
-    tag: 'Core feature',
-  },
-  {
-    icon: Zap,
-    title: 'Daily 10-minute tasks',
-    description: 'One task per tool per day, matched to your skill level and role. Do it, see what good output looks like, and check it off. 5 minutes of practice beats a 2-hour workshop you\'ll never finish.',
-    tag: 'Habit-building',
-  },
-  {
-    icon: Brain,
-    title: 'Tool-by-tool comparison guides',
-    description: 'Claude, ChatGPT, Gemini, and Copilot are not interchangeable. Each has a distinct strength. LessAI teaches you when to use which — so you stop defaulting to the one you know and start using the right one.',
-    tag: 'Know your tools',
-  },
-  {
-    icon: BookOpen,
-    title: 'Prompt library by role',
-    description: 'Searchable, curated prompts built for your job title and your tools. Not crowdsourced garbage — tested frameworks that actually produce the output your role needs.',
-    tag: 'Save time',
-  },
-  {
-    icon: Sparkles,
-    title: 'Before/after benchmarking',
-    description: 'See exactly what a weak prompt gets vs. a strong one on the same task. The gap is always obvious — and once you see it, you can\'t unsee it. That\'s the "aha" moment that changes how you work.',
-    tag: 'See the delta',
-  },
-  {
-    icon: BarChart3,
-    title: 'Team skill dashboard',
-    description: 'Managers see who\'s improving, which tools need more training, and which licenses are being wasted. Justify every AI subscription or cut the ones nobody\'s actually using well.',
-    tag: 'For managers',
-  },
+  { icon: MessageSquare, title: 'Role-based prompt coaching', description: 'How a PM prompts Claude for a PRD is nothing like how a marketer prompts it for a campaign. LessAI gives you the exact frameworks, context structure, and phrasing for your job — not generic advice.', tag: 'Core feature' },
+  { icon: Zap, title: 'Daily 10-minute tasks', description: 'One task per tool per day, matched to your skill level and role. Do it, see what good output looks like, and check it off. 5 minutes of practice beats a 2-hour workshop you\'ll never finish.', tag: 'Habit-building' },
+  { icon: Brain, title: 'Tool-by-tool comparison guides', description: 'Claude, ChatGPT, Gemini, and Copilot are not interchangeable. Each has a distinct strength. LessAI teaches you when to use which — so you stop defaulting to the one you know and start using the right one.', tag: 'Know your tools' },
+  { icon: BookOpen, title: 'Prompt library by role', description: 'Searchable, curated prompts built for your job title and your tools. Not crowdsourced garbage — tested frameworks that actually produce the output your role needs.', tag: 'Save time' },
+  { icon: Sparkles, title: 'Before/after benchmarking', description: 'See exactly what a weak prompt gets vs. a strong one on the same task. The gap is always obvious — and once you see it, you can\'t unsee it. That\'s the "aha" moment that changes how you work.', tag: 'See the delta' },
+  { icon: BarChart3, title: 'Team skill dashboard', description: 'Managers see who\'s improving, which tools need more training, and which licenses are being wasted. Justify every AI subscription or cut the ones nobody\'s actually using well.', tag: 'For managers' },
 ]
+
 
 function StatCard({ value, suffix, label, source, href, delay }: { value: number; suffix: string; label: string; source: string; href: string; delay: number }) {
   const { ref, inView } = useInView()
@@ -116,7 +67,7 @@ function StatCard({ value, suffix, label, source, href, delay }: { value: number
       ref={ref as unknown as React.RefObject<HTMLAnchorElement>}
       href={href} target="_blank" rel="noopener noreferrer"
       style={{ animationDelay: `${delay}ms`, animationFillMode: 'forwards' }}
-      className={`group relative rounded-2xl p-6 border border-gray-200 bg-white hover:border-emerald-300 hover:shadow-2xl hover:shadow-emerald-100/80 transition-all duration-300 overflow-hidden block ${inView ? 'animate-fade-up opacity-0' : 'opacity-0'}`}
+      className={`group relative rounded-2xl p-6 border border-gray-200 bg-white hover:border-emerald-300 hover:shadow-2xl hover:shadow-emerald-100/80 transition-all duration-300 overflow-hidden block ${inView ? 'animate-fade-up' : 'opacity-0'}`}
     >
       <div className="absolute inset-0 bg-gradient-to-br from-emerald-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl" />
       <div className="absolute top-0 left-0 w-0.5 h-full bg-gradient-to-b from-emerald-400 via-emerald-300 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -126,9 +77,7 @@ function StatCard({ value, suffix, label, source, href, delay }: { value: number
         <div className="text-sm font-medium text-gray-500 mb-3 leading-snug">{label}</div>
         <div className="flex items-center justify-between">
           <div className="text-xs text-amber-600 font-semibold">{source}</div>
-          <div className="text-xs text-emerald-600 font-medium opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center gap-1 translate-x-2 group-hover:translate-x-0">
-            Read source <ArrowRight className="w-3 h-3" />
-          </div>
+          <div className="text-xs text-emerald-600 font-medium opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center gap-1 translate-x-2 group-hover:translate-x-0">Read source <ArrowRight className="w-3 h-3" /></div>
         </div>
       </div>
     </a>
@@ -138,22 +87,18 @@ function StatCard({ value, suffix, label, source, href, delay }: { value: number
 function PromptPreview() {
   const [activeTab, setActiveTab] = useState<'before' | 'after' | 'tasks'>('before')
   const [checked, setChecked] = useState<number[]>([])
-
   const tasks = [
     { tool: 'ChatGPT', title: 'Write a cold outreach email with role context', time: 10 },
     { tool: 'Claude', title: 'Summarize a doc and extract action items', time: 10 },
     { tool: 'Notion AI', title: 'Turn bullet notes into a structured brief', time: 10 },
   ]
-
   return (
     <div className="relative">
       <div className="absolute -inset-4 bg-gradient-to-br from-emerald-200/50 via-white to-amber-100/40 rounded-3xl blur-2xl animate-float-slow" />
       <div className="absolute -inset-1 bg-gradient-to-br from-emerald-100/60 to-amber-50/40 rounded-3xl blur-md" />
       <div className="relative bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-2xl shadow-gray-200/80">
-        {/* Header */}
         <div className="bg-gray-950 p-5 text-white relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl" />
-          <div className="absolute bottom-0 left-0 w-24 h-24 bg-amber-400/8 rounded-full blur-xl" />
           <div className="relative">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-5 h-5 bg-emerald-400 rounded flex items-center justify-center">
@@ -167,7 +112,6 @@ function PromptPreview() {
             </div>
           </div>
         </div>
-        {/* Tabs */}
         <div className="flex gap-1 p-2 bg-gray-50 border-b border-gray-100">
           {(['before', 'after', 'tasks'] as const).map(tab => (
             <button key={tab} onClick={() => setActiveTab(tab)}
@@ -176,7 +120,6 @@ function PromptPreview() {
             </button>
           ))}
         </div>
-        {/* Content */}
         <div className="p-4 bg-white">
           {activeTab === 'before' && (
             <div className="space-y-2">
@@ -194,7 +137,7 @@ function PromptPreview() {
             <div className="space-y-2">
               <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3">
                 <p className="text-xs text-emerald-600 font-semibold mb-1 uppercase tracking-wide">What LessAI teaches you</p>
-                <p className="text-sm text-gray-700 font-mono leading-relaxed text-xs">"You are a B2B sales rep at a SaaS company. Write a 3-sentence cold email to a VP of Engineering at a 200-person fintech startup. Their pain point is slow deployment cycles. My value prop: we cut deployment time by 40%. Tone: direct, no fluff."</p>
+                <p className="text-xs text-gray-700 font-mono leading-relaxed">"You are a B2B sales rep at a SaaS company. Write a 3-sentence cold email to a VP of Engineering at a 200-person fintech startup. Their pain point is slow deployment cycles. My value prop: we cut deployment time by 40%. Tone: direct, no fluff."</p>
               </div>
               <div className="bg-gray-50 border border-gray-100 rounded-xl p-3">
                 <p className="text-xs text-gray-400 font-semibold mb-1 uppercase tracking-wide">What you get</p>
@@ -224,6 +167,419 @@ function PromptPreview() {
   )
 }
 
+function ProductDemo() {
+  const [activeTab, setActiveTab] = useState<'home' | 'tasks' | 'saved'>('home')
+  const [checkedTasks, setCheckedTasks] = useState<number[]>([])
+  const [commandText, setCommandText] = useState('')
+  const [showResult, setShowResult] = useState(false)
+  const [typing, setTyping] = useState(false)
+  const [activeFolder, setActiveFolder] = useState<string | null>(null)
+
+  const EXAMPLE = 'Build a Q2 pipeline forecast from our CRM data'
+
+  function runDemo() {
+    if (showResult) { setShowResult(false); setCommandText(''); return }
+    setTyping(true)
+    setCommandText('')
+    let i = 0
+    const interval = setInterval(() => {
+      setCommandText(EXAMPLE.slice(0, i + 1))
+      i++
+      if (i >= EXAMPLE.length) { clearInterval(interval); setTyping(false); setTimeout(() => setShowResult(true), 300) }
+    }, 32)
+  }
+
+  const tasks = [
+    { tool: 'Claude', title: 'Analyze churn data and surface the top 3 risk factors', time: 10, level: 'Practitioner' },
+    { tool: 'ChatGPT', title: 'Draft a pipeline review memo for leadership', time: 10, level: 'Explorer' },
+    { tool: 'Perplexity', title: 'Research a target account before outreach', time: 10, level: 'Explorer' },
+    { tool: 'Notion AI', title: 'Summarize last quarter\'s deal velocity notes', time: 10, level: 'Novice' },
+  ]
+
+  const folders = [
+    { id: 'q1', name: 'Q1 2026', count: 6 },
+    { id: 'q2', name: 'Q2 2026', count: 4 },
+    { id: 'pipeline', name: 'Pipeline', count: 8 },
+    { id: 'reporting', name: 'Reporting', count: 5 },
+  ]
+
+  const allPrompts = [
+    { id: '1', folder: 'q2', tool: 'Claude', title: 'Q2 forecast narrative', prompt: 'You are a RevOps Manager. Based on the pipeline data below, write a 3-paragraph Q2 forecast narrative for our VP of Sales. Include: current pipeline coverage ratio, top 3 at-risk deals with reasoning, and a recommended action for each. Data: [paste CRM export]' },
+    { id: '2', folder: 'q2', tool: 'ChatGPT', title: 'Pipeline gap analysis', prompt: 'Analyze this pipeline report and identify the gap between our Q2 target ($[X]) and current projected close. List the top 5 deals that could close the gap, ranked by likelihood. Format as a table: Deal | ARR | Close Date | Risk | Recommended action.' },
+    { id: '3', folder: 'q2', tool: 'Perplexity', title: 'Account research brief', prompt: 'Research [Company Name] and give me: their revenue range, recent funding, tech stack (any AI tools), key decision-makers in ops/sales, and any recent news that\'s relevant to a RevOps pitch. Format as a 5-bullet brief.' },
+    { id: '4', folder: 'q2', tool: 'Notion AI', title: 'QBR agenda draft', prompt: 'Draft a 45-minute QBR agenda for our RevOps team reviewing Q2 performance. Include: 5-min metrics review, 10-min pipeline health, 15-min process improvements, 10-min tool adoption scorecard, 5-min Q3 priorities. Add 2-3 discussion questions per section.' },
+    { id: '5', folder: 'q1', tool: 'Claude', title: 'Churn risk summary', prompt: 'Review these customer health scores and identify the top 5 churn risks. For each, provide: account name, key signals, estimated ARR at risk, and a suggested intervention (email, call, or QBR). Be direct — no hedging.' },
+    { id: '6', folder: 'q1', tool: 'ChatGPT', title: 'Win/loss pattern analysis', prompt: 'Analyze these 20 closed-won and closed-lost deals from Q1. Identify 3 patterns in the wins and 3 patterns in the losses. Focus on: deal size, sales cycle length, competitor mentioned, and persona of the champion. Output as a structured report.' },
+    { id: '7', folder: 'pipeline', tool: 'Claude', title: 'Deal health score summary', prompt: 'You are a RevOps analyst. For each deal in this list, assign a health score (1–10) based on: last activity date, number of stakeholders engaged, days in current stage, and whether a next step is logged. Flag anything below 6 as at-risk.' },
+    { id: '8', folder: 'pipeline', tool: 'ChatGPT', title: 'Stalled deal reactivation email', prompt: 'Write a reactivation email for a deal that\'s been stalled in "Proposal Sent" for 3 weeks. The prospect is a [title] at a [industry] company. Tone: direct, not needy. Offer one new insight or value-add. Keep it under 5 sentences.' },
+    { id: '9', folder: 'reporting', tool: 'Claude', title: 'Monthly RevOps report', prompt: 'Generate a monthly RevOps report from this data. Structure: Executive Summary (3 bullets), Pipeline Metrics (coverage, velocity, conversion by stage), Top 3 Risks, Top 3 Wins, Recommended actions for next month. Audience: VP Sales and CFO.' },
+  ]
+
+  const visiblePrompts = activeFolder ? allPrompts.filter(p => p.folder === activeFolder) : allPrompts.slice(0, 5)
+
+  const levelColors: Record<string, string> = {
+    Novice: 'bg-gray-700 text-gray-300',
+    Explorer: 'bg-teal-900/60 text-teal-300',
+    Practitioner: 'bg-emerald-900/60 text-emerald-300',
+    Pro: 'bg-amber-900/60 text-amber-300',
+  }
+
+  const navItems = [
+    { key: 'home', label: 'Overview' },
+    { key: 'tasks', label: 'Daily Tasks' },
+    { key: 'saved', label: 'Saved Prompts' },
+  ]
+
+  return (
+    <div className="relative max-w-5xl mx-auto">
+      <div className="absolute -inset-6 bg-gradient-to-br from-emerald-500/10 via-transparent to-amber-400/10 rounded-3xl blur-3xl pointer-events-none" />
+      <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-gray-950/80" style={{ background: '#0d1117' }}>
+
+        {/* Window chrome */}
+        <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[0.06]" style={{ background: 'rgba(255,255,255,0.03)' }}>
+          <div className="flex gap-1.5">
+            <div className="w-3 h-3 rounded-full bg-red-500/60" />
+            <div className="w-3 h-3 rounded-full bg-amber-500/60" />
+            <div className="w-3 h-3 rounded-full bg-emerald-500/60" />
+          </div>
+          <div className="flex-1 flex justify-center">
+            <div className="bg-white/[0.06] rounded-md px-4 py-1 text-xs text-gray-500">app.lessai.io/dashboard</div>
+          </div>
+        </div>
+
+        {/* ── MOBILE: compact profile + tab bar ── */}
+        <div className="md:hidden border-b border-white/[0.06]" style={{ background: 'rgba(255,255,255,0.02)' }}>
+          <div className="px-4 pt-3 pb-2 flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-white">Jordan Reyes</p>
+              <p className="text-xs text-gray-500">RevOps Manager · 5 tools</p>
+            </div>
+            <div className="flex items-center gap-3 text-xs">
+              <span className="flex items-center gap-1 text-amber-400 font-semibold"><span>🔥</span>7</span>
+              <span className="text-emerald-400 font-semibold">310 XP</span>
+            </div>
+          </div>
+          <div className="flex border-t border-white/[0.06]">
+            {navItems.map(item => (
+              <button key={item.key} onClick={() => setActiveTab(item.key as typeof activeTab)}
+                className={`flex-1 py-2.5 text-xs font-medium transition-all relative ${activeTab === item.key ? 'text-white' : 'text-gray-500'}`}>
+                {item.label}
+                {activeTab === item.key && <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-emerald-400 rounded-full" />}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* ── DESKTOP: sidebar + content ── */}
+        <div className="flex" style={{ minHeight: 540 }}>
+
+          {/* Sidebar — hidden on mobile */}
+          <div className="hidden md:flex w-48 shrink-0 border-r border-white/[0.06] p-4 flex-col">
+            <div className="px-1 mb-4">
+              <p className="text-sm font-semibold text-white truncate">Jordan Reyes</p>
+              <p className="text-xs text-gray-500 truncate mb-2.5">RevOps Manager · 5 tools</p>
+              <div className="flex justify-between text-xs text-gray-500 mb-1">
+                <span>Stack progress</span>
+                <span className="text-emerald-400 font-semibold">14/25</span>
+              </div>
+              <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                <div className="h-1.5 rounded-full" style={{ width: '56%', background: 'linear-gradient(90deg,#10b981,#f59e0b)' }} />
+              </div>
+            </div>
+            <div className="px-1 pb-4 mb-3 border-b border-white/[0.06]">
+              <div className="flex items-center gap-1.5 mb-2">
+                <span className="text-sm">🔥</span>
+                <span className="text-sm font-bold text-white">7-day streak</span>
+              </div>
+              <div className="flex justify-between text-xs mb-1">
+                <span className="font-bold text-emerald-400">Practitioner</span>
+                <span className="text-gray-500">310 XP</span>
+              </div>
+              <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                <div className="h-1.5 rounded-full" style={{ width: '62%', background: 'linear-gradient(90deg,#10b981,#14b8a6)' }} />
+              </div>
+              <p className="text-xs text-gray-600 mt-1">190 XP to Pro</p>
+            </div>
+            <div className="space-y-0.5 flex-1">
+              {navItems.map(item => (
+                <button key={item.key} onClick={() => setActiveTab(item.key as typeof activeTab)}
+                  className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-xs font-medium transition-all text-left ${activeTab === item.key ? 'bg-emerald-600 text-white' : 'text-gray-400 hover:text-gray-200 hover:bg-white/[0.04]'}`}>
+                  <div className={`w-3 h-3 rounded-sm shrink-0 ${activeTab === item.key ? 'bg-white/40' : 'bg-white/10'}`} />
+                  {item.label}
+                  {item.key === 'saved' && <span className="ml-auto text-xs bg-emerald-500/20 text-emerald-400 px-1.5 rounded-full font-bold">23</span>}
+                </button>
+              ))}
+            </div>
+            <div className="mt-auto pt-4 border-t border-white/[0.06]">
+              <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Your stack</p>
+              {[
+                { name: 'Claude', level: '✓' },
+                { name: 'ChatGPT', level: '✓' },
+                { name: 'Perplexity', level: '~' },
+                { name: 'Notion AI', level: '~' },
+                { name: 'Grok', level: '·' },
+              ].map(t => (
+                <div key={t.name} className="flex items-center justify-between py-0.5">
+                  <span className="text-xs text-gray-500 truncate">{t.name}</span>
+                  <span className={`text-xs ${t.level === '✓' ? 'text-emerald-500' : t.level === '~' ? 'text-teal-500' : 'text-gray-600'}`}>{t.level}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Main content */}
+          <div className="flex-1 min-w-0">
+
+            {/* ── HOME ── */}
+            {activeTab === 'home' && (
+              <div className="p-4 sm:p-5 space-y-3 sm:space-y-4">
+                <div className="hidden md:block">
+                  <h2 className="text-base font-bold text-white">Good morning, Jordan.</h2>
+                  <p className="text-xs text-gray-500 mt-0.5">RevOps Manager · 5 tools in your stack</p>
+                </div>
+
+                <div className="relative rounded-2xl overflow-hidden" style={{ background: '#030712', border: '1px solid rgba(255,255,255,0.07)' }}>
+                  <div className="line-grid-3d absolute inset-0 opacity-60" />
+                  <div className="absolute top-4 left-6 w-20 h-20 rounded-full bg-emerald-500/20 blur-2xl pointer-events-none" />
+                  <div className="absolute bottom-2 right-8 w-16 h-16 rounded-full bg-amber-500/15 blur-2xl pointer-events-none" />
+                  <div className="relative z-10 px-4 sm:px-6 pt-5 sm:pt-6 pb-4 sm:pb-5">
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      <span className="text-xs font-bold text-emerald-400 uppercase tracking-widest">AI Command Center</span>
+                    </div>
+                    <h3 className="text-base sm:text-xl font-black text-white mb-3 sm:mb-4">What do you want to <span className="bg-gradient-to-r from-emerald-400 to-amber-400 bg-clip-text text-transparent">accomplish</span> <span className="text-white">today?</span></h3>
+                    <div className="flex gap-2 mb-3">
+                      <div className="flex-1 bg-white/[0.06] border border-white/[0.1] rounded-xl px-3 py-2.5 text-sm text-gray-300 min-h-[40px] flex items-center min-w-0">
+                        <span className="truncate">{commandText || <span className="text-gray-600">Describe any work task…</span>}</span>
+                        {typing && <span className="ml-0.5 w-0.5 h-4 bg-emerald-400 inline-block animate-pulse shrink-0" />}
+                      </div>
+                      <button onClick={runDemo}
+                        className={`shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-all ${showResult ? 'bg-white/10 text-gray-400' : 'bg-emerald-600 hover:bg-emerald-500 text-white'}`}>
+                        {showResult ? <span className="text-xs">✕</span> : <ArrowRight className="w-4 h-4" />}
+                      </button>
+                    </div>
+                    <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+                      {['Build Q2 forecast', 'Analyze churn signals', 'Draft pipeline memo'].map(chip => (
+                        <button key={chip} onClick={() => { setCommandText(chip); setTimeout(() => setShowResult(true), 200) }}
+                          className="text-xs px-3 py-1.5 bg-white/[0.06] border border-white/[0.08] rounded-full text-gray-400 hover:text-gray-200 hover:bg-white/[0.1] hover:border-white/[0.15] transition-all whitespace-nowrap shrink-0">
+                          {chip}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {showResult && (
+                  <div className="rounded-2xl p-4 border border-emerald-500/25 animate-fade-up" style={{ background: 'rgba(16,185,129,0.05)', animationFillMode: 'forwards' }}>
+                    <div className="flex items-center gap-2 mb-3 flex-wrap">
+                      <div className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
+                      <span className="text-xs font-bold text-emerald-400 uppercase tracking-widest">Best tool for this</span>
+                      <span className="ml-auto text-xs bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full font-medium">Claude</span>
+                    </div>
+                    <p className="text-xs font-semibold text-white mb-1">Use Claude — best for structured analysis with narrative</p>
+                    <p className="text-xs text-gray-400 leading-relaxed mb-3">Claude handles multi-variable reasoning well. Give it your CRM export and ask for coverage ratio, risk flags, and a narrative summary in one prompt.</p>
+                    <div className="bg-white/[0.04] border border-white/[0.07] rounded-xl p-3">
+                      <p className="text-xs text-emerald-400 font-semibold mb-1.5">Ready-to-paste prompt:</p>
+                      <p className="text-xs text-gray-300 leading-relaxed font-mono break-words">&ldquo;You are a RevOps analyst. Calculate Q2 coverage ratio, flag deals at risk (stalled &gt;14 days or missing next step), and write a 3-sentence forecast narrative for the VP of Sales. Data: [paste CRM export]&rdquo;</p>
+                    </div>
+                  </div>
+                )}
+
+                {!showResult && (
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Today&apos;s tasks</p>
+                      <button onClick={() => setActiveTab('tasks')} className="text-xs text-emerald-400 hover:text-emerald-300 transition-colors">View all →</button>
+                    </div>
+                    <div className="space-y-2">
+                      {tasks.slice(0, 2).map((t, i) => (
+                        <div key={i} className="flex items-center gap-3 p-3 rounded-xl border border-white/[0.06] bg-white/[0.02]">
+                          <div className="w-4 h-4 rounded-full border border-gray-600 shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <span className="text-xs text-gray-300 truncate block">{t.tool} — {t.title}</span>
+                          </div>
+                          <span className="text-xs text-gray-600 shrink-0">{t.time}m</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ── DAILY TASKS ── */}
+            {activeTab === 'tasks' && (
+              <div className="p-4 sm:p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h2 className="text-sm font-bold text-white">Daily Tasks</h2>
+                    <p className="text-xs text-gray-500 mt-0.5">{checkedTasks.length}/{tasks.length} done today</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="h-1.5 w-20 sm:w-24 bg-white/10 rounded-full overflow-hidden">
+                      <div className="h-1.5 rounded-full bg-emerald-500 transition-all" style={{ width: `${(checkedTasks.length / tasks.length) * 100}%` }} />
+                    </div>
+                    <span className="text-xs text-emerald-400 font-semibold">{Math.round((checkedTasks.length / tasks.length) * 100)}%</span>
+                  </div>
+                </div>
+                <div className="space-y-2.5">
+                  {tasks.map((t, i) => (
+                    <div key={i} className={`flex items-start gap-3 p-3 sm:p-3.5 rounded-xl border transition-all cursor-pointer ${checkedTasks.includes(i) ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-white/[0.06] bg-white/[0.02] hover:border-white/[0.12]'}`}
+                      onClick={() => setCheckedTasks(prev => prev.includes(i) ? prev.filter(x => x !== i) : [...prev, i])}>
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 transition-all ${checkedTasks.includes(i) ? 'bg-emerald-500 border-emerald-500' : 'border-gray-600'}`}>
+                        {checkedTasks.includes(i) && <CheckCircle className="w-3.5 h-3.5 text-white fill-white" />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <span className={`text-xs font-medium block mb-1 ${checkedTasks.includes(i) ? 'text-gray-500 line-through' : 'text-gray-200'}`}>{t.title}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-emerald-600 font-semibold">{t.tool}</span>
+                          <span className="text-gray-700">·</span>
+                          <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${levelColors[t.level]}`}>{t.level}</span>
+                        </div>
+                      </div>
+                      <span className="text-xs text-gray-600 shrink-0">{t.time}m</span>
+                    </div>
+                  ))}
+                </div>
+                {checkedTasks.length > 0 && (
+                  <div className="mt-4 flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-4 py-3">
+                    <span className="text-base">⚡</span>
+                    <div>
+                      <p className="text-xs font-bold text-emerald-400">+{checkedTasks.length * 20} XP earned today</p>
+                      <p className="text-xs text-gray-500">{checkedTasks.length === tasks.length ? 'Perfect day — streak extended! 🔥' : `${tasks.length - checkedTasks.length} task${tasks.length - checkedTasks.length > 1 ? 's' : ''} left`}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ── SAVED PROMPTS ── */}
+            {activeTab === 'saved' && (
+              <div className="flex flex-col h-full">
+                {/* Folder chips — mobile */}
+                <div className="md:hidden px-4 pt-3 pb-2 flex gap-2 overflow-x-auto no-scrollbar border-b border-white/[0.06]">
+                  <button onClick={() => setActiveFolder(null)}
+                    className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${!activeFolder ? 'bg-emerald-600 text-white' : 'bg-white/[0.06] text-gray-400'}`}>
+                    All
+                  </button>
+                  {folders.map(f => (
+                    <button key={f.id} onClick={() => setActiveFolder(f.id)}
+                      className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${activeFolder === f.id ? 'bg-emerald-600 text-white' : 'bg-white/[0.06] text-gray-400'}`}>
+                      {f.name}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Desktop: folder sidebar + list */}
+                <div className="flex flex-1 min-h-0">
+                  <div className="hidden md:block w-36 shrink-0 border-r border-white/[0.06] p-3 space-y-1">
+                    <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2 px-1">Folders</p>
+                    <button onClick={() => setActiveFolder(null)}
+                      className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all ${!activeFolder ? 'bg-white/[0.08] text-white' : 'text-gray-500 hover:text-gray-300 hover:bg-white/[0.04]'}`}>
+                      All prompts <span className="ml-1 text-gray-600">{allPrompts.length}</span>
+                    </button>
+                    {folders.map(f => (
+                      <button key={f.id} onClick={() => setActiveFolder(f.id)}
+                        className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center justify-between ${activeFolder === f.id ? 'bg-emerald-600/20 text-emerald-300 border border-emerald-500/20' : 'text-gray-500 hover:text-gray-300 hover:bg-white/[0.04]'}`}>
+                        <span className="truncate">{f.name}</span>
+                        <span className="text-gray-600 ml-1 shrink-0">{f.count}</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Prompt list */}
+                  <div className="flex-1 min-w-0 p-3 sm:p-4 space-y-2 overflow-y-auto">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-xs font-semibold text-white">{activeFolder ? folders.find(f => f.id === activeFolder)?.name : 'All prompts'}</p>
+                      <span className="text-xs text-gray-600">{visiblePrompts.length} prompts</span>
+                    </div>
+                    {visiblePrompts.map(p => (
+                      <div key={p.id} className="border border-white/[0.07] rounded-xl bg-white/[0.02] hover:border-white/[0.12] transition-all group">
+                        <div className="flex items-center gap-2.5 px-3 py-2.5">
+                          <span className="text-xs bg-emerald-900/50 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full font-medium shrink-0">{p.tool}</span>
+                          <p className="text-xs font-semibold text-gray-200 flex-1 truncate">{p.title}</p>
+                          <button className="text-xs text-gray-600 hover:text-gray-200 transition-colors sm:opacity-0 group-hover:opacity-100 px-2 py-1 rounded-lg hover:bg-white/[0.06] shrink-0">Copy</button>
+                        </div>
+                        <div className="px-3 pb-2.5">
+                          <p className="text-xs text-gray-600 leading-relaxed line-clamp-2 font-mono break-words">{p.prompt}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+          </div>
+        </div>
+
+        {/* Demo hint */}
+        <div className="border-t border-white/[0.04] px-4 sm:px-5 py-3 flex items-center justify-between gap-4" style={{ background: 'rgba(255,255,255,0.02)' }}>
+          <p className="text-xs text-gray-600 truncate">
+            {activeTab === 'home' ? '👆 Tap a chip to see the AI recommend a tool + prompt' : activeTab === 'tasks' ? '👆 Tap any task to mark it done and earn XP' : '👆 Browse folders or tap a prompt to copy it'}
+          </p>
+          <div className="flex items-center gap-2 shrink-0">
+            {(['home', 'tasks', 'saved'] as const).map(tab => (
+              <button key={tab} onClick={() => setActiveTab(tab)}
+                className={`w-1.5 h-1.5 rounded-full transition-all ${activeTab === tab ? 'bg-emerald-400' : 'bg-white/20'}`} />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function WaitlistForm() {
+  const [email, setEmail] = useState('')
+  const [status, setStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle')
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!email.trim()) return
+    setStatus('loading')
+    const res = await fetch('/api/waitlist', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    })
+    setStatus(res.ok ? 'done' : 'error')
+  }
+
+  return (
+    <div className="max-w-md mx-auto">
+      {status === 'done' ? (
+        <div className="flex items-center justify-center gap-2 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl px-6 py-4">
+          <CheckCircle className="w-5 h-5 text-emerald-400" />
+          <p className="text-emerald-300 font-semibold">You're on the list — we'll be in touch.</p>
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit} className="flex gap-2">
+          <div className="relative flex-1">
+            <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="your@company.com"
+              className="w-full bg-white/[0.07] border border-white/10 text-white placeholder:text-gray-600 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-emerald-500/40 transition-all"
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={status === 'loading'}
+            className="shrink-0 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-5 py-3 rounded-xl text-sm transition-colors disabled:opacity-60 flex items-center gap-2"
+          >
+            {status === 'loading' ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <>Notify me <ArrowRight className="w-3.5 h-3.5" /></>}
+          </button>
+        </form>
+      )}
+      {status === 'error' && <p className="text-red-400 text-xs text-center mt-2">Something went wrong — try again or email hello@lessai.io</p>}
+    </div>
+  )
+}
+
 function Orb({ className, style }: { className?: string; style?: React.CSSProperties }) {
   return <div className={`absolute rounded-full blur-3xl pointer-events-none ${className}`} style={style} />
 }
@@ -232,7 +588,8 @@ export default function Home() {
   const { ref: statsRef, inView: statsInView } = useInView()
   const { ref: stepsRef, inView: stepsInView } = useInView()
   const { ref: featuresRef, inView: featuresInView } = useInView()
-  const { ref: managerRef, inView: managerInView } = useInView()
+const { ref: managerRef, inView: managerInView } = useInView()
+  const { ref: demoRef, inView: demoInView } = useInView()
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
 
   useEffect(() => {
@@ -257,12 +614,8 @@ export default function Home() {
             <span className="font-bold text-gray-950 text-lg tracking-tight">LessAI</span>
           </div>
           <div className="flex items-center gap-1">
-            <Link href="/pricing" className="hidden sm:block text-sm text-gray-500 hover:text-gray-900 transition-colors px-3 py-1.5 rounded-lg hover:bg-gray-50">
-              Pricing
-            </Link>
-            <Link href="/login" className="text-sm text-gray-500 hover:text-gray-900 transition-colors px-3 py-1.5 rounded-lg hover:bg-gray-50">
-              Sign in
-            </Link>
+            <Link href="/pricing" className="hidden sm:block text-sm text-gray-500 hover:text-gray-900 transition-colors px-3 py-1.5 rounded-lg hover:bg-gray-50">Pricing</Link>
+            <Link href="/login" className="text-sm text-gray-500 hover:text-gray-900 transition-colors px-3 py-1.5 rounded-lg hover:bg-gray-50">Sign in</Link>
             <Link href="/signup" className="ml-1 flex items-center gap-1.5 bg-gray-950 hover:bg-gray-800 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-all duration-200 hover:shadow-lg hover:shadow-gray-900/20 group">
               Get started <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
             </Link>
@@ -293,7 +646,6 @@ export default function Home() {
               <div className="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-full px-4 py-1.5 text-xs font-semibold text-emerald-700 mb-8 animate-fade-up">
                 <Sparkles className="w-3 h-3" /> Less AI noise. More AI results.
               </div>
-
               <h1 className="text-5xl sm:text-6xl font-black leading-[1.05] tracking-tight mb-6 animate-fade-up" style={{ animationDelay: '100ms', animationFillMode: 'forwards' }}>
                 <span className="text-gray-950">Your colleagues</span><br />
                 <span className="bg-gradient-to-r from-emerald-500 via-emerald-400 to-amber-400 bg-clip-text text-transparent animate-gradient">get better answers.</span>
@@ -303,15 +655,12 @@ export default function Home() {
                   <span className="absolute bottom-1 left-0 w-full h-3 bg-emerald-300/40 -z-0 -rotate-1 rounded-sm" />
                 </span>
               </h1>
-
               <p className="text-lg text-gray-500 mb-6 leading-relaxed animate-fade-up" style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}>
                 Same tools, same license — wildly different outputs. The gap isn't the AI. It's knowing how to talk to it. LessAI teaches your team the exact prompts, context, and frameworks for their role and their tools.
               </p>
-
               <p className="text-sm text-emerald-700 font-semibold mb-8 animate-fade-up" style={{ animationDelay: '240ms', animationFillMode: 'forwards' }}>
                 Tailored to your role · your tools · your company context.
               </p>
-
               <div className="flex items-center gap-3 flex-wrap animate-fade-up" style={{ animationDelay: '300ms', animationFillMode: 'forwards' }}>
                 <Link href="/signup" className="group relative">
                   <span className="absolute -inset-0.5 bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-2xl blur opacity-0 group-hover:opacity-40 transition-opacity duration-300" />
@@ -323,7 +672,6 @@ export default function Home() {
                   See pricing
                 </Link>
               </div>
-
               <div className="flex items-center gap-5 mt-8 animate-fade-up" style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}>
                 {['7-day free trial', 'No generic courses', 'Role-specific'].map((t) => (
                   <div key={t} className="flex items-center gap-1.5 text-xs text-gray-400 font-medium">
@@ -332,7 +680,6 @@ export default function Home() {
                 ))}
               </div>
             </div>
-
             <div className="animate-fade-up" style={{ animationDelay: '300ms', animationFillMode: 'forwards' }}>
               <PromptPreview />
             </div>
@@ -357,8 +704,6 @@ export default function Home() {
       <section ref={statsRef} className="py-24 px-6 relative overflow-hidden">
         <div className="dot-grid-3d" />
         <Orb className="w-[500px] h-[400px] bg-emerald-200/25 top-0 left-1/2 -translate-x-1/2 animate-float-slow" />
-        <Orb className="w-[300px] h-[200px] bg-amber-200/20 bottom-0 right-0 animate-float" style={{ animationDelay: '1.5s' }} />
-
         <div className="max-w-4xl mx-auto relative">
           <p className={`text-center text-xs font-semibold text-emerald-600 uppercase tracking-widest mb-3 ${statsInView ? 'animate-fade-in' : 'opacity-0'}`}>The problem is real</p>
           <h2 className={`text-3xl sm:text-4xl font-black text-center mb-4 text-gray-950 ${statsInView ? 'animate-fade-up' : 'opacity-0'}`} style={{ animationDelay: '100ms', animationFillMode: 'forwards' }}>
@@ -373,21 +718,11 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── HOW IT WORKS — dark section ── */}
+      {/* ── HOW IT WORKS — dark ── */}
       <section ref={stepsRef} className="py-24 px-6 relative overflow-hidden bg-gray-950">
         <div className="line-grid-3d" />
         <Orb className="w-[500px] h-[400px] bg-emerald-500/10 top-[-100px] left-[-100px] animate-float-slow" />
         <Orb className="w-[400px] h-[300px] bg-amber-400/6 bottom-[-50px] right-[-50px] animate-float" style={{ animationDelay: '2s' }} />
-        <Orb className="w-[300px] h-[200px] bg-emerald-400/8 bottom-0 left-1/3 animate-float-slow" style={{ animationDelay: '1s' }} />
-        {[
-          { top: '15%', right: '10%', size: 6, color: 'bg-emerald-400', delay: '0s' },
-          { top: '60%', left: '6%', size: 4, color: 'bg-amber-400', delay: '1.2s' },
-          { top: '80%', right: '20%', size: 5, color: 'bg-emerald-300', delay: '0.6s' },
-        ].map((d, i) => (
-          <div key={i} className={`absolute rounded-full ${d.color} animate-float opacity-40`}
-            style={{ top: d.top, left: d.left, right: (d as { right?: string }).right, width: d.size, height: d.size, animationDelay: d.delay }} />
-        ))}
-
         <div className="max-w-4xl mx-auto relative">
           <p className={`text-center text-xs font-semibold text-emerald-400 uppercase tracking-widest mb-3 ${stepsInView ? 'animate-fade-in' : 'opacity-0'}`}>How it works</p>
           <h2 className={`text-3xl sm:text-4xl font-black text-center mb-3 text-white ${stepsInView ? 'animate-fade-up' : 'opacity-0'}`} style={{ animationDelay: '100ms', animationFillMode: 'forwards' }}>
@@ -396,41 +731,17 @@ export default function Home() {
           <p className={`text-center text-gray-500 mb-14 max-w-xl mx-auto text-sm ${stepsInView ? 'animate-fade-up' : 'opacity-0'}`} style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}>
             LessAI doesn't teach AI in general. It teaches you how to use the specific tools your company gave you — for the specific work your role demands.
           </p>
-
           <div className="grid gap-3">
             {steps.map((item, i) => {
               const accent = item.color === 'green'
-                ? {
-                    card: 'border-emerald-500/20 bg-emerald-500/8 hover:bg-emerald-500/16 hover:border-emerald-400/40',
-                    icon: 'text-emerald-300 bg-emerald-400/15 border-emerald-400/30 group-hover:bg-emerald-400/30 group-hover:shadow-md group-hover:shadow-emerald-500/30',
-                    title: 'text-emerald-300',
-                    number: 'text-emerald-600',
-                    glow: 'hover:shadow-2xl hover:shadow-emerald-500/25',
-                    bar: 'from-emerald-400 to-emerald-300',
-                  }
+                ? { card: 'border-emerald-500/20 bg-emerald-500/8 hover:bg-emerald-500/16 hover:border-emerald-400/40', icon: 'text-emerald-300 bg-emerald-400/15 border-emerald-400/30 group-hover:bg-emerald-400/30', title: 'text-emerald-300', number: 'text-emerald-600', glow: 'hover:shadow-2xl hover:shadow-emerald-500/25', bar: 'from-emerald-400 to-emerald-300' }
                 : item.color === 'yellow'
-                ? {
-                    card: 'border-amber-500/20 bg-amber-500/8 hover:bg-amber-500/16 hover:border-amber-400/40',
-                    icon: 'text-amber-300 bg-amber-400/15 border-amber-400/30 group-hover:bg-amber-400/30 group-hover:shadow-md group-hover:shadow-amber-500/30',
-                    title: 'text-amber-300',
-                    number: 'text-amber-600',
-                    glow: 'hover:shadow-2xl hover:shadow-amber-500/25',
-                    bar: 'from-amber-400 to-amber-300',
-                  }
-                : {
-                    card: 'border-blue-500/15 bg-blue-500/6 hover:bg-blue-500/12 hover:border-blue-400/30',
-                    icon: 'text-blue-300 bg-blue-400/15 border-blue-400/30 group-hover:bg-blue-400/30 group-hover:shadow-md group-hover:shadow-blue-500/30',
-                    title: 'text-blue-300',
-                    number: 'text-blue-600',
-                    glow: 'hover:shadow-2xl hover:shadow-blue-500/20',
-                    bar: 'from-blue-400 to-blue-300',
-                  }
+                ? { card: 'border-amber-500/20 bg-amber-500/8 hover:bg-amber-500/16 hover:border-amber-400/40', icon: 'text-amber-300 bg-amber-400/15 border-amber-400/30 group-hover:bg-amber-400/30', title: 'text-amber-300', number: 'text-amber-600', glow: 'hover:shadow-2xl hover:shadow-amber-500/25', bar: 'from-amber-400 to-amber-300' }
+                : { card: 'border-blue-500/15 bg-blue-500/6 hover:bg-blue-500/12 hover:border-blue-400/30', icon: 'text-blue-300 bg-blue-400/15 border-blue-400/30 group-hover:bg-blue-400/30', title: 'text-blue-300', number: 'text-blue-600', glow: 'hover:shadow-2xl hover:shadow-blue-500/20', bar: 'from-blue-400 to-blue-300' }
               return (
-                <div key={i}
-                  className={`group relative flex gap-5 p-6 rounded-2xl border overflow-hidden transition-all duration-300 cursor-default ${accent.card} ${accent.glow} ${stepsInView ? 'animate-slide-left opacity-0' : 'opacity-0'}`}
+                <div key={i} className={`group relative flex gap-5 p-6 rounded-2xl border overflow-hidden transition-all duration-300 cursor-default ${accent.card} ${accent.glow} ${stepsInView ? 'animate-slide-left' : 'opacity-0'}`}
                   style={{ animationDelay: `${(i + 1) * 100}ms`, animationFillMode: 'forwards' }}>
                   <div className={`absolute bottom-0 left-8 right-8 h-px bg-gradient-to-r ${accent.bar} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
-                  <div className={`absolute bottom-0 left-1/2 -translate-x-1/2 w-32 h-8 bg-gradient-to-r ${accent.bar} opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-500`} />
                   <div className="shrink-0">
                     <div className={`w-11 h-11 rounded-xl border flex items-center justify-center transition-all duration-300 ${accent.icon}`}>
                       <item.icon className="w-5 h-5" />
@@ -450,19 +761,40 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── FEATURES — back to white ── */}
+      {/* ── PRODUCT DEMO ── */}
+      <section ref={demoRef} className="py-16 sm:py-24 px-3 sm:px-6 relative overflow-hidden bg-gray-950 border-t border-white/[0.04]">
+        <div className="line-grid-3d opacity-40" />
+        <Orb className="w-[600px] h-[400px] bg-emerald-500/8 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-float-slow" />
+        <div className="max-w-5xl mx-auto relative">
+          <p className={`text-center text-xs font-semibold text-emerald-400 uppercase tracking-widest mb-3 ${demoInView ? 'animate-fade-in' : 'opacity-0'}`}>The product</p>
+          <h2 className={`text-3xl sm:text-4xl font-black text-center mb-4 text-white ${demoInView ? 'animate-fade-up' : 'opacity-0'}`} style={{ animationDelay: '100ms', animationFillMode: 'forwards' }}>
+            Your AI Command Center
+          </h2>
+          <p className={`text-center text-gray-500 mb-12 max-w-xl mx-auto text-sm ${demoInView ? 'animate-fade-up' : 'opacity-0'}`} style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}>
+            Tell it what you want to accomplish. It tells you which tool to use, why, and gives you a ready-to-paste prompt — built around your role and your stack.
+          </p>
+          <div className={`${demoInView ? 'animate-fade-up' : 'opacity-0'}`} style={{ animationDelay: '300ms', animationFillMode: 'forwards' }}>
+            <ProductDemo />
+          </div>
+          <div className={`grid grid-cols-3 gap-4 mt-8 ${demoInView ? 'animate-fade-up' : 'opacity-0'}`} style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}>
+            {[
+              { label: 'AI Command Center', desc: 'Describe any task, get the right tool + prompt instantly' },
+              { label: 'Daily task tracker', desc: 'One 10-min task per tool to build real skill fast' },
+              { label: 'Prompt playbook', desc: 'Role-specific frameworks you can paste and go' },
+            ].map(item => (
+              <div key={item.label} className="bg-white/[0.04] border border-white/[0.07] rounded-2xl p-4 text-center">
+                <p className="text-sm font-bold text-white mb-1">{item.label}</p>
+                <p className="text-xs text-gray-500">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── FEATURES ── */}
       <section ref={featuresRef} className="py-24 px-6 relative overflow-hidden">
         <div className="dot-grid-3d" />
         <Orb className="w-[600px] h-[400px] bg-emerald-200/30 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-float-slow" />
-        <Orb className="w-[250px] h-[200px] bg-amber-200/25 top-0 right-0 animate-float" style={{ animationDelay: '1s' }} />
-        {[
-          { top: '10%', left: '3%', size: 7, color: 'bg-emerald-300', delay: '0s' },
-          { bottom: '15%', right: '4%', size: 5, color: 'bg-amber-300', delay: '1.4s' },
-        ].map((d, i) => (
-          <div key={i} className={`absolute rounded-full ${d.color} animate-float opacity-40`}
-            style={{ top: d.top, left: d.left, right: (d as { right?: string }).right, bottom: (d as { bottom?: string }).bottom, width: d.size, height: d.size, animationDelay: d.delay }} />
-        ))}
-
         <div className="max-w-5xl mx-auto relative">
           <p className={`text-center text-xs font-semibold text-emerald-600 uppercase tracking-widest mb-3 ${featuresInView ? 'animate-fade-in' : 'opacity-0'}`}>What you get</p>
           <h2 className={`text-3xl sm:text-4xl font-black text-center mb-4 text-gray-950 ${featuresInView ? 'animate-fade-up' : 'opacity-0'}`} style={{ animationDelay: '100ms', animationFillMode: 'forwards' }}>
@@ -477,10 +809,7 @@ export default function Home() {
                 className={`group relative rounded-2xl p-7 border border-gray-200 bg-white hover:border-emerald-200 hover:shadow-2xl hover:shadow-emerald-100/60 hover:-translate-y-1 transition-all duration-300 overflow-hidden cursor-default ${featuresInView ? 'animate-scale-in opacity-0' : 'opacity-0'}`}
                 style={{ animationDelay: `${(i + 1) * 100}ms`, animationFillMode: 'forwards' }}>
                 <div className="absolute inset-0 bg-gradient-to-br from-emerald-50 via-white to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl" />
-                <div className="absolute -top-6 -right-6 w-24 h-24 bg-emerald-100 rounded-full blur-2xl opacity-0 group-hover:opacity-70 transition-opacity duration-500" />
-                <div className="absolute top-0 right-0 px-2.5 py-1 text-xs font-semibold text-emerald-700 bg-emerald-50 rounded-bl-xl rounded-tr-2xl border-l border-b border-emerald-100">
-                  {f.tag}
-                </div>
+                <div className="absolute top-0 right-0 px-2.5 py-1 text-xs font-semibold text-emerald-700 bg-emerald-50 rounded-bl-xl rounded-tr-2xl border-l border-b border-emerald-100">{f.tag}</div>
                 <div className="relative">
                   <div className="w-11 h-11 bg-gray-950 rounded-xl flex items-center justify-center mb-5 group-hover:bg-emerald-600 group-hover:shadow-lg group-hover:shadow-emerald-500/30 transition-all duration-300">
                     <f.icon className="w-5 h-5 text-white" />
@@ -495,12 +824,11 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── MANAGER — light gray ── */}
+      {/* ── MANAGER ── */}
       <section ref={managerRef} className="py-24 px-6 relative overflow-hidden bg-gray-50">
         <div className="dot-grid-3d" style={{ '--dot-color': '#c9cdd4' } as React.CSSProperties} />
         <Orb className="w-[450px] h-[350px] bg-amber-200/30 top-[-50px] right-[-100px] animate-float-slow" />
         <Orb className="w-[350px] h-[250px] bg-emerald-200/20 bottom-0 left-[-50px] animate-float" style={{ animationDelay: '1.5s' }} />
-
         <div className="max-w-4xl mx-auto relative">
           <p className={`text-center text-xs font-semibold text-amber-600 uppercase tracking-widest mb-3 ${managerInView ? 'animate-fade-in' : 'opacity-0'}`}>For team leads & managers</p>
           <h2 className={`text-3xl sm:text-4xl font-black text-center mb-3 text-gray-950 ${managerInView ? 'animate-fade-up' : 'opacity-0'}`} style={{ animationDelay: '100ms', animationFillMode: 'forwards' }}>
@@ -509,15 +837,13 @@ export default function Home() {
           <p className={`text-center text-gray-500 mb-14 max-w-xl mx-auto text-sm ${managerInView ? 'animate-fade-up' : 'opacity-0'}`} style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}>
             Stop guessing why output quality varies across your team. The admin dashboard shows skill gaps by person and tool — so you know exactly where to focus.
           </p>
-
-          <div className={`grid md:grid-cols-3 gap-4 mb-4 ${managerInView ? 'animate-fade-up opacity-0' : 'opacity-0'}`} style={{ animationDelay: '300ms', animationFillMode: 'forwards' }}>
+          <div className={`grid md:grid-cols-3 gap-4 mb-4 ${managerInView ? 'animate-fade-up' : 'opacity-0'}`} style={{ animationDelay: '300ms', animationFillMode: 'forwards' }}>
             {[
               { icon: TrendingUp, label: 'Prompt skill score', value: '73%', sub: 'team avg up 31% this month', accent: 'emerald' },
               { icon: Shield, label: 'Needs coaching', value: '3', sub: 'members stuck below 40%', accent: 'amber' },
               { icon: Sparkles, label: 'Top performer', value: 'Sarah M.', sub: '5/5 tasks done this week', accent: 'emerald' },
             ].map((card) => (
               <div key={card.label} className={`group rounded-2xl p-6 border bg-white hover:-translate-y-1 hover:shadow-xl transition-all duration-300 overflow-hidden relative ${card.accent === 'amber' ? 'border-amber-200 hover:border-amber-300 hover:shadow-amber-100/60' : 'border-gray-200 hover:border-emerald-200 hover:shadow-emerald-100/60'}`}>
-                <div className="absolute inset-0 bg-gradient-to-br from-current/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl" />
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center mb-3 ${card.accent === 'amber' ? 'bg-amber-100 group-hover:bg-amber-200' : 'bg-emerald-100 group-hover:bg-emerald-200'} transition-colors`}>
                   <card.icon className={`w-4 h-4 ${card.accent === 'amber' ? 'text-amber-600' : 'text-emerald-600'}`} />
                 </div>
@@ -527,8 +853,7 @@ export default function Home() {
               </div>
             ))}
           </div>
-
-          <div className={`relative rounded-2xl overflow-hidden ${managerInView ? 'animate-fade-up opacity-0' : 'opacity-0'}`} style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}>
+          <div className={`relative rounded-2xl overflow-hidden ${managerInView ? 'animate-fade-up' : 'opacity-0'}`} style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}>
             <div className="bg-gray-950 p-6 sm:p-8 relative overflow-hidden">
               <div className="absolute top-0 left-0 w-64 h-32 bg-emerald-500/8 rounded-full blur-2xl" />
               <div className="absolute bottom-0 right-0 w-48 h-24 bg-amber-400/8 rounded-full blur-2xl" />
@@ -549,22 +874,29 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── FINAL CTA — dark ── */}
-      <section className="relative py-20 px-6 bg-gray-950 isolate">
+      {/* ── WAITLIST / EMAIL CAPTURE ── */}
+      <section className="py-20 px-6 relative overflow-hidden bg-gray-950 border-t border-white/[0.04]">
+        <div className="line-grid-3d opacity-50" />
+        <Orb className="w-[500px] h-[350px] bg-amber-400/8 top-0 right-0 animate-float" style={{ animationDelay: '1s' }} />
+        <Orb className="w-[400px] h-[300px] bg-emerald-500/8 bottom-0 left-0 animate-float-slow" />
+        <div className="max-w-xl mx-auto text-center relative">
+          <div className="inline-flex items-center gap-2 bg-amber-400/10 border border-amber-400/20 rounded-full px-4 py-1.5 text-xs font-semibold text-amber-400 mb-6">
+            <Mail className="w-3 h-3" /> Not ready to sign up yet?
+          </div>
+          <h2 className="text-3xl font-black text-white mb-3">Stay in the loop</h2>
+          <p className="text-gray-400 text-sm mb-8 leading-relaxed">
+            Drop your email and we'll let you know when we launch new features, roles, and tool guides. No spam — just product updates worth reading.
+          </p>
+          <WaitlistForm />
+          <p className="text-xs text-gray-600 mt-4">Or reach us directly at <a href="mailto:hello@lessai.io" className="text-emerald-400 hover:text-emerald-300 transition-colors">hello@lessai.io</a></p>
+        </div>
+      </section>
+
+      {/* ── FINAL CTA ── */}
+      <section className="relative py-20 px-6 bg-gray-950 isolate border-t border-white/[0.04]">
         <div className="line-grid-3d" />
         <Orb className="w-[700px] h-[500px] bg-emerald-500/10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-float-slow" />
         <Orb className="w-[350px] h-[250px] bg-amber-400/8 top-0 right-1/4 animate-float" style={{ animationDelay: '1s' }} />
-        <Orb className="w-[250px] h-[200px] bg-emerald-400/6 bottom-0 left-1/4 animate-float-slow" style={{ animationDelay: '2s' }} />
-        {[
-          { top: '20%', left: '12%', size: 8, color: 'bg-amber-400', delay: '0s' },
-          { top: '70%', right: '8%', size: 6, color: 'bg-emerald-400', delay: '1.5s' },
-          { top: '35%', right: '18%', size: 5, color: 'bg-amber-300', delay: '0.7s' },
-          { top: '80%', left: '20%', size: 4, color: 'bg-emerald-300', delay: '2.2s' },
-        ].map((d, i) => (
-          <div key={i} className={`absolute rounded-full ${d.color} animate-float opacity-40`}
-            style={{ top: d.top, left: d.left, right: (d as { right?: string }).right, width: d.size, height: d.size, animationDelay: d.delay }} />
-        ))}
-
         <div className="relative max-w-2xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 bg-emerald-400/10 border border-emerald-400/20 rounded-full px-4 py-1.5 text-xs font-semibold text-emerald-400 mb-8">
             <Zap className="w-3 h-3" /> 7-day free trial
@@ -577,7 +909,6 @@ export default function Home() {
             </span>
           </h2>
           <p className="text-gray-400 mb-8 text-lg">Get your personalized prompt playbook in 3 minutes.</p>
-
           <div className="flex items-center justify-center gap-3 flex-wrap">
             <Link href="/signup" className="group relative">
               <span className="absolute -inset-0.5 bg-gradient-to-r from-amber-400 to-amber-300 rounded-2xl blur opacity-50 group-hover:opacity-80 transition-opacity duration-300" />
@@ -592,23 +923,60 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-gray-100 bg-white">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between flex-wrap gap-4">
-          <div className="flex items-center gap-2.5">
-            <div className="w-6 h-6 bg-gray-950 rounded-md flex items-center justify-center">
-              <span className="text-white font-black text-xs">L</span>
+      {/* ── FOOTER ── */}
+      <footer className="bg-gray-950 border-t border-white/[0.06]">
+        <div className="max-w-6xl mx-auto px-6 py-12">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 mb-10">
+            {/* Brand */}
+            <div className="col-span-2 sm:col-span-1">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-7 h-7 bg-emerald-600 rounded-lg flex items-center justify-center">
+                  <span className="text-white font-black text-xs">L</span>
+                </div>
+                <span className="font-bold text-white">LessAI</span>
+              </div>
+              <p className="text-xs text-gray-500 leading-relaxed mb-4">
+                Teach your team to use AI tools the right way — with role-specific prompts, daily practice, and real skill-building.
+              </p>
+              <a href="mailto:hello@lessai.io" className="text-xs text-emerald-400 hover:text-emerald-300 transition-colors flex items-center gap-1.5">
+                <Mail className="w-3 h-3" /> hello@lessai.io
+              </a>
             </div>
-            <span className="text-sm font-semibold text-gray-600">LessAI</span>
+            {/* Product */}
+            <div>
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Product</p>
+              <ul className="space-y-2">
+                {[{ label: 'Features', href: '/#features' }, { label: 'Pricing', href: '/pricing' }, { label: 'Sign up', href: '/signup' }, { label: 'Sign in', href: '/login' }].map(l => (
+                  <li key={l.label}><Link href={l.href} className="text-sm text-gray-500 hover:text-white transition-colors">{l.label}</Link></li>
+                ))}
+              </ul>
+            </div>
+            {/* Company */}
+            <div>
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Company</p>
+              <ul className="space-y-2">
+                {[{ label: 'Contact us', href: 'mailto:hello@lessai.io' }, { label: 'Support', href: 'mailto:hello@lessai.io' }].map(l => (
+                  <li key={l.label}><a href={l.href} className="text-sm text-gray-500 hover:text-white transition-colors">{l.label}</a></li>
+                ))}
+              </ul>
+            </div>
+            {/* Legal */}
+            <div>
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Legal</p>
+              <ul className="space-y-2">
+                {['Privacy Policy', 'Terms of Service'].map(l => (
+                  <li key={l}><span className="text-sm text-gray-600 cursor-default">{l}</span></li>
+                ))}
+              </ul>
+            </div>
           </div>
-          <div className="flex items-center gap-8 text-sm text-gray-400">
-            <Link href="/pricing" className="hover:text-gray-700 transition-colors">Pricing</Link>
-            <Link href="/login" className="hover:text-gray-700 transition-colors">Sign in</Link>
-            <Link href="/signup" className="hover:text-gray-700 transition-colors">Get started</Link>
+          <div className="border-t border-white/[0.06] pt-6 flex items-center justify-between flex-wrap gap-3">
+            <p className="text-xs text-gray-600">© 2026 LessAI. All rights reserved.</p>
+            <p className="text-xs text-gray-600">Built for teams who take AI seriously.</p>
           </div>
-          <p className="text-xs text-gray-400">© 2026 LessAI. All rights reserved.</p>
         </div>
       </footer>
+
     </div>
   )
 }
