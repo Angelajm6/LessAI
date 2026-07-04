@@ -110,7 +110,8 @@ export default function AdminClient({ company, members, invites, adminName, task
   const [copiedLink, setCopiedLink] = useState(false)
   const [inviteError, setInviteError] = useState('')
   const [expandedMember, setExpandedMember] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<'people' | 'tools' | 'marketplace' | 'roi' | 'invite'>('people')
+  const [activeTab, setActiveTab] = useState<'people' | 'tools' | 'leaderboard' | 'marketplace' | 'roi' | 'invite'>('people')
+  const [lbPeriod, setLbPeriod] = useState<'alltime' | 'week'>('alltime')
   const [sortPeople, setSortPeople] = useState<'name' | 'tasks' | 'engagement'>('tasks')
   // Marketplace state
   const [teamPrompts, setTeamPrompts] = useState<TeamPrompt[]>(initialTeamPrompts)
@@ -370,6 +371,7 @@ export default function AdminClient({ company, members, invites, adminName, task
         {([
           { key: 'people', label: '👥 Team' },
           { key: 'tools', label: '🔧 Tools' },
+          { key: 'leaderboard', label: '🏆 Leaderboard' },
           { key: 'marketplace', label: '📚 Prompts' },
           { key: 'roi', label: '📊 ROI' },
           { key: 'invite', label: '✉️ Invite' },
@@ -606,6 +608,151 @@ export default function AdminClient({ company, members, invites, adminName, task
           )}
         </div>
       )}
+
+      {/* ── Leaderboard tab ── */}
+      {activeTab === 'leaderboard' && (() => {
+        const XP_LEVELS = [
+          { name: 'Novice', min: 0, color: 'text-gray-500' },
+          { name: 'Explorer', min: 100, color: 'text-teal-600' },
+          { name: 'Practitioner', min: 250, color: 'text-emerald-600' },
+          { name: 'Pro', min: 500, color: 'text-amber-600' },
+          { name: 'Expert', min: 1000, color: 'text-amber-500' },
+        ]
+        function getLevelName(xp: number) {
+          let name = XP_LEVELS[0].name
+          for (const l of XP_LEVELS) { if (xp >= l.min) name = l.name }
+          return name
+        }
+        function getLevelColor(xp: number) {
+          let color = XP_LEVELS[0].color
+          for (const l of XP_LEVELS) { if (xp >= l.min) color = l.color }
+          return color
+        }
+
+        const startOfWeek = new Date()
+        startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay())
+        startOfWeek.setHours(0, 0, 0, 0)
+
+        const weekCompletionsByMember: Record<string, number> = {}
+        for (const c of taskCompletions) {
+          if (c.completed_at && new Date(c.completed_at) >= startOfWeek) {
+            weekCompletionsByMember[c.user_id] = (weekCompletionsByMember[c.user_id] ?? 0) + 1
+          }
+        }
+
+        const ranked = members
+          .filter(m => m.onboarded)
+          .map(m => ({
+            ...m,
+            xp: memberXp[m.id]?.xp ?? 0,
+            streak: memberXp[m.id]?.streak ?? 0,
+            tasks: completionsByMember[m.id]?.length ?? 0,
+            weekTasks: weekCompletionsByMember[m.id] ?? 0,
+          }))
+          .sort((a, b) => lbPeriod === 'week' ? b.weekTasks - a.weekTasks : b.xp - a.xp)
+
+        const top3 = ranked.slice(0, 3)
+        const rest = ranked.slice(3)
+
+        const podiumOrder = top3.length >= 3 ? [top3[1], top3[0], top3[2]] : top3
+        const podiumHeights = ['h-20', 'h-28', 'h-16']
+        const podiumLabels = ['2nd', '1st', '3rd']
+        const podiumMedals = ['🥈', '🥇', '🥉']
+        const podiumBg = ['bg-gray-100', 'bg-amber-100', 'bg-gray-50']
+
+        return (
+          <div className="space-y-5">
+            {/* Period toggle */}
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold text-gray-900">Team XP Leaderboard</h3>
+              <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
+                {([{ key: 'alltime', label: 'All time' }, { key: 'week', label: 'This week' }] as const).map(p => (
+                  <button key={p.key} onClick={() => setLbPeriod(p.key)}
+                    className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${lbPeriod === p.key ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {ranked.length === 0 ? (
+              <div className="text-center py-12 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+                <Trophy className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                <p className="text-sm text-gray-400">No XP data yet — members earn XP by completing tasks.</p>
+              </div>
+            ) : (
+              <>
+                {/* Podium */}
+                {top3.length >= 2 && (
+                  <div className="bg-gradient-to-b from-gray-950 to-gray-900 rounded-2xl p-6 relative overflow-hidden">
+                    <div className="absolute inset-0 opacity-30" style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(16,185,129,0.3), transparent 70%)' }} />
+                    <div className="relative flex items-end justify-center gap-4">
+                      {podiumOrder.map((m, i) => m && (
+                        <div key={m.id} className="flex flex-col items-center gap-2">
+                          <div className="text-xl">{podiumMedals[i]}</div>
+                          <div className="w-12 h-12 rounded-full bg-emerald-600 text-white text-sm font-bold flex items-center justify-center border-2 border-white/20">
+                            {getInitials(m.full_name, m.email)}
+                          </div>
+                          <div className="text-center">
+                            <p className="text-xs font-bold text-white truncate max-w-[80px]">{(m.full_name ?? m.email).split(' ')[0]}</p>
+                            <p className="text-xs text-emerald-400 font-bold">
+                              {lbPeriod === 'week' ? `${m.weekTasks} tasks` : `${m.xp} XP`}
+                            </p>
+                          </div>
+                          <div className={`${podiumHeights[i]} w-20 ${podiumBg[i]} rounded-t-xl flex items-center justify-center`}>
+                            <span className="text-xs font-bold text-gray-500">{podiumLabels[i]}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Full ranked list */}
+                <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
+                  {ranked.map((m, i) => (
+                    <div key={m.id} className={`flex items-center gap-3 px-4 py-3 ${i < ranked.length - 1 ? 'border-b border-gray-50' : ''} ${i < 3 ? 'bg-emerald-50/30' : ''}`}>
+                      <span className="w-6 text-sm font-black text-center text-gray-400 shrink-0">
+                        {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1}
+                      </span>
+                      <div className="w-8 h-8 rounded-full bg-emerald-600 text-white text-xs font-bold flex items-center justify-center shrink-0">
+                        {getInitials(m.full_name, m.email)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-gray-900 truncate">{m.full_name ?? m.email}</p>
+                        <p className="text-xs text-gray-400">{m.role ?? 'No role'} · <span className={getLevelColor(m.xp)}>{getLevelName(m.xp)}</span></p>
+                      </div>
+                      <div className="text-right shrink-0 space-y-0.5">
+                        <p className="text-sm font-bold text-emerald-600">
+                          {lbPeriod === 'week' ? `${m.weekTasks} tasks` : `${m.xp} XP`}
+                        </p>
+                        <div className="flex items-center gap-2 justify-end">
+                          {m.streak > 0 && <span className="text-xs text-amber-500">🔥 {m.streak}d</span>}
+                          <span className="text-xs text-gray-300">{m.tasks} total</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Summary bar */}
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { label: 'Total XP earned', value: ranked.reduce((s, m) => s + m.xp, 0).toLocaleString() },
+                    { label: 'Longest streak', value: `${Math.max(...ranked.map(m => m.streak), 0)}d 🔥` },
+                    { label: 'Tasks this week', value: ranked.reduce((s, m) => s + m.weekTasks, 0) },
+                  ].map(s => (
+                    <div key={s.label} className="bg-gray-50 border border-gray-100 rounded-xl p-3 text-center">
+                      <p className="text-lg font-black text-gray-900">{s.value}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">{s.label}</p>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        )
+      })()}
 
       {/* ── Marketplace tab ── */}
       {activeTab === 'marketplace' && (

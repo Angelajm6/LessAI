@@ -40,6 +40,7 @@ interface Props {
   initialXp?: number
   initialStreak?: number
   teamPrompts?: { id: string; title: string; content: string; tool: string | null; pinned: boolean; created_at: string }[]
+  teamLeaderboard?: { id: string; full_name: string | null; xp: number; streak: number }[]
 }
 
 const XP_LEVELS = [
@@ -139,7 +140,7 @@ function PlaybookGenerator({ profile, onDone }: { profile: Props['profile']; onD
   )
 }
 
-export default function DashboardClient({ profile, stackMap, playbook, completedTasks: initialCompleted, savedPrompts: initialSaved, promptFolders: initialFolders, initialXp = 0, initialStreak = 0, teamPrompts = [] }: Props) {
+export default function DashboardClient({ profile, stackMap, playbook, completedTasks: initialCompleted, savedPrompts: initialSaved, promptFolders: initialFolders, initialXp = 0, initialStreak = 0, teamPrompts = [], teamLeaderboard = [] }: Props) {
   const [section, setSection] = useState<Section>('home')
   const [completed, setCompleted] = useState<CompletedTask[]>(initialCompleted)
   const [expanded, setExpanded] = useState<string | null>(null)
@@ -2041,6 +2042,43 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                   ))}
                 </div>
               </div>
+
+              {/* Team leaderboard */}
+              {teamLeaderboard.length > 1 && (() => {
+                const myRank = teamLeaderboard.findIndex(t => t.id === profile.id) + 1
+                return (
+                  <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <Trophy className="w-4 h-4 text-amber-500" />
+                        <p className="text-sm font-bold text-gray-900">Team leaderboard</p>
+                      </div>
+                      {myRank > 0 && (
+                        <span className="text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-100 px-2.5 py-1 rounded-full">
+                          You&apos;re #{myRank}
+                        </span>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      {teamLeaderboard.map((t, i) => {
+                        const isMe = t.id === profile.id
+                        return (
+                          <div key={t.id} className={`flex items-center gap-3 px-3 py-2 rounded-xl ${isMe ? 'bg-emerald-50 border border-emerald-200' : 'bg-gray-50'}`}>
+                            <span className="text-sm w-5 text-center font-bold text-gray-400 shrink-0">
+                              {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1}
+                            </span>
+                            <p className={`text-sm flex-1 font-medium truncate ${isMe ? 'text-emerald-700' : 'text-gray-700'}`}>
+                              {isMe ? 'You' : (t.full_name?.split(' ')[0] ?? 'Teammate')}
+                            </p>
+                            {t.streak > 0 && <span className="text-xs text-amber-500">🔥{t.streak}d</span>}
+                            <span className={`text-sm font-bold shrink-0 ${isMe ? 'text-emerald-600' : 'text-gray-500'}`}>{t.xp} XP</span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )
+              })()}
 
               {/* Nudge if nothing done yet */}
               {completed.length === 0 && (

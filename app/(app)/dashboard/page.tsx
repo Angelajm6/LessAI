@@ -64,6 +64,25 @@ export default async function DashboardPage() {
     .limit(1)
     .single()
 
+  // Team leaderboard — only for users in a company
+  let teamLeaderboard: { id: string; full_name: string | null; xp: number; streak: number }[] = []
+  if (profile?.company_id) {
+    const { data: teammates } = await supabase
+      .from('profiles')
+      .select('id, full_name, xp, streak')
+      .eq('company_id', profile.company_id)
+      .eq('onboarded', true)
+      .eq('is_admin', false)
+      .order('xp', { ascending: false })
+      .limit(10)
+    teamLeaderboard = (teammates ?? []).map(t => ({
+      id: t.id,
+      full_name: t.full_name,
+      xp: t.xp ?? 0,
+      streak: t.streak ?? 0,
+    }))
+  }
+
   return (
     <DashboardClient
       profile={profile}
@@ -75,6 +94,7 @@ export default async function DashboardPage() {
       initialXp={profileXp?.xp ?? 0}
       initialStreak={profileXp?.streak ?? 0}
       teamPrompts={teamPromptsData ?? []}
+      teamLeaderboard={teamLeaderboard}
     />
   )
 }
