@@ -1138,7 +1138,31 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
               )}
             </div>
             {!stackMap ? (
-              <div className="text-center py-12 text-gray-400">No tasks yet — complete onboarding first.</div>
+              <div className="flex flex-col items-center justify-center py-14 px-6 text-center">
+                <div className="w-16 h-16 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center mb-5">
+                  <Sparkles className="w-7 h-7 text-emerald-500" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">Your AI task stack is waiting</h3>
+                <p className="text-sm text-gray-500 max-w-xs mb-6 leading-relaxed">
+                  Complete setup to get a personalized daily task plan across all your AI tools — built around your exact role and company.
+                </p>
+                <div className="grid grid-cols-3 gap-3 w-full max-w-xs mb-7">
+                  {[
+                    { icon: '🎯', label: 'Role-specific tasks' },
+                    { icon: '🤖', label: 'Tailored to your tools' },
+                    { icon: '🔥', label: 'Streak & XP tracking' },
+                  ].map(({ icon, label }) => (
+                    <div key={label} className="bg-gray-50 border border-gray-100 rounded-xl p-3 text-center">
+                      <div className="text-xl mb-1">{icon}</div>
+                      <p className="text-xs text-gray-500 font-medium leading-tight">{label}</p>
+                    </div>
+                  ))}
+                </div>
+                <Button onClick={() => window.location.href = '/onboarding'} className="bg-emerald-600 hover:bg-emerald-700 gap-2 shadow-md shadow-emerald-100">
+                  <Sparkles className="w-4 h-4" /> Set up my stack
+                </Button>
+                <p className="text-xs text-gray-400 mt-3">Takes about 2 minutes</p>
+              </div>
             ) : stackMap.tool_tracks.map((track: ToolTrack) => {
               const done = completed.filter(c => c.tool === track.tool).length
               const isOpen = expanded === track.tool
@@ -1265,8 +1289,22 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
               </div>
             </div>
 
-            {!stackMap ? <div className="text-center py-12 text-gray-400">No guides yet.</div>
-              : stackMap.tool_cards.map((card: ToolCard) => (
+            {!stackMap ? (
+              <div className="flex flex-col items-center justify-center py-14 px-6 text-center">
+                <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center mb-5">
+                  <BookOpen className="w-7 h-7 text-amber-500" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">Your AI guides are on their way</h3>
+                <p className="text-sm text-gray-500 max-w-xs mb-6 leading-relaxed">
+                  Once you complete setup, we'll generate bite-sized AI guides for each tool you use — with prompt frameworks specific to your role.
+                </p>
+                <Button onClick={() => window.location.href = '/onboarding'} className="bg-emerald-600 hover:bg-emerald-700 gap-2 shadow-md shadow-emerald-100">
+                  <Sparkles className="w-4 h-4" /> Complete setup
+                </Button>
+                <p className="text-xs text-gray-400 mt-3">Takes about 2 minutes</p>
+              </div>
+            ) : null}
+            {stackMap && stackMap.tool_cards.map((card: ToolCard) => (
                 <div key={card.tool}
                   className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:border-emerald-200 hover:shadow-md transition-all duration-200">
                   <div className="flex items-start justify-between gap-3 mb-3">

@@ -122,7 +122,7 @@ function OnboardingFlow() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const updateStackMode = searchParams.get('from') === 'stack'
-  const [step, setStep] = useState(updateStackMode ? 3 : 1)
+  const [step, setStep] = useState(1)
   const [role, setRole] = useState('')
   const [customRole, setCustomRole] = useState('')
   const [company, setCompany] = useState('')
@@ -135,6 +135,30 @@ function OnboardingFlow() {
   const [scrapeError, setScrapeError] = useState('')
   const [generating, setGenerating] = useState(false)
   const [error, setError] = useState('')
+  const [prefillLoading, setPrefillLoading] = useState(updateStackMode)
+
+  useEffect(() => {
+    if (!updateStackMode) return
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) { setPrefillLoading(false); return }
+      supabase.from('profiles').select('role, company_name, company_website, tools, tool_levels').eq('id', user.id).single()
+        .then(({ data }) => {
+          if (data) {
+            if (data.role) {
+              const preset = PRESET_ROLES.find(r => r.label === data.role)
+              if (preset) setRole(data.role)
+              else { setRole('Other'); setCustomRole(data.role) }
+            }
+            if (data.company_name) setCompany(data.company_name)
+            if (data.company_website) setWebsite(data.company_website)
+            if (Array.isArray(data.tools)) setSelectedTools(data.tools)
+            if (data.tool_levels && typeof data.tool_levels === 'object') setToolLevels(data.tool_levels as Record<string, string>)
+          }
+          setPrefillLoading(false)
+        })
+    })
+  }, [updateStackMode])
 
   const selectedRole = role === 'Other' ? customRole : role
 
@@ -211,6 +235,16 @@ function OnboardingFlow() {
     }
   }
 
+  // ── Pre-fill loading state ────────────────────────────────────────────────
+  if (prefillLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+        <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+        <p className="text-sm text-gray-400">Loading your existing stack…</p>
+      </div>
+    )
+  }
+
   // ── Full-screen loading overlay ──────────────────────────────────────────
   if (generating) {
     return (
@@ -232,15 +266,12 @@ function OnboardingFlow() {
           {/* Label */}
           <div className="flex items-center gap-2 justify-center mb-2">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-xs font-bold text-emerald-400 uppercase tracking-widest">Building your AI stack</span>
+            <span className="text-xs font-bold text-emerald-400 uppercase tracking-widest">{updateStackMode ? 'Rebuilding your AI stack' : 'Building your AI stack'}</span>
           </div>
 
           {/* Headline */}
           <h2 className="text-3xl font-black text-white mb-3 leading-tight">
-            Creating your{' '}
-            <span className="bg-gradient-to-r from-emerald-400 to-amber-400 bg-clip-text text-transparent">
-              personal playbook
-            </span>
+            {updateStackMode ? <>Rebuilding your{' '}<span className="bg-gradient-to-r from-emerald-400 to-amber-400 bg-clip-text text-transparent">prompt playbook</span></> : <>Creating your{' '}<span className="bg-gradient-to-r from-emerald-400 to-amber-400 bg-clip-text text-transparent">personal playbook</span></>}
           </h2>
           <p className="text-gray-400 text-sm mb-3 max-w-xs mx-auto leading-relaxed">
             Tailoring{' '}
@@ -328,9 +359,9 @@ function OnboardingFlow() {
         {step === 1 && (
           <div className="animate-in fade-in slide-in-from-right-4 duration-300">
             <div className="mb-6">
-              <p className="text-xs font-semibold text-emerald-600 uppercase tracking-widest mb-1">Step 1 of 4</p>
-              <h1 className="text-2xl font-bold text-gray-900 mb-1">What&apos;s your role?</h1>
-              <p className="text-gray-500 text-sm">Your prompt playbook is built around your role — a PM and a marketer should use AI very differently.</p>
+              <p className="text-xs font-semibold text-emerald-600 uppercase tracking-widest mb-1">{updateStackMode ? 'Update stack · Step 1 of 4' : 'Step 1 of 4'}</p>
+              <h1 className="text-2xl font-bold text-gray-900 mb-1">{updateStackMode ? 'Update your role' : "What's your role?"}</h1>
+              <p className="text-gray-500 text-sm">{updateStackMode ? 'Changed roles or want to refocus? Update here and we\'ll rebuild your entire stack around it.' : 'Your prompt playbook is built around your role — a PM and a marketer should use AI very differently.'}</p>
             </div>
 
             <div className="space-y-4 mb-4">
@@ -379,8 +410,8 @@ function OnboardingFlow() {
         {step === 2 && (
           <div className="animate-in fade-in slide-in-from-right-4 duration-300">
             <div className="mb-6">
-              <p className="text-xs font-semibold text-emerald-600 uppercase tracking-widest mb-1">Step 2 of 4</p>
-              <h1 className="text-2xl font-bold text-gray-900 mb-1">Tell us about your company</h1>
+              <p className="text-xs font-semibold text-emerald-600 uppercase tracking-widest mb-1">{updateStackMode ? 'Update stack · Step 2 of 4' : 'Step 2 of 4'}</p>
+              <h1 className="text-2xl font-bold text-gray-900 mb-1">{updateStackMode ? 'Update your company details' : 'Tell us about your company'}</h1>
               <p className="text-gray-500 text-sm">We&apos;ll read your website to make every task, prompt, and example specific to your actual business.</p>
             </div>
 
@@ -456,9 +487,9 @@ function OnboardingFlow() {
         {step === 3 && (
           <div className="animate-in fade-in slide-in-from-right-4 duration-300">
             <div className="mb-6">
-              <p className="text-xs font-semibold text-emerald-600 uppercase tracking-widest mb-1">Step 3 of 4</p>
-              <h1 className="text-2xl font-bold text-gray-900 mb-1">Which AI tools does your company give you?</h1>
-              <p className="text-gray-500 text-sm">Select all of them — even ones you&apos;ve barely touched. That&apos;s exactly what LessAI is here to fix.</p>
+              <p className="text-xs font-semibold text-emerald-600 uppercase tracking-widest mb-1">{updateStackMode ? 'Update stack · Step 3 of 4' : 'Step 3 of 4'}</p>
+              <h1 className="text-2xl font-bold text-gray-900 mb-1">{updateStackMode ? 'Update your AI tools' : 'Which AI tools does your company give you?'}</h1>
+              <p className="text-gray-500 text-sm">{updateStackMode ? 'Add new tools, remove old ones, or swap out the whole list.' : "Select all of them — even ones you've barely touched. That's exactly what LessAI is here to fix."}</p>
             </div>
 
             <div className="flex flex-wrap gap-2 mb-5">
@@ -520,9 +551,9 @@ function OnboardingFlow() {
         {step === 4 && (
           <div className="animate-in fade-in slide-in-from-right-4 duration-300">
             <div className="mb-6">
-              <p className="text-xs font-semibold text-emerald-600 uppercase tracking-widest mb-1">Step 4 of 4</p>
+              <p className="text-xs font-semibold text-emerald-600 uppercase tracking-widest mb-1">{updateStackMode ? 'Update stack · Step 4 of 4' : 'Step 4 of 4'}</p>
               <h1 className="text-2xl font-bold text-gray-900 mb-1">How well do you know each tool?</h1>
-              <p className="text-gray-500 text-sm">Be honest — this sets the complexity of your prompt frameworks and daily tasks.</p>
+              <p className="text-gray-500 text-sm">{updateStackMode ? 'Update your skill levels — your tasks will be re-calibrated to match.' : 'Be honest — this sets the complexity of your prompt frameworks and daily tasks.'}</p>
             </div>
 
             <div className="space-y-3 mb-8">
@@ -566,7 +597,7 @@ function OnboardingFlow() {
               </Button>
               <Button onClick={handleGenerate} disabled={generating}
                 className="bg-emerald-600 hover:bg-emerald-700 gap-2 h-11 px-6 shadow-md shadow-emerald-100">
-                <Sparkles className="w-4 h-4" /> Build my prompt playbook
+                <Sparkles className="w-4 h-4" /> {updateStackMode ? 'Rebuild my stack' : 'Build my prompt playbook'}
               </Button>
             </div>
           </div>
