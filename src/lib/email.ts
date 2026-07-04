@@ -218,6 +218,88 @@ export async function sendStreakReminderEmail({
   return { data, error }
 }
 
+// ── Weekly digest ────────────────────────────────────────────────────────────
+
+export async function sendWeeklyDigestEmail({
+  to, firstName, tasksThisWeek, totalTasks, streak, xp, levelName, topTool, nextTask,
+}: {
+  to: string
+  firstName: string
+  tasksThisWeek: number
+  totalTasks: number
+  streak: number
+  xp: number
+  levelName: string
+  topTool: string | null
+  nextTask: { tool: string; title: string; task: string } | null
+}) {
+  const streakLine = streak >= 7
+    ? `<span style="background:#fef3c7;border:1px solid #fde68a;border-radius:100px;padding:3px 10px;font-size:12px;font-weight:700;color:#92400e">🔥 ${streak}-day streak</span>`
+    : streak >= 3
+    ? `<span style="background:#fef9c3;border:1px solid #fde68a;border-radius:100px;padding:3px 10px;font-size:12px;font-weight:700;color:#a16207">📅 ${streak}-day streak</span>`
+    : ''
+
+  const topToolLine = topTool
+    ? `<p style="font-size:14px;color:#4b5563;margin:0"><strong>Most practiced:</strong> ${topTool}</p>`
+    : ''
+
+  const nextTaskBlock = nextTask ? `
+    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px 20px;margin-bottom:24px">
+      <p style="font-size:12px;font-weight:700;color:#059669;text-transform:uppercase;letter-spacing:.05em;margin:0 0 6px">Up next — ${nextTask.tool}</p>
+      <p style="font-size:14px;font-weight:700;color:#065f46;margin:0 0 6px">${nextTask.title}</p>
+      <p style="font-size:13px;color:#047857;margin:0;line-height:1.6">${nextTask.task}</p>
+    </div>` : ''
+
+  const statsRow = (label: string, value: string, emoji: string) =>
+    `<td style="width:33%;text-align:center;padding:0 8px">
+      <div style="font-size:24px;margin-bottom:4px">${emoji}</div>
+      <div style="font-size:22px;font-weight:800;color:#111827">${value}</div>
+      <div style="font-size:12px;color:#6b7280;margin-top:2px">${label}</div>
+    </td>`
+
+  const html = emailShell(`
+    <div style="padding:32px 32px 24px">
+      <div style="margin-bottom:16px">${streakLine}</div>
+      <h1 style="font-size:24px;font-weight:800;color:#111827;margin:0 0 12px;line-height:1.3">
+        ${tasksThisWeek > 0 ? `Nice work this week, ${firstName} 💪` : `Let's get back on track, ${firstName}`}
+      </h1>
+      <p style="font-size:15px;color:#4b5563;margin:0 0 24px;line-height:1.6">
+        ${tasksThisWeek > 0
+          ? `You completed <strong>${tasksThisWeek} task${tasksThisWeek !== 1 ? 's' : ''}</strong> this week. Here's where you stand:`
+          : `You didn't complete any tasks last week — this week is a fresh start. One 10-minute task is all it takes.`}
+      </p>
+      <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:20px;margin-bottom:20px">
+        <tr>
+          ${statsRow('This week', String(tasksThisWeek), '✅')}
+          ${statsRow('Total tasks', String(totalTasks), '🎯')}
+          ${statsRow('Total XP', String(xp), '⚡')}
+        </tr>
+      </table>
+      <div style="margin-bottom:20px">
+        <p style="font-size:14px;color:#4b5563;margin:0 0 4px"><strong>Level:</strong> ${levelName}</p>
+        ${topToolLine}
+      </div>
+      ${nextTaskBlock}
+    </div>
+    <div style="padding:0 32px 32px;text-align:center">
+      ${ctaButton(dashboardUrl('/dashboard'), "Go to today's task →")}
+      <p style="font-size:12px;color:#9ca3af;margin:12px 0 0">10 minutes a day builds a real AI edge over time.</p>
+    </div>
+  `)
+
+  const subjectLine = tasksThisWeek > 0
+    ? `Your LessAI week in review — ${tasksThisWeek} task${tasksThisWeek !== 1 ? 's' : ''} done ✅`
+    : `Your LessAI weekly digest — let's pick it back up`
+
+  const { data, error } = await getResend().emails.send({
+    from: FROM, to,
+    subject: subjectLine,
+    html,
+  })
+  if (error) console.error('[email] sendWeeklyDigestEmail error:', error)
+  return { data, error }
+}
+
 // ── Invite email ─────────────────────────────────────────────────────────────
 
 export async function sendInviteEmail({
