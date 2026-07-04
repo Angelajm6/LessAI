@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { role, tools, toolLevels, company } = await req.json()
+  const { role, tools, toolLevels, company, companySummary } = await req.json()
 
   if (!tools || tools.length === 0) {
     return NextResponse.json({ error: 'No tools provided' }, { status: 400 })
@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
   let playbook
   try {
     ;[stackMap, playbook] = await Promise.all([
-      generateStackMap(role, tools, toolLevels ?? {}, company ?? null),
+      generateStackMap(role, tools, toolLevels ?? {}, company ?? null, companySummary ?? null),
       generatePlaybook(role, tools, toolLevels ?? {}, company ?? null),
     ])
   } catch (err) {

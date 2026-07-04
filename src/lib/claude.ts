@@ -90,13 +90,17 @@ export async function generateStackMap(
   role: string,
   tools: string[],
   toolLevels: Record<string, string>,
-  company?: string | null
+  company?: string | null,
+  companySummary?: string | null
 ): Promise<StackMap> {
   const toolList = tools.map(t => `${t} (${toolLevels[t] ?? 'never'})`).join(', ')
   const companyLine = company ? `They work at ${company}.` : ''
+  const summaryLine = companySummary ? `Company context: ${companySummary}` : ''
 
   const text = await chat(
-    `You are an AI adoption coach. A ${role} has these AI tools: ${toolList}. ${companyLine}
+    `You are an AI adoption coach. A ${role} has these AI tools: ${toolList}. ${companyLine} ${summaryLine}
+
+Use the company context to make every task, example, and use case specific to their actual business — reference their industry, customers, and product where relevant.
 
 Return a JSON object with this EXACT structure (no extra text, no markdown):
 

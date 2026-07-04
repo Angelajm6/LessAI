@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { ArrowRight, ArrowLeft, Sparkles, Building2, X, Plus, CheckCircle, Zap, BarChart2, BookOpen, RefreshCw } from 'lucide-react'
+import { ArrowRight, ArrowLeft, Sparkles, Building2, X, Plus, CheckCircle, Zap, BarChart2, BookOpen, RefreshCw, Globe, Loader2 } from 'lucide-react'
 
 const ROLE_CATEGORIES = [
   {
@@ -129,6 +129,10 @@ function OnboardingFlow() {
   const [selectedTools, setSelectedTools] = useState<string[]>([])
   const [customTool, setCustomTool] = useState('')
   const [toolLevels, setToolLevels] = useState<Record<string, string>>({})
+  const [website, setWebsite] = useState('')
+  const [scraping, setScraping] = useState(false)
+  const [companySummary, setCompanySummary] = useState<string | null>(null)
+  const [scrapeError, setScrapeError] = useState('')
   const [generating, setGenerating] = useState(false)
   const [error, setError] = useState('')
 
@@ -149,6 +153,26 @@ function OnboardingFlow() {
     setCustomTool('')
   }
 
+  async function scrapeWebsite() {
+    if (!website.trim()) return
+    setScraping(true)
+    setScrapeError('')
+    setCompanySummary(null)
+    try {
+      const res = await fetch('/api/scrape', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: website.trim() }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Could not read that website')
+      setCompanySummary(data.summary)
+    } catch (e) {
+      setScrapeError(e instanceof Error ? e.message : 'Could not read that website — you can still continue without it.')
+    }
+    setScraping(false)
+  }
+
   async function handleGenerate() {
     setGenerating(true)
     setError('')
@@ -162,6 +186,8 @@ function OnboardingFlow() {
         email: user.email ?? '',
         role: selectedRole,
         company_name: company.trim() || null,
+        company_website: website.trim() || null,
+        company_summary: companySummary || null,
         tools: selectedTools,
         tool_levels: toolLevels,
         onboarded: false,
@@ -170,7 +196,7 @@ function OnboardingFlow() {
       const res = await fetch('/api/ai/generate-path', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role: selectedRole, company: company.trim() || null, tools: selectedTools, toolLevels }),
+        body: JSON.stringify({ role: selectedRole, company: company.trim() || null, companySummary: companySummary || null, tools: selectedTools, toolLevels }),
       })
 
       if (!res.ok) {
@@ -219,7 +245,8 @@ function OnboardingFlow() {
           <p className="text-gray-400 text-sm mb-3 max-w-xs mx-auto leading-relaxed">
             Tailoring{' '}
             <strong className="text-gray-200">{selectedTools.length} tool{selectedTools.length !== 1 ? 's' : ''}</strong>{' '}
-            to how a <strong className="text-gray-200">{selectedRole}</strong> actually works.
+            to how a <strong className="text-gray-200">{selectedRole}</strong> actually works
+            {companySummary ? <> at <strong className="text-emerald-400">{company || 'your company'}</strong></> : ''}.
           </p>
           <p className="text-amber-400/80 text-xs font-medium mb-8">⏱ This takes 2–4 minutes — don&apos;t close this tab.</p>
 
@@ -353,18 +380,62 @@ function OnboardingFlow() {
           <div className="animate-in fade-in slide-in-from-right-4 duration-300">
             <div className="mb-6">
               <p className="text-xs font-semibold text-emerald-600 uppercase tracking-widest mb-1">Step 2 of 4</p>
-              <h1 className="text-2xl font-bold text-gray-900 mb-1">Where do you work?</h1>
-              <p className="text-gray-500 text-sm">Helps us understand your industry and context. Totally optional.</p>
+              <h1 className="text-2xl font-bold text-gray-900 mb-1">Tell us about your company</h1>
+              <p className="text-gray-500 text-sm">We&apos;ll read your website to make every task, prompt, and example specific to your actual business.</p>
             </div>
 
-            <div className="bg-white/80 backdrop-blur-sm border border-gray-200 rounded-2xl p-5 mb-6 shadow-sm">
-              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                <Building2 className="w-4 h-4 text-gray-400" /> Company name
-              </label>
-              <Input placeholder="e.g. Acme Corp, Notion, Shopify"
-                value={company} onChange={(e) => setCompany(e.target.value)}
-                className="border-gray-200 focus:ring-emerald-400 bg-white"
-                onKeyDown={(e) => e.key === 'Enter' && setStep(3)} />
+            <div className="space-y-4 mb-6">
+              {/* Company name */}
+              <div className="bg-white/80 backdrop-blur-sm border border-gray-200 rounded-2xl p-5 shadow-sm">
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                  <Building2 className="w-4 h-4 text-gray-400" /> Company name <span className="text-gray-400 font-normal">(optional)</span>
+                </label>
+                <Input placeholder="e.g. Acme Corp, Notion, Shopify"
+                  value={company} onChange={(e) => setCompany(e.target.value)}
+                  className="border-gray-200 focus:ring-emerald-400 bg-white" />
+              </div>
+
+              {/* Website */}
+              <div className="bg-white/80 backdrop-blur-sm border border-gray-200 rounded-2xl p-5 shadow-sm">
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1">
+                  <Globe className="w-4 h-4 text-emerald-500" /> Company website <span className="text-gray-400 font-normal">(optional but recommended)</span>
+                </label>
+                <p className="text-xs text-gray-400 mb-3">We&apos;ll scrape it to understand your niche, customers, and product — so your tasks feel like they were written for you.</p>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="e.g. acmecorp.com"
+                    value={website}
+                    onChange={(e) => { setWebsite(e.target.value); setCompanySummary(null); setScrapeError('') }}
+                    onKeyDown={(e) => e.key === 'Enter' && scrapeWebsite()}
+                    className="border-gray-200 focus:ring-emerald-400 bg-white"
+                  />
+                  <Button
+                    variant="outline"
+                    onClick={scrapeWebsite}
+                    disabled={!website.trim() || scraping}
+                    className="shrink-0 border-emerald-200 text-emerald-700 hover:bg-emerald-50 gap-1.5 bg-white/80"
+                  >
+                    {scraping ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Reading…</> : <><Globe className="w-3.5 h-3.5" /> Read site</>}
+                  </Button>
+                </div>
+
+                {scrapeError && (
+                  <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">⚠️ {scrapeError}</p>
+                )}
+
+                {companySummary && (
+                  <div className="mt-3 bg-emerald-50 border border-emerald-200 rounded-xl p-3">
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                      <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
+                      <span className="text-xs font-bold text-emerald-700">Got it! Here&apos;s what we learned:</span>
+                    </div>
+                    <p className="text-xs text-emerald-800 leading-relaxed">{companySummary}</p>
+                    <button onClick={() => { setCompanySummary(null); setWebsite('') }} className="text-xs text-emerald-500 hover:text-emerald-700 mt-1.5 underline underline-offset-2">
+                      Clear
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="flex items-center gap-3">
