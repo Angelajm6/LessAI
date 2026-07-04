@@ -12,7 +12,7 @@ import {
   Copy, Trash2, ArrowRight, LayoutDashboard, BookOpen,
   MessageSquare, FolderPlus, Folder, FolderOpen, Plus, X, Pencil,
   FileText, ChevronUp, Home, TrendingUp, Star, Settings, FlaskConical,
-  RefreshCw, TrendingDown
+  RefreshCw, TrendingDown, BarChart2, Flame, Trophy, Target, Calendar
 } from 'lucide-react'
 import Link from 'next/link'
 import type { StackMap, ToolCard, ToolTrack, DailyTask, Playbook, ToolPlaybook, PromptFramework, Recommendation, PromptImprovement } from '@/lib/claude'
@@ -70,11 +70,12 @@ const LEVEL_COLORS: Record<string, string> = {
   comfortable: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
 }
 
-type Section = 'home' | 'tasks' | 'playbook' | 'guides' | 'saved' | 'lab'
+type Section = 'home' | 'tasks' | 'playbook' | 'guides' | 'saved' | 'lab' | 'progress'
 
 const NAV_ITEMS: { key: Section; icon: React.ElementType; label: string }[] = [
   { key: 'home', icon: Home, label: 'Overview' },
   { key: 'tasks', icon: LayoutDashboard, label: 'Daily Tasks' },
+  { key: 'progress', icon: BarChart2, label: 'Progress' },
   { key: 'guides', icon: BookOpen, label: 'Tool Guides' },
   { key: 'saved', icon: Bookmark, label: 'Saved Prompts' },
   { key: 'lab', icon: FlaskConical, label: 'Prompt Lab' },
@@ -1796,6 +1797,265 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
             )}
           </div>
         )}
+
+        {/* ── Progress ─────────────────────────────────────────────────── */}
+        {section === 'progress' && (() => {
+          const now = new Date()
+          const startOfWeek = new Date(now)
+          startOfWeek.setDate(now.getDate() - now.getDay())
+          startOfWeek.setHours(0, 0, 0, 0)
+          const startOfLastWeek = new Date(startOfWeek)
+          startOfLastWeek.setDate(startOfLastWeek.getDate() - 7)
+
+          const thisWeekDone = completed.filter(c => c.completed_at && new Date(c.completed_at) >= startOfWeek)
+          const lastWeekDone = completed.filter(c => {
+            if (!c.completed_at) return false
+            const d = new Date(c.completed_at)
+            return d >= startOfLastWeek && d < startOfWeek
+          })
+
+          // Build last 30 days activity map
+          const activityMap: Record<string, number> = {}
+          completed.forEach(c => {
+            if (!c.completed_at) return
+            const day = c.completed_at.slice(0, 10)
+            activityMap[day] = (activityMap[day] ?? 0) + 1
+          })
+
+          // Last 5 weeks of days (Mon–Sun) for heatmap
+          const weeks: string[][] = []
+          const heatmapEnd = new Date(now)
+          heatmapEnd.setHours(23, 59, 59)
+          // go back to last Sunday
+          const cursor = new Date(heatmapEnd)
+          cursor.setDate(cursor.getDate() - cursor.getDay())
+          for (let w = 0; w < 5; w++) {
+            const week: string[] = []
+            for (let d = 0; d < 7; d++) {
+              const day = new Date(cursor)
+              day.setDate(cursor.getDate() - (6 - d))
+              week.push(day.toISOString().slice(0, 10))
+            }
+            weeks.unshift(week)
+            cursor.setDate(cursor.getDate() - 7)
+          }
+
+          // Per-tool breakdown
+          const toolCounts: Record<string, number> = {}
+          completed.forEach(c => { toolCounts[c.tool] = (toolCounts[c.tool] ?? 0) + 1 })
+          const toolEntries = Object.entries(toolCounts).sort((a, b) => b[1] - a[1])
+          const maxToolCount = toolEntries[0]?.[1] ?? 1
+
+          // Milestones
+          const milestones = [
+            { label: 'First task', icon: '🎯', reached: completed.length >= 1 },
+            { label: '5 tasks done', icon: '⚡', reached: completed.length >= 5 },
+            { label: '10 tasks done', icon: '🔥', reached: completed.length >= 10 },
+            { label: '3-day streak', icon: '📅', reached: streakState >= 3 },
+            { label: '7-day streak', icon: '🏅', reached: streakState >= 7 },
+            { label: 'Explorer level', icon: '🧭', reached: xpState >= 100 },
+            { label: 'Practitioner level', icon: '🌟', reached: xpState >= 250 },
+            { label: '25 tasks done', icon: '🏆', reached: completed.length >= 25 },
+          ]
+
+          const weekDelta = thisWeekDone.length - lastWeekDone.length
+
+          return (
+            <div className="space-y-6 p-4 sm:p-6">
+              {/* Header */}
+              <div>
+                <h2 className="text-xl font-black text-gray-900">Your progress</h2>
+                <p className="text-sm text-gray-400 mt-0.5">Track your AI skill-building over time</p>
+              </div>
+
+              {/* Top stats row */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {[
+                  { icon: <CheckCircle className="w-5 h-5 text-emerald-500" />, value: completed.length, label: 'Total tasks done', bg: 'bg-emerald-50', border: 'border-emerald-100' },
+                  { icon: <Flame className="w-5 h-5 text-orange-500" />, value: `${streakState}d`, label: 'Current streak', bg: 'bg-orange-50', border: 'border-orange-100' },
+                  { icon: <Zap className="w-5 h-5 text-amber-500" />, value: xpState, label: 'Total XP earned', bg: 'bg-amber-50', border: 'border-amber-100' },
+                  { icon: <Target className="w-5 h-5 text-blue-500" />, value: thisWeekDone.length, label: 'This week', bg: 'bg-blue-50', border: 'border-blue-100' },
+                ].map(stat => (
+                  <div key={stat.label} className={`${stat.bg} border ${stat.border} rounded-2xl p-4`}>
+                    <div className="flex items-center gap-2 mb-1">{stat.icon}</div>
+                    <p className="text-2xl font-black text-gray-900">{stat.value}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{stat.label}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* XP level bar */}
+              <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Trophy className="w-4 h-4 text-amber-500" />
+                    <span className="text-sm font-bold text-gray-900">Level: <span className={getXpLevel(xpState).color}>{getXpLevel(xpState).name}</span></span>
+                  </div>
+                  <span className="text-xs text-gray-400">{xpState} XP {getNextXpLevel(xpState) ? `/ ${getNextXpLevel(xpState)!.min}` : '(max)'}</span>
+                </div>
+                <div className="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
+                  <div className="h-2.5 rounded-full transition-all duration-700" style={{ width: `${getXpPct(xpState)}%`, background: 'linear-gradient(90deg, #10b981, #14b8a6)' }} />
+                </div>
+                {getNextXpLevel(xpState) && (
+                  <p className="text-xs text-gray-400 mt-2">{getNextXpLevel(xpState)!.min - xpState} XP until <span className="font-semibold">{getNextXpLevel(xpState)!.name}</span></p>
+                )}
+              </div>
+
+              {/* This week vs last week + heatmap */}
+              <div className="grid sm:grid-cols-2 gap-4">
+                {/* Week comparison */}
+                <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Calendar className="w-4 h-4 text-gray-400" />
+                    <p className="text-sm font-bold text-gray-900">This week vs last week</p>
+                  </div>
+                  <div className="flex items-end gap-6">
+                    <div>
+                      <p className="text-3xl font-black text-gray-900">{thisWeekDone.length}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">This week</p>
+                    </div>
+                    <div className="flex items-center gap-1 mb-1">
+                      {weekDelta > 0 ? (
+                        <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">+{weekDelta} vs last week</span>
+                      ) : weekDelta < 0 ? (
+                        <span className="text-xs font-bold text-red-500 bg-red-50 px-2 py-0.5 rounded-full">{weekDelta} vs last week</span>
+                      ) : (
+                        <span className="text-xs font-bold text-gray-400 bg-gray-50 px-2 py-0.5 rounded-full">Same as last week</span>
+                      )}
+                    </div>
+                    <div className="ml-auto text-right">
+                      <p className="text-xl font-black text-gray-300">{lastWeekDone.length}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">Last week</p>
+                    </div>
+                  </div>
+                  <div className="mt-4 flex gap-1.5 items-end h-10">
+                    {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map((dow, i) => {
+                      const d = new Date(startOfWeek)
+                      d.setDate(startOfWeek.getDate() + i)
+                      const key = d.toISOString().slice(0, 10)
+                      const count = activityMap[key] ?? 0
+                      const isPast = d <= now
+                      return (
+                        <div key={dow} className="flex-1 flex flex-col items-center gap-1">
+                          <div
+                            className="w-full rounded-sm transition-all"
+                            style={{
+                              height: `${Math.max(4, count * 12)}px`,
+                              background: count > 0 ? 'linear-gradient(180deg,#10b981,#059669)' : isPast ? '#f3f4f6' : '#f9fafb',
+                              opacity: isPast ? 1 : 0.4,
+                            }}
+                          />
+                          <span className="text-[9px] text-gray-300">{dow[0]}</span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                {/* 5-week heatmap */}
+                <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                  <div className="flex items-center gap-2 mb-4">
+                    <BarChart2 className="w-4 h-4 text-gray-400" />
+                    <p className="text-sm font-bold text-gray-900">30-day activity</p>
+                  </div>
+                  <div className="flex gap-1">
+                    {weeks.map((week, wi) => (
+                      <div key={wi} className="flex flex-col gap-1 flex-1">
+                        {week.map(day => {
+                          const count = activityMap[day] ?? 0
+                          const isFuture = day > now.toISOString().slice(0, 10)
+                          const intensity = count === 0 ? 0 : count === 1 ? 1 : count <= 3 ? 2 : 3
+                          const colors = ['#f3f4f6', '#bbf7d0', '#34d399', '#059669']
+                          return (
+                            <div
+                              key={day}
+                              title={`${day}: ${count} task${count !== 1 ? 's' : ''}`}
+                              className="w-full rounded-sm"
+                              style={{
+                                height: '14px',
+                                background: isFuture ? '#f9fafb' : colors[intensity],
+                                opacity: isFuture ? 0.3 : 1,
+                              }}
+                            />
+                          )
+                        })}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="text-[10px] text-gray-400">5 weeks ago</span>
+                    <div className="flex items-center gap-1">
+                      <span className="text-[10px] text-gray-400">Less</span>
+                      {['#f3f4f6','#bbf7d0','#34d399','#059669'].map(c => (
+                        <div key={c} className="w-2.5 h-2.5 rounded-sm" style={{ background: c }} />
+                      ))}
+                      <span className="text-[10px] text-gray-400">More</span>
+                    </div>
+                    <span className="text-[10px] text-gray-400">Today</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Per-tool breakdown */}
+              {toolEntries.length > 0 && (
+                <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                  <div className="flex items-center gap-2 mb-4">
+                    <TrendingUp className="w-4 h-4 text-gray-400" />
+                    <p className="text-sm font-bold text-gray-900">Tasks completed per tool</p>
+                  </div>
+                  <div className="space-y-3">
+                    {toolEntries.map(([tool, count]) => (
+                      <div key={tool}>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm text-gray-700 font-medium">{tool}</span>
+                          <span className="text-xs font-bold text-gray-500">{count} task{count !== 1 ? 's' : ''}</span>
+                        </div>
+                        <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                          <div
+                            className="h-2 rounded-full transition-all duration-700"
+                            style={{ width: `${Math.round((count / maxToolCount) * 100)}%`, background: 'linear-gradient(90deg,#10b981,#14b8a6)' }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Milestones */}
+              <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                <div className="flex items-center gap-2 mb-4">
+                  <Trophy className="w-4 h-4 text-gray-400" />
+                  <p className="text-sm font-bold text-gray-900">Milestones</p>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {milestones.map(m => (
+                    <div
+                      key={m.label}
+                      className={`rounded-xl p-3 border text-center transition-all ${m.reached ? 'bg-emerald-50 border-emerald-200' : 'bg-gray-50 border-gray-100 opacity-40 grayscale'}`}
+                    >
+                      <div className="text-2xl mb-1">{m.icon}</div>
+                      <p className="text-xs font-semibold text-gray-700 leading-tight">{m.label}</p>
+                      {m.reached && <p className="text-[10px] text-emerald-600 font-bold mt-1">Unlocked ✓</p>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Nudge if nothing done yet */}
+              {completed.length === 0 && (
+                <div className="text-center py-8">
+                  <div className="text-4xl mb-3">🌱</div>
+                  <p className="text-sm font-semibold text-gray-600 mb-1">Nothing tracked yet</p>
+                  <p className="text-xs text-gray-400 mb-4">Complete your first daily task to start building your streak.</p>
+                  <button onClick={() => setSection('tasks')} className="text-sm font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1 mx-auto">
+                    Go to Daily Tasks <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+            </div>
+          )
+        })()}
       </main>
     </div>
     </>
