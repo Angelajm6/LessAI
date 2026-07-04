@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { ArrowRight, CheckCircle, Zap, BarChart3, Sparkles, Brain, Target, TrendingUp, Shield, BookOpen, MessageSquare, Mail } from 'lucide-react'
+import { ArrowRight, CheckCircle, Zap, BarChart3, Sparkles, Brain, Target, TrendingUp, Shield, BookOpen, MessageSquare, Mail, FlaskConical, Globe, Flame } from 'lucide-react'
 
 function useCounter(target: number, duration = 1800, start = false) {
   const [count, setCount] = useState(0)
@@ -43,19 +43,22 @@ const stats = [
 const logos = ['Claude', 'ChatGPT', 'Gemini', 'Copilot', 'Notion AI', 'Perplexity', 'GitHub Copilot', 'Grammarly', 'Midjourney', 'HeyGen', 'Runway', 'Salesforce AI']
 
 const steps = [
-  { icon: Target, title: 'Tell us your role and your tools', desc: 'You\'re a Content Marketer with ChatGPT, Notion AI, and Grammarly. Or a Sales Rep with Claude and Salesforce AI. We map your exact stack to your exact job.', color: 'green' },
-  { icon: BookOpen, title: 'Get your prompt playbook', desc: 'Not generic AI tips. Role-specific prompt frameworks for every tool you have — what context to include, how to structure your ask, what makes the difference between a mediocre and great output.', color: 'dark' },
-  { icon: Zap, title: 'Practice with daily 10-minute tasks', desc: 'One concrete task per day per tool. Not a course — actual work you\'d do at your job. Do it, get the result, see the before/after. Build the muscle in weeks, not months.', color: 'yellow' },
-  { icon: BarChart3, title: 'Manager sees who\'s leveling up', desc: 'The admin dashboard shows skill gaps by person and tool. See who needs coaching, which tools aren\'t landing, and prove AI ROI with real adoption data.', color: 'green' },
+  { icon: Target, title: 'Tell us your role, tools, and company', desc: 'You\'re a Content Marketer with ChatGPT, Notion AI, and Grammarly. We scrape your company website to understand your niche — so every task and prompt is built around your actual business, not a generic example.', color: 'green' },
+  { icon: BookOpen, title: 'Get your personalized prompt playbook', desc: 'Not generic AI tips. Role-specific prompt frameworks for every tool in your stack — what context to include, how to structure your ask, and the exact phrasing that gets great outputs for your job.', color: 'dark' },
+  { icon: Zap, title: 'Practice daily, track your progress', desc: 'One concrete 10-min task per tool per day. Earn XP, build streaks, and watch your skill heatmap fill up. Use Prompt Lab to paste any prompt you\'re using and instantly see how to make it sharper.', color: 'yellow' },
+  { icon: BarChart3, title: 'Manager sees who\'s leveling up', desc: 'The admin dashboard shows XP, streaks, and task completion by person and tool. See skill gaps, spot who needs coaching, and prove AI ROI with real adoption data — not survey responses.', color: 'green' },
 ]
 
 const features = [
   { icon: MessageSquare, title: 'Role-based prompt coaching', description: 'How a PM prompts Claude for a PRD is nothing like how a marketer prompts it for a campaign. LessAI gives you the exact frameworks, context structure, and phrasing for your job — not generic advice.', tag: 'Core feature' },
-  { icon: Zap, title: 'Daily 10-minute tasks', description: 'One task per tool per day, matched to your skill level and role. Do it, see what good output looks like, and check it off. 5 minutes of practice beats a 2-hour workshop you\'ll never finish.', tag: 'Habit-building' },
-  { icon: Brain, title: 'Tool-by-tool comparison guides', description: 'Claude, ChatGPT, Gemini, and Copilot are not interchangeable. Each has a distinct strength. LessAI teaches you when to use which — so you stop defaulting to the one you know and start using the right one.', tag: 'Know your tools' },
-  { icon: BookOpen, title: 'Prompt library by role', description: 'Searchable, curated prompts built for your job title and your tools. Not crowdsourced garbage — tested frameworks that actually produce the output your role needs.', tag: 'Save time' },
-  { icon: Sparkles, title: 'Before/after benchmarking', description: 'See exactly what a weak prompt gets vs. a strong one on the same task. The gap is always obvious — and once you see it, you can\'t unsee it. That\'s the "aha" moment that changes how you work.', tag: 'See the delta' },
-  { icon: BarChart3, title: 'Team skill dashboard', description: 'Managers see who\'s improving, which tools need more training, and which licenses are being wasted. Justify every AI subscription or cut the ones nobody\'s actually using well.', tag: 'For managers' },
+  { icon: FlaskConical, title: 'Prompt Lab', description: 'Paste any prompt you\'ve been using and get an AI-rewritten version that\'s sharper and more specific — scored on Specificity, Context, and Output Clarity before and after. See exactly what changed and why.', tag: '✨ New' },
+  { icon: Zap, title: 'Daily 10-minute tasks', description: 'One task per tool per day, matched to your skill level and role. Earn XP, build a streak, and watch your skill heatmap fill up. 10 minutes of real practice beats any workshop you\'ll forget by Friday.', tag: 'Habit-building' },
+  { icon: Globe, title: 'Company website context', description: 'Tell us your company URL and we scrape it to understand your industry and product. Every task, prompt, and use case references your actual business — not a made-up B2B SaaS example.', tag: 'Personalized' },
+  { icon: Brain, title: 'Tool-by-tool comparison guides', description: 'Claude, ChatGPT, Gemini, and Copilot are not interchangeable. LessAI teaches you exactly when to use which — so you stop defaulting to the one you know and start using the right one for each job.', tag: 'Know your tools' },
+  { icon: Flame, title: 'Progress tracking + weekly digest', description: 'XP, streaks, a 30-day activity heatmap, per-tool breakdowns, and milestone badges. Plus a weekly email digest every Monday — tasks done, streak status, and your next suggested task.', tag: 'Stay on track' },
+  { icon: BookOpen, title: 'Saved prompts + folders', description: 'Save any prompt to your personal library, organize by folder, and access it from anywhere. Every prompt saved from the Lab or Command Center is one-click away next time you need it.', tag: 'Save time' },
+  { icon: BarChart3, title: 'Team skill dashboard', description: 'Managers see XP, streaks, and task completion by person and tool. See skill gaps, spot who needs coaching, and prove AI ROI with real adoption data — not survey responses.', tag: 'For managers' },
+  { icon: Sparkles, title: 'AI Command Center', description: 'Describe any work task in plain English — get told which tool to use, exactly why it wins for this task, and a ready-to-paste prompt built around your role and your stack. No more guessing.', tag: 'Instant answers' },
 ]
 
 
@@ -168,7 +171,7 @@ function PromptPreview() {
 }
 
 function ProductDemo() {
-  const [activeTab, setActiveTab] = useState<'home' | 'tasks' | 'saved'>('home')
+  const [activeTab, setActiveTab] = useState<'home' | 'tasks' | 'lab' | 'saved'>('home')
   const [checkedTasks, setCheckedTasks] = useState<number[]>([])
   const [commandText, setCommandText] = useState('')
   const [showResult, setShowResult] = useState(false)
@@ -227,6 +230,7 @@ function ProductDemo() {
   const navItems = [
     { key: 'home', label: 'Overview' },
     { key: 'tasks', label: 'Daily Tasks' },
+    { key: 'lab', label: 'Prompt Lab' },
     { key: 'saved', label: 'Saved Prompts' },
   ]
 
@@ -453,6 +457,45 @@ function ProductDemo() {
               </div>
             )}
 
+            {/* ── PROMPT LAB ── */}
+            {activeTab === 'lab' && (
+              <div className="p-4 sm:p-5 space-y-3">
+                <div>
+                  <h2 className="text-sm font-bold text-white">Prompt Lab</h2>
+                  <p className="text-xs text-gray-500 mt-0.5">Paste any prompt → get a smarter version + score</p>
+                </div>
+                <div className="bg-white/[0.04] border border-white/[0.08] rounded-xl p-3">
+                  <p className="text-xs text-gray-500 mb-1.5">Your prompt</p>
+                  <p className="text-xs text-gray-300 font-mono leading-relaxed italic">&ldquo;Write a cold email for a sales prospect.&rdquo;</p>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { label: 'Specificity', before: 2, after: 9, color: 'text-blue-400', bg: 'bg-blue-500/10 border-blue-500/20' },
+                    { label: 'Context', before: 1, after: 8, color: 'text-purple-400', bg: 'bg-purple-500/10 border-purple-500/20' },
+                    { label: 'Output clarity', before: 3, after: 9, color: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/20' },
+                  ].map(s => (
+                    <div key={s.label} className={`rounded-xl p-2.5 border ${s.bg} text-center`}>
+                      <p className="text-[10px] text-gray-500 mb-1">{s.label}</p>
+                      <div className="flex items-center justify-center gap-1.5">
+                        <span className="text-xs text-gray-600 line-through">{s.before}</span>
+                        <span className="text-[10px] text-gray-600">→</span>
+                        <span className={`text-base font-black ${s.color}`}>{s.after}</span>
+                      </div>
+                      <p className="text-[10px] text-gray-600 mt-0.5">out of 10</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="rounded-xl p-3 border border-emerald-500/20 bg-emerald-500/5">
+                  <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-wide mb-1.5">✨ Improved prompt</p>
+                  <p className="text-xs text-gray-300 font-mono leading-relaxed">&ldquo;You are a B2B sales rep at a SaaS company. Write a 3-sentence cold email to a VP of Engineering at a 200-person fintech startup. Their pain: slow deployments. My value prop: we cut deploy time by 40%. Tone: direct, no fluff.&rdquo;</p>
+                </div>
+                <div className="flex gap-2">
+                  <button className="flex-1 text-xs bg-white/[0.06] border border-white/[0.1] text-gray-300 rounded-lg py-2 font-medium">Copy prompt</button>
+                  <button className="flex-1 text-xs bg-emerald-600/20 border border-emerald-500/30 text-emerald-300 rounded-lg py-2 font-medium">Save to library</button>
+                </div>
+              </div>
+            )}
+
             {/* ── SAVED PROMPTS ── */}
             {activeTab === 'saved' && (
               <div className="flex flex-col h-full">
@@ -516,10 +559,10 @@ function ProductDemo() {
         {/* Demo hint */}
         <div className="border-t border-white/[0.04] px-4 sm:px-5 py-3 flex items-center justify-between gap-4" style={{ background: 'rgba(255,255,255,0.02)' }}>
           <p className="text-xs text-gray-600 truncate">
-            {activeTab === 'home' ? '👆 Tap a chip to see the AI recommend a tool + prompt' : activeTab === 'tasks' ? '👆 Tap any task to mark it done and earn XP' : '👆 Browse folders or tap a prompt to copy it'}
+            {activeTab === 'home' ? '👆 Tap a chip to see the AI recommend a tool + prompt' : activeTab === 'tasks' ? '👆 Tap any task to mark it done and earn XP' : activeTab === 'lab' ? '👆 Paste a prompt, get a smarter version with scores' : '👆 Browse folders or tap a prompt to copy it'}
           </p>
           <div className="flex items-center gap-2 shrink-0">
-            {(['home', 'tasks', 'saved'] as const).map(tab => (
+            {(['home', 'tasks', 'lab', 'saved'] as const).map(tab => (
               <button key={tab} onClick={() => setActiveTab(tab)}
                 className={`w-1.5 h-1.5 rounded-full transition-all ${activeTab === tab ? 'bg-emerald-400' : 'bg-white/20'}`} />
             ))}
@@ -673,7 +716,7 @@ const { ref: managerRef, inView: managerInView } = useInView()
                 </Link>
               </div>
               <div className="flex items-center gap-5 mt-8 animate-fade-up" style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}>
-                {['7-day free trial', 'No generic courses', 'Role-specific'].map((t) => (
+                {['Free to start', 'Role + company specific', 'Prompt Lab included on Pro'].map((t) => (
                   <div key={t} className="flex items-center gap-1.5 text-xs text-gray-400 font-medium">
                     <CheckCircle className="w-3.5 h-3.5 text-emerald-500" /> {t}
                   </div>
@@ -776,11 +819,12 @@ const { ref: managerRef, inView: managerInView } = useInView()
           <div className={`${demoInView ? 'animate-fade-up' : 'opacity-0'}`} style={{ animationDelay: '300ms', animationFillMode: 'forwards' }}>
             <ProductDemo />
           </div>
-          <div className={`grid grid-cols-3 gap-4 mt-8 ${demoInView ? 'animate-fade-up' : 'opacity-0'}`} style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}>
+          <div className={`grid grid-cols-2 sm:grid-cols-4 gap-3 mt-8 ${demoInView ? 'animate-fade-up' : 'opacity-0'}`} style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}>
             {[
-              { label: 'AI Command Center', desc: 'Describe any task, get the right tool + prompt instantly' },
-              { label: 'Daily task tracker', desc: 'One 10-min task per tool to build real skill fast' },
-              { label: 'Prompt playbook', desc: 'Role-specific frameworks you can paste and go' },
+              { label: 'AI Command Center', desc: 'Right tool + ready-to-paste prompt for any task' },
+              { label: 'Daily Tasks', desc: '10-min practice tasks that build real skill fast' },
+              { label: 'Prompt Lab', desc: 'Rewrite & score any prompt before/after' },
+              { label: 'Saved Prompts', desc: 'Your personal prompt library, organized by folder' },
             ].map(item => (
               <div key={item.label} className="bg-white/[0.04] border border-white/[0.07] rounded-2xl p-4 text-center">
                 <p className="text-sm font-bold text-white mb-1">{item.label}</p>
@@ -839,9 +883,9 @@ const { ref: managerRef, inView: managerInView } = useInView()
           </p>
           <div className={`grid md:grid-cols-3 gap-4 mb-4 ${managerInView ? 'animate-fade-up' : 'opacity-0'}`} style={{ animationDelay: '300ms', animationFillMode: 'forwards' }}>
             {[
-              { icon: TrendingUp, label: 'Prompt skill score', value: '73%', sub: 'team avg up 31% this month', accent: 'emerald' },
-              { icon: Shield, label: 'Needs coaching', value: '3', sub: 'members stuck below 40%', accent: 'amber' },
-              { icon: Sparkles, label: 'Top performer', value: 'Sarah M.', sub: '5/5 tasks done this week', accent: 'emerald' },
+              { icon: TrendingUp, label: 'Team avg XP', value: '410', sub: 'up 38% from last month', accent: 'emerald' },
+              { icon: Shield, label: 'Needs coaching', value: '3', sub: 'members below 10 tasks done', accent: 'amber' },
+              { icon: Sparkles, label: 'Top streak', value: 'Sarah M.', sub: '12-day streak 🔥', accent: 'emerald' },
             ].map((card) => (
               <div key={card.label} className={`group rounded-2xl p-6 border bg-white hover:-translate-y-1 hover:shadow-xl transition-all duration-300 overflow-hidden relative ${card.accent === 'amber' ? 'border-amber-200 hover:border-amber-300 hover:shadow-amber-100/60' : 'border-gray-200 hover:border-emerald-200 hover:shadow-emerald-100/60'}`}>
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center mb-3 ${card.accent === 'amber' ? 'bg-amber-100 group-hover:bg-amber-200' : 'bg-emerald-100 group-hover:bg-emerald-200'} transition-colors`}>
