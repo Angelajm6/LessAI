@@ -22,6 +22,16 @@ interface ToolTipData { wrong_tool: string; better_tool: string; reason: string 
 interface ChatMessage { role: 'user' | 'assistant' | 'tool-tip'; content: string; toolData?: ToolTipData }
 interface SavedPrompt { id: string; content: string; label: string; tool: string | null; folder_id: string | null; created_at: string }
 interface PromptFolder { id: string; name: string; created_at: string }
+interface LabHistoryItem {
+  id: string
+  original: string
+  improved: string
+  tool: string | null
+  scores_before: { specificity: number; context: number; output_clarity: number }
+  scores_after: { specificity: number; context: number; output_clarity: number }
+  summary: string | null
+  created_at: string
+}
 
 interface Props {
   profile: {
@@ -41,6 +51,7 @@ interface Props {
   initialStreak?: number
   teamPrompts?: { id: string; title: string; content: string; tool: string | null; pinned: boolean; created_at: string }[]
   teamLeaderboard?: { id: string; full_name: string | null; xp: number; streak: number }[]
+  labHistory?: LabHistoryItem[]
 }
 
 const XP_LEVELS = [
@@ -140,7 +151,7 @@ function PlaybookGenerator({ profile, onDone }: { profile: Props['profile']; onD
   )
 }
 
-export default function DashboardClient({ profile, stackMap, playbook, completedTasks: initialCompleted, savedPrompts: initialSaved, promptFolders: initialFolders, initialXp = 0, initialStreak = 0, teamPrompts = [], teamLeaderboard = [] }: Props) {
+export default function DashboardClient({ profile, stackMap, playbook, completedTasks: initialCompleted, savedPrompts: initialSaved, promptFolders: initialFolders, initialXp = 0, initialStreak = 0, teamPrompts = [], teamLeaderboard = [], labHistory: initialLabHistory = [] }: Props) {
   const [section, setSection] = useState<Section>('home')
   const [completed, setCompleted] = useState<CompletedTask[]>(initialCompleted)
   const [expanded, setExpanded] = useState<string | null>(null)
@@ -192,6 +203,9 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
   const [labError, setLabError] = useState('')
   const [labCopied, setLabCopied] = useState(false)
   const [labSaved, setLabSaved] = useState(false)
+  const [labView, setLabView] = useState<'improve' | 'history'>('improve')
+  const [labHistory, setLabHistory] = useState<LabHistoryItem[]>(initialLabHistory)
+  const [labExpandedId, setLabExpandedId] = useState<string | null>(null)
 
   const firstName = profile.full_name?.split(' ')[0] ?? 'there'
   const tools = profile.tools ?? []
@@ -1636,6 +1650,22 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
               </div>
             </div>
 
+            {/* View toggle */}
+            <div className="flex gap-1 bg-gray-100 p-1 rounded-xl w-fit">
+              <button onClick={() => setLabView('improve')}
+                className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all ${labView === 'improve' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+                Improve prompt
+              </button>
+              <button onClick={() => setLabView('history')}
+                className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-1.5 ${labView === 'history' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+                History
+                {labHistory.length > 0 && <span className="text-xs bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full font-bold">{labHistory.length}</span>}
+              </button>
+            </div>
+
+            {/* ── Improve view ───────────────────────────────────────── */}
+            {labView === 'improve' && <>
+
             {/* Input card */}
             <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
               <label className="text-xs font-bold text-gray-700 block mb-2 flex items-center gap-1.5">
@@ -1684,6 +1714,25 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                         return
                       }
                       setLabResult(body)
+                      // Auto-save to history
+                      const supabase = createClient()
+                      const { data: { user: labUser } } = await supabase.auth.getUser()
+                      if (labUser) {
+                        const { data: histRow } = await supabase
+                          .from('prompt_lab_history')
+                          .insert({
+                            user_id: labUser.id,
+                            original: labInput,
+                            improved: body.improved,
+                            tool: labTool || null,
+                            scores_before: body.scores.before,
+                            scores_after: body.scores.after,
+                            summary: body.summary,
+                          })
+                          .select('id, original, improved, tool, scores_before, scores_after, summary, created_at')
+                          .single()
+                        if (histRow) setLabHistory(prev => [histRow as LabHistoryItem, ...prev])
+                      }
                     } catch (e) {
                       setLabError(`Network error: ${e instanceof Error ? e.message : String(e)}`)
                     }
@@ -1834,6 +1883,197 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                 <p className="text-xs text-gray-400">Works with ChatGPT, Claude, Notion AI, Gemini — any tool</p>
               </div>
             )}
+
+            </> /* end improve view */}
+
+            {/* ── History view ───────────────────────────────────────── */}
+            {labView === 'history' && (() => {
+              if (labHistory.length === 0) {
+                return (
+                  <div className="flex flex-col items-center justify-center py-14 px-6 text-center">
+                    <div className="text-4xl mb-4">📜</div>
+                    <h3 className="text-base font-bold text-gray-900 mb-2">No history yet</h3>
+                    <p className="text-sm text-gray-500 max-w-xs mb-5">Every prompt you improve in the Lab gets saved here automatically — so you can track your progress over time.</p>
+                    <Button onClick={() => setLabView('improve')} className="bg-emerald-600 hover:bg-emerald-700 gap-2">
+                      <FlaskConical className="w-4 h-4" /> Improve your first prompt
+                    </Button>
+                  </div>
+                )
+              }
+
+              // Quality trend chart (last 20 runs, oldest→newest)
+              const trendItems = [...labHistory].reverse().slice(-20)
+              const avgScore = (item: LabHistoryItem) =>
+                Math.round(((item.scores_after.specificity + item.scores_after.context + item.scores_after.output_clarity) / 3) * 10) / 10
+              const avgBefore = (item: LabHistoryItem) =>
+                Math.round(((item.scores_before.specificity + item.scores_before.context + item.scores_before.output_clarity) / 3) * 10) / 10
+
+              const scores = trendItems.map(avgScore)
+              const minScore = Math.max(0, Math.min(...scores) - 1)
+              const maxScore = Math.min(10, Math.max(...scores) + 1)
+              const chartW = 400
+              const chartH = 60
+              const pad = 8
+              const xStep = (chartW - pad * 2) / Math.max(scores.length - 1, 1)
+              const yScale = (v: number) => chartH - pad - ((v - minScore) / (maxScore - minScore + 0.001)) * (chartH - pad * 2)
+              const points = scores.map((s, i) => `${pad + i * xStep},${yScale(s)}`).join(' ')
+
+              const allTimeAvgAfter = labHistory.reduce((s, h) => s + avgScore(h), 0) / labHistory.length
+              const allTimeAvgBefore = labHistory.reduce((s, h) => s + avgBefore(h), 0) / labHistory.length
+
+              return (
+                <div className="space-y-4">
+                  {/* Trend + stats */}
+                  <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                    <div className="flex items-start justify-between gap-4 mb-4 flex-wrap">
+                      <div>
+                        <p className="text-sm font-bold text-gray-900 mb-0.5">Quality trend</p>
+                        <p className="text-xs text-gray-400">Avg output quality score over your last {trendItems.length} runs</p>
+                      </div>
+                      <div className="flex gap-4 text-center">
+                        <div>
+                          <p className="text-xs text-gray-400 mb-0.5">Avg before</p>
+                          <p className="text-lg font-black text-red-400">{allTimeAvgBefore.toFixed(1)}<span className="text-xs font-normal text-gray-400">/10</span></p>
+                        </div>
+                        <div className="w-px bg-gray-100" />
+                        <div>
+                          <p className="text-xs text-gray-400 mb-0.5">Avg after</p>
+                          <p className="text-lg font-black text-emerald-600">{allTimeAvgAfter.toFixed(1)}<span className="text-xs font-normal text-gray-400">/10</span></p>
+                        </div>
+                        <div className="w-px bg-gray-100" />
+                        <div>
+                          <p className="text-xs text-gray-400 mb-0.5">Total runs</p>
+                          <p className="text-lg font-black text-gray-700">{labHistory.length}</p>
+                        </div>
+                      </div>
+                    </div>
+                    {scores.length > 1 && (
+                      <div className="relative">
+                        <svg viewBox={`0 0 ${chartW} ${chartH}`} className="w-full h-14" preserveAspectRatio="none">
+                          {/* Fill area */}
+                          <defs>
+                            <linearGradient id="labTrendGrad" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="#10b981" stopOpacity="0.18" />
+                              <stop offset="100%" stopColor="#10b981" stopOpacity="0.02" />
+                            </linearGradient>
+                          </defs>
+                          <polyline
+                            points={`${pad},${chartH} ${points} ${pad + (scores.length - 1) * xStep},${chartH}`}
+                            fill="url(#labTrendGrad)" stroke="none"
+                          />
+                          {/* Line */}
+                          <polyline points={points} fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          {/* Dots */}
+                          {scores.map((s, i) => (
+                            <circle key={i} cx={pad + i * xStep} cy={yScale(s)} r="3" fill="#10b981" stroke="white" strokeWidth="1.5" />
+                          ))}
+                        </svg>
+                        <div className="flex justify-between text-xs text-gray-300 mt-1">
+                          <span>oldest</span><span>most recent</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* History list */}
+                  <div className="space-y-2">
+                    {labHistory.map((item) => {
+                      const isExpanded = labExpandedId === item.id
+                      const after = avgScore(item)
+                      const before = avgBefore(item)
+                      const delta = Math.round((after - before) * 10) / 10
+                      const relTime = (() => {
+                        const diff = Date.now() - new Date(item.created_at).getTime()
+                        const mins = Math.floor(diff / 60000)
+                        if (mins < 60) return mins <= 1 ? 'just now' : `${mins}m ago`
+                        const hrs = Math.floor(mins / 60)
+                        if (hrs < 24) return `${hrs}h ago`
+                        return `${Math.floor(hrs / 24)}d ago`
+                      })()
+
+                      return (
+                        <div key={item.id} className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+                          <button
+                            onClick={() => setLabExpandedId(isExpanded ? null : item.id)}
+                            className="w-full text-left px-5 py-4 flex items-start gap-3 hover:bg-gray-50/50 transition-colors"
+                          >
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                <span className="text-xs bg-emerald-50 border border-emerald-100 text-emerald-700 font-bold px-2 py-0.5 rounded-full">+{delta} avg</span>
+                                {item.tool && <span className="text-xs text-gray-400 border border-gray-100 px-2 py-0.5 rounded-full">{item.tool}</span>}
+                                <span className="text-xs text-gray-400 ml-auto">{relTime}</span>
+                              </div>
+                              <p className="text-sm text-gray-600 line-clamp-1 italic">&ldquo;{item.original}&rdquo;</p>
+                            </div>
+                            <ChevronDown className={`w-4 h-4 text-gray-300 shrink-0 mt-1 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                          </button>
+
+                          {isExpanded && (
+                            <div className="border-t border-gray-50 px-5 pb-5 pt-4 space-y-4">
+                              {/* Score bars */}
+                              <div className="grid grid-cols-3 gap-2">
+                                {([
+                                  { key: 'specificity' as const, label: '🎯 Specificity', color: 'bg-blue-500' },
+                                  { key: 'context' as const, label: '🧠 Context', color: 'bg-purple-500' },
+                                  { key: 'output_clarity' as const, label: '📄 Clarity', color: 'bg-amber-500' },
+                                ]).map(({ key, label, color }) => {
+                                  const b = item.scores_before[key]
+                                  const a = item.scores_after[key]
+                                  return (
+                                    <div key={key} className="bg-gray-50 rounded-xl p-3">
+                                      <p className="text-xs text-gray-500 mb-1">{label}</p>
+                                      <div className="flex items-center gap-1.5">
+                                        <span className="text-xs text-gray-400 line-through">{b}</span>
+                                        <span className="text-sm font-black text-gray-800">→ {a}</span>
+                                        <span className="text-xs font-bold text-emerald-600">+{a - b}</span>
+                                      </div>
+                                      <div className="h-1.5 bg-gray-200 rounded-full mt-1.5 overflow-hidden">
+                                        <div className={`h-full ${color} rounded-full`} style={{ width: `${a * 10}%` }} />
+                                      </div>
+                                    </div>
+                                  )
+                                })}
+                              </div>
+
+                              {/* Before / After */}
+                              <div className="grid sm:grid-cols-2 gap-3">
+                                <div className="bg-red-50 border border-red-100 rounded-xl p-3">
+                                  <p className="text-xs font-bold text-red-400 mb-1.5">Before</p>
+                                  <p className="text-xs text-gray-600 leading-relaxed italic">&ldquo;{item.original}&rdquo;</p>
+                                </div>
+                                <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3">
+                                  <p className="text-xs font-bold text-emerald-600 mb-1.5">After</p>
+                                  <p className="text-xs text-gray-700 leading-relaxed">{item.improved}</p>
+                                </div>
+                              </div>
+
+                              {/* Re-use button */}
+                              <div className="flex gap-2">
+                                <Button size="sm" variant="outline"
+                                  className="gap-1.5 text-emerald-700 border-emerald-200 hover:bg-emerald-50 text-xs"
+                                  onClick={() => {
+                                    setLabInput(item.original)
+                                    setLabTool(item.tool ?? '')
+                                    setLabResult(null)
+                                    setLabView('improve')
+                                  }}>
+                                  <RefreshCw className="w-3.5 h-3.5" /> Re-run original
+                                </Button>
+                                <Button size="sm" variant="outline"
+                                  className="gap-1.5 text-gray-500 border-gray-200 hover:bg-gray-50 text-xs"
+                                  onClick={() => { navigator.clipboard.writeText(item.improved) }}>
+                                  <Copy className="w-3.5 h-3.5" /> Copy improved
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })()}
           </div>
         )}
 

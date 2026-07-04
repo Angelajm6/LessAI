@@ -64,6 +64,13 @@ export default async function DashboardPage() {
     .limit(1)
     .single()
 
+  const { data: labHistoryData } = await supabase
+    .from('prompt_lab_history')
+    .select('id, original, improved, tool, scores_before, scores_after, summary, created_at')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+    .limit(50)
+
   // Team leaderboard — only for users in a company
   let teamLeaderboard: { id: string; full_name: string | null; xp: number; streak: number }[] = []
   if (profile?.company_id) {
@@ -95,6 +102,7 @@ export default async function DashboardPage() {
       initialStreak={profileXp?.streak ?? 0}
       teamPrompts={teamPromptsData ?? []}
       teamLeaderboard={teamLeaderboard}
+      labHistory={labHistoryData as never}
     />
   )
 }
