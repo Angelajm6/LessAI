@@ -7,16 +7,31 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { ArrowRight, Mail, Lock, Eye, EyeOff } from 'lucide-react'
+import { ArrowRight, Mail, Lock, Eye, EyeOff, PlayCircle } from 'lucide-react'
 
 export default function LoginPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const [demoLoading, setDemoLoading] = useState(false)
   const [error, setError] = useState('')
   const [form, setForm] = useState({ email: '', password: '' })
   const [focused, setFocused] = useState<string | null>(null)
   const [hovered, setHovered] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+
+  async function handleDemoLogin() {
+    setDemoLoading(true)
+    setError('')
+    try {
+      const res = await fetch('/api/demo-login', { method: 'POST' })
+      if (!res.ok) { setError('Demo account unavailable — please try again shortly.'); setDemoLoading(false); return }
+      router.refresh()
+      router.push('/dashboard')
+    } catch {
+      setError('Network error — check your connection.')
+      setDemoLoading(false)
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -169,7 +184,28 @@ export default function LoginPage() {
           </Button>
         </form>
 
-        <p className="text-center text-sm text-gray-500 mt-6">
+        {/* Demo access for judges / evaluators */}
+        <div className="mt-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="flex-1 h-px bg-gray-100" />
+            <span className="text-xs text-gray-400 font-medium">or</span>
+            <div className="flex-1 h-px bg-gray-100" />
+          </div>
+          <button
+            type="button"
+            onClick={handleDemoLogin}
+            disabled={demoLoading || loading}
+            className="w-full flex items-center justify-center gap-2.5 h-11 rounded-xl border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold text-sm transition-all duration-200 disabled:opacity-60"
+          >
+            {demoLoading
+              ? <><div className="w-4 h-4 border-2 border-emerald-400/40 border-t-emerald-600 rounded-full animate-spin" /> Loading demo…</>
+              : <><PlayCircle className="w-4 h-4" /> Try the live demo</>
+            }
+          </button>
+          <p className="text-center text-xs text-gray-400 mt-2">No account needed — judge / evaluator access</p>
+        </div>
+
+        <p className="text-center text-sm text-gray-500 mt-4">
           Don&apos;t have an account?{' '}
           <Link href="/signup" className="text-emerald-600 hover:text-emerald-700 font-semibold hover:underline underline-offset-2 transition-colors">
             Get started free
