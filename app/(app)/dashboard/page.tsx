@@ -41,7 +41,7 @@ export default async function DashboardPage() {
 
   const { data: completedTasks } = await supabase
     .from('task_completions')
-    .select('tool, day, completed_at:created_at')
+    .select('tool, day, completed_at')
     .eq('user_id', user.id)
 
   const { data: savedPrompts } = await supabase

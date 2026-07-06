@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { CheckCircle, X, ArrowRight, Zap, Users, Building2, MessageSquare, Sparkles, Mail, FlaskConical } from 'lucide-react'
+import { CheckCircle, X, ArrowRight, Zap, Users, Building2, MessageSquare, Sparkles, FlaskConical } from 'lucide-react'
 
 const FREE_FEATURES = [
   { text: '2 tools in your stack', included: true },
@@ -408,49 +408,19 @@ export default function PricingPage() {
         </div>
 
         {/* Footer */}
-        <div className="max-w-5xl mx-auto px-6 py-12 border-t border-white/[0.06]">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 mb-10">
-            <div className="col-span-2 sm:col-span-1">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-7 h-7 bg-emerald-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-black text-xs">L</span>
-                </div>
-                <span className="font-bold text-white">LessAI</span>
-              </div>
-              <p className="text-xs text-gray-500 leading-relaxed mb-4">Teach your team to use AI tools the right way — with role-specific prompts, daily practice, and real skill-building.</p>
-              <a href="mailto:hello@lessai.io" className="text-xs text-emerald-400 hover:text-emerald-300 transition-colors flex items-center gap-1.5">
-                <Mail className="w-3 h-3" /> hello@lessai.io
-              </a>
+        <div className="max-w-5xl mx-auto px-6 py-8 border-t border-white/[0.06] flex items-center justify-between flex-wrap gap-4">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 bg-emerald-600 rounded-md flex items-center justify-center">
+              <span className="text-white font-black text-xs">L</span>
             </div>
-            <div>
-              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Product</p>
-              <ul className="space-y-2">
-                {[{ label: 'Features', href: '/#features' }, { label: 'Pricing', href: '/pricing' }, { label: 'Sign up', href: '/signup' }, { label: 'Sign in', href: '/login' }].map(l => (
-                  <li key={l.label}><Link href={l.href} className="text-sm text-gray-500 hover:text-white transition-colors">{l.label}</Link></li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Company</p>
-              <ul className="space-y-2">
-                {[{ label: 'Contact us', href: 'mailto:hello@lessai.io' }, { label: 'Support', href: 'mailto:hello@lessai.io' }].map(l => (
-                  <li key={l.label}><a href={l.href} className="text-sm text-gray-500 hover:text-white transition-colors">{l.label}</a></li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Legal</p>
-              <ul className="space-y-2">
-                {['Privacy Policy', 'Terms of Service'].map(l => (
-                  <li key={l}><span className="text-sm text-gray-600 cursor-default">{l}</span></li>
-                ))}
-              </ul>
-            </div>
+            <span className="text-sm font-bold text-white">LessAI</span>
           </div>
-          <div className="border-t border-white/[0.06] pt-6 flex items-center justify-between flex-wrap gap-3">
-            <p className="text-xs text-gray-600">© 2026 LessAI. All rights reserved.</p>
-            <p className="text-xs text-gray-600">Built for teams who take AI seriously.</p>
+          <div className="flex items-center gap-5 flex-wrap">
+            <Link href="/" className="text-xs text-gray-500 hover:text-white transition-colors">Home</Link>
+            <Link href="/signup" className="text-xs text-gray-500 hover:text-white transition-colors">Sign up</Link>
+            <a href="mailto:hello@lessai.io" className="text-xs text-gray-500 hover:text-emerald-400 transition-colors">hello@lessai.io</a>
           </div>
+          <p className="text-xs text-gray-600">© 2026 LessAI</p>
         </div>
       </div>
 
