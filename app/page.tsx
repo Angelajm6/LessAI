@@ -775,7 +775,7 @@ const { ref: managerRef, inView: managerInView } = useInView()
   }, [])
 
   return (
-    <div className="bg-white text-gray-900 overflow-x-hidden">
+    <div className="bg-gray-950 text-gray-900 overflow-x-hidden">
 
       <ParticleField />
 
