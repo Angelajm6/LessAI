@@ -4,6 +4,106 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { ArrowRight, CheckCircle, Zap, BarChart3, Sparkles, Brain, Target, TrendingUp, Shield, BookOpen, MessageSquare, Mail, FlaskConical, Globe, Flame } from 'lucide-react'
 
+function ParticleField() {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const mouseRef = useRef({ x: -9999, y: -9999 })
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    let animId: number
+    let W = window.innerWidth
+    let H = window.innerHeight
+    canvas.width = W
+    canvas.height = H
+
+    const N = Math.min(70, Math.floor((W * H) / 18000))
+    const COLORS = ['16,185,129', '52,211,153', '251,191,36', '255,255,255']
+
+    const particles = Array.from({ length: N }, () => ({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      vx: (Math.random() - 0.5) * 0.25,
+      vy: (Math.random() - 0.5) * 0.25,
+      r: Math.random() * 1.2 + 0.5,
+      color: COLORS[Math.floor(Math.random() * COLORS.length)],
+      baseOpacity: Math.random() * 0.25 + 0.08,
+    }))
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H)
+      const mx = mouseRef.current.x
+      const my = mouseRef.current.y
+      const REPEL = 130
+      const LINK = 110
+
+      for (const p of particles) {
+        const dx = p.x - mx
+        const dy = p.y - my
+        const d = Math.sqrt(dx * dx + dy * dy)
+        if (d < REPEL && d > 0) {
+          const f = (1 - d / REPEL) * 1.1
+          p.vx += (dx / d) * f
+          p.vy += (dy / d) * f
+        }
+        p.vx *= 0.94
+        p.vy *= 0.94
+        p.x += p.vx
+        p.y += p.vy
+        if (p.x < -10) p.x = W + 10
+        if (p.x > W + 10) p.x = -10
+        if (p.y < -10) p.y = H + 10
+        if (p.y > H + 10) p.y = -10
+      }
+
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x
+          const dy = particles[i].y - particles[j].y
+          const d = Math.sqrt(dx * dx + dy * dy)
+          if (d < LINK) {
+            ctx.beginPath()
+            ctx.moveTo(particles[i].x, particles[i].y)
+            ctx.lineTo(particles[j].x, particles[j].y)
+            ctx.strokeStyle = `rgba(16,185,129,${(1 - d / LINK) * 0.13})`
+            ctx.lineWidth = 0.6
+            ctx.stroke()
+          }
+        }
+      }
+
+      for (const p of particles) {
+        const dx = p.x - mx
+        const dy = p.y - my
+        const d = Math.sqrt(dx * dx + dy * dy)
+        const glow = d < 160 ? (1 - d / 160) * 0.45 : 0
+        ctx.beginPath()
+        ctx.arc(p.x, p.y, p.r + glow * 1.5, 0, Math.PI * 2)
+        ctx.fillStyle = `rgba(${p.color},${Math.min(1, p.baseOpacity + glow)})`
+        ctx.fill()
+      }
+
+      animId = requestAnimationFrame(draw)
+    }
+
+    draw()
+
+    const onMouse = (e: MouseEvent) => { mouseRef.current = { x: e.clientX, y: e.clientY } }
+    const onResize = () => {
+      W = window.innerWidth; H = window.innerHeight
+      canvas.width = W; canvas.height = H
+    }
+    window.addEventListener('mousemove', onMouse)
+    window.addEventListener('resize', onResize)
+    return () => { cancelAnimationFrame(animId); window.removeEventListener('mousemove', onMouse); window.removeEventListener('resize', onResize) }
+  }, [])
+
+  return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none" style={{ zIndex: 1, opacity: 0.55 }} />
+}
+
 function useCounter(target: number, duration = 1800, start = false) {
   const [count, setCount] = useState(0)
   useEffect(() => {
@@ -644,8 +744,10 @@ const { ref: managerRef, inView: managerInView } = useInView()
   return (
     <div className="bg-white text-gray-900 overflow-x-hidden">
 
+      <ParticleField />
+
       <div className="fixed inset-0 pointer-events-none z-0 transition-all duration-700"
-        style={{ background: `radial-gradient(500px circle at ${mousePos.x}px ${mousePos.y}px, rgba(16,185,129,0.05), transparent 70%)` }} />
+        style={{ background: `radial-gradient(500px circle at ${mousePos.x}px ${mousePos.y}px, rgba(16,185,129,0.06), transparent 70%)` }} />
 
       {/* Nav */}
       <nav className="sticky top-0 z-50 border-b border-gray-100 bg-white/90 backdrop-blur-xl">
