@@ -687,28 +687,23 @@ const { ref: managerRef, inView: managerInView } = useInView()
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div>
               <div className="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-full px-4 py-1.5 text-xs font-semibold text-emerald-700 mb-8 animate-fade-up">
-                <Sparkles className="w-3 h-3" /> Less AI noise. More AI results.
+                <Sparkles className="w-3 h-3" /> For individuals, employees &amp; entire teams
               </div>
               <h1 className="text-5xl sm:text-6xl font-black leading-[1.05] tracking-tight mb-6 animate-fade-up" style={{ animationDelay: '100ms', animationFillMode: 'forwards' }}>
-                <span className="text-gray-950">Your colleagues</span><br />
-                <span className="bg-gradient-to-r from-emerald-500 via-emerald-400 to-amber-400 bg-clip-text text-transparent animate-gradient">get better answers.</span>
-                <br />
-                <span className="relative">
-                  <span className="relative z-10 text-gray-950">Here&apos;s why.</span>
-                  <span className="absolute bottom-1 left-0 w-full h-3 bg-emerald-300/40 -z-0 -rotate-1 rounded-sm" />
-                </span>
+                <span className="text-gray-950">All your AI tools.</span><br />
+                <span className="bg-gradient-to-r from-emerald-500 via-emerald-400 to-amber-400 bg-clip-text text-transparent animate-gradient">One place to master them.</span>
               </h1>
-              <p className="text-lg text-gray-500 mb-6 leading-relaxed animate-fade-up" style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}>
-                Same tools, same license — wildly different outputs. The gap isn't the AI. It's knowing how to talk to it. LessAI teaches your team the exact prompts, context, and frameworks for their role and their tools.
+              <p className="text-lg text-gray-500 mb-4 leading-relaxed animate-fade-up" style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}>
+                Learning on your own, stuck with tools your company bought but never trained you on, or rolling AI out across a team — LessAI is the hub where you actually get good at this.
               </p>
-              <p className="text-sm text-emerald-700 font-semibold mb-8 animate-fade-up" style={{ animationDelay: '240ms', animationFillMode: 'forwards' }}>
-                Tailored to your role · your tools · your company context.
+              <p className="text-sm text-gray-400 mb-8 leading-relaxed animate-fade-up" style={{ animationDelay: '240ms', animationFillMode: 'forwards' }}>
+                Role-specific prompt coaching · daily practice · AI Command Center · team skill tracking — tailored to your role, your stack, and your company.
               </p>
               <div className="flex items-center gap-3 flex-wrap animate-fade-up" style={{ animationDelay: '300ms', animationFillMode: 'forwards' }}>
                 <Link href="/signup" className="group relative">
                   <span className="absolute -inset-0.5 bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-2xl blur opacity-0 group-hover:opacity-40 transition-opacity duration-300" />
                   <span className="relative flex items-center gap-2 bg-gray-950 hover:bg-gray-800 text-white font-bold px-7 py-3.5 rounded-2xl transition-all duration-200 hover:shadow-xl hover:shadow-gray-900/20 text-base">
-                    Get my prompt playbook <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    Start for free <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </span>
                 </Link>
                 <Link href="/pricing" className="text-sm text-gray-500 hover:text-gray-900 transition-colors px-4 py-3.5 border border-gray-200 rounded-2xl hover:border-gray-300 hover:bg-gray-50 font-medium">
@@ -716,7 +711,7 @@ const { ref: managerRef, inView: managerInView } = useInView()
                 </Link>
               </div>
               <div className="flex items-center gap-5 mt-8 animate-fade-up" style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}>
-                {['Free to start', 'Role + company specific', 'Prompt Lab included on Pro'].map((t) => (
+                {['Free to start', 'No AI experience needed', 'Built for your role & tools'].map((t) => (
                   <div key={t} className="flex items-center gap-1.5 text-xs text-gray-400 font-medium">
                     <CheckCircle className="w-3.5 h-3.5 text-emerald-500" /> {t}
                   </div>
@@ -743,17 +738,100 @@ const { ref: managerRef, inView: managerInView } = useInView()
         </div>
       </div>
 
+      {/* ── WHO IT'S FOR ── */}
+      <section className="py-20 px-6 bg-white relative overflow-hidden">
+        <div className="max-w-5xl mx-auto">
+          <p className="text-center text-xs font-semibold text-emerald-600 uppercase tracking-widest mb-3">Who it&apos;s for</p>
+          <h2 className="text-3xl sm:text-4xl font-black text-center mb-4 text-gray-950">Built for every layer of your team</h2>
+          <p className="text-center text-gray-500 mb-12 max-w-xl mx-auto text-sm">
+            One platform, three kinds of users. Everyone gets exactly what they need.
+          </p>
+          <div className="grid md:grid-cols-3 gap-5">
+            {[
+              {
+                emoji: '👤',
+                audience: 'Individuals',
+                sub: 'Want to get better at AI on your own',
+                color: 'emerald',
+                items: [
+                  'Role-specific prompt frameworks for your exact job',
+                  'Prompt Lab: paste any prompt, get a sharper version instantly',
+                  'Daily 10-min practice tasks that build real habits',
+                  'Personal prompt library, organized by folder',
+                  'AI Command Center: describe a task, get the right tool + prompt',
+                ],
+              },
+              {
+                emoji: '💼',
+                audience: 'Employees',
+                sub: 'Have tools but got zero training',
+                color: 'blue',
+                items: [
+                  'Your company context scraped from your website — every prompt is specific to your business',
+                  'Know which AI tool to use for each task, and exactly why',
+                  'Claude vs. ChatGPT vs. Gemini: learn when each one wins',
+                  'Stop defaulting to the one tool you know — use the right one',
+                  'No fluff, no generic advice — just what works for your role',
+                ],
+              },
+              {
+                emoji: '📊',
+                audience: 'Teams & managers',
+                sub: 'Rolling AI out across an org',
+                color: 'amber',
+                items: [
+                  'Admin dashboard: XP, streaks, and task completion by person',
+                  'See who\'s using which tools — and who needs coaching',
+                  'Skill gaps visible across your entire team in one view',
+                  'Prove AI ROI with real adoption data — not survey responses',
+                  'Pitch it to leadership: "We gave them tools. Now we\'re giving them training."',
+                ],
+              },
+            ].map((card) => {
+              const border = card.color === 'emerald' ? 'border-emerald-200 hover:border-emerald-300 hover:shadow-emerald-100/60' : card.color === 'amber' ? 'border-amber-200 hover:border-amber-300 hover:shadow-amber-100/60' : 'border-blue-200 hover:border-blue-300 hover:shadow-blue-100/60'
+              const badge = card.color === 'emerald' ? 'bg-emerald-50 text-emerald-700' : card.color === 'amber' ? 'bg-amber-50 text-amber-700' : 'bg-blue-50 text-blue-700'
+              const check = card.color === 'emerald' ? 'text-emerald-500' : card.color === 'amber' ? 'text-amber-500' : 'text-blue-500'
+              return (
+                <div key={card.audience} className={`group rounded-2xl p-7 border bg-white hover:-translate-y-1 hover:shadow-2xl transition-all duration-300 overflow-hidden relative ${border}`}>
+                  <div className="flex items-center gap-3 mb-4">
+                    <span className="text-2xl">{card.emoji}</span>
+                    <div>
+                      <p className={`text-xs font-bold uppercase tracking-widest px-2 py-0.5 rounded-full ${badge}`}>{card.audience}</p>
+                    </div>
+                  </div>
+                  <p className="font-bold text-gray-900 mb-1">{card.sub}</p>
+                  <div className="w-8 h-0.5 bg-gray-200 mb-4 mt-2" />
+                  <ul className="space-y-2.5">
+                    {card.items.map((item, i) => (
+                      <li key={i} className="flex items-start gap-2.5">
+                        <CheckCircle className={`w-4 h-4 shrink-0 mt-0.5 ${check}`} />
+                        <span className="text-sm text-gray-600 leading-snug">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )
+            })}
+          </div>
+          <div className="text-center mt-10">
+            <Link href="/signup" className="inline-flex items-center gap-2 bg-gray-950 hover:bg-gray-800 text-white font-bold px-7 py-3.5 rounded-2xl transition-all duration-200 hover:shadow-xl hover:shadow-gray-900/20 text-sm">
+              Start free — works for all three <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* ── STATS ── */}
       <section ref={statsRef} className="py-24 px-6 relative overflow-hidden">
         <div className="dot-grid-3d" />
         <Orb className="w-[500px] h-[400px] bg-emerald-200/25 top-0 left-1/2 -translate-x-1/2 animate-float-slow" />
         <div className="max-w-4xl mx-auto relative">
-          <p className={`text-center text-xs font-semibold text-emerald-600 uppercase tracking-widest mb-3 ${statsInView ? 'animate-fade-in' : 'opacity-0'}`}>The problem is real</p>
+          <p className={`text-center text-xs font-semibold text-emerald-600 uppercase tracking-widest mb-3 ${statsInView ? 'animate-fade-in' : 'opacity-0'}`}>Why this matters</p>
           <h2 className={`text-3xl sm:text-4xl font-black text-center mb-4 text-gray-950 ${statsInView ? 'animate-fade-up' : 'opacity-0'}`} style={{ animationDelay: '100ms', animationFillMode: 'forwards' }}>
-            Nobody taught your team how to prompt
+            The AI skills gap is costing you — every day
           </h2>
           <p className={`text-center text-gray-500 mb-12 max-w-xl mx-auto text-sm ${statsInView ? 'animate-fade-up' : 'opacity-0'}`} style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}>
-            Companies buy the tools. They skip the training. Employees flounder, output is mediocre, and nobody connects the dots back to prompting skill.
+            Companies buy the tools. They skip the training. Individuals waste hours getting mediocre outputs. Teams can&apos;t prove ROI. Nobody connects the dots back to one thing: knowing how to prompt.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {stats.map((s, i) => <StatCard key={s.value} {...s} delay={(i + 1) * 100} />)}
@@ -769,10 +847,10 @@ const { ref: managerRef, inView: managerInView } = useInView()
         <div className="max-w-4xl mx-auto relative">
           <p className={`text-center text-xs font-semibold text-emerald-400 uppercase tracking-widest mb-3 ${stepsInView ? 'animate-fade-in' : 'opacity-0'}`}>How it works</p>
           <h2 className={`text-3xl sm:text-4xl font-black text-center mb-3 text-white ${stepsInView ? 'animate-fade-up' : 'opacity-0'}`} style={{ animationDelay: '100ms', animationFillMode: 'forwards' }}>
-            From AI confusion to confident daily use
+            Set up once. Get better every day.
           </h2>
           <p className={`text-center text-gray-500 mb-14 max-w-xl mx-auto text-sm ${stepsInView ? 'animate-fade-up' : 'opacity-0'}`} style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}>
-            LessAI doesn't teach AI in general. It teaches you how to use the specific tools your company gave you — for the specific work your role demands.
+            LessAI personalizes everything to you — your role, your stack, your company. Then it builds your skills daily, and gives managers full visibility into how the whole team is leveling up.
           </p>
           <div className="grid gap-3">
             {steps.map((item, i) => {
@@ -809,12 +887,12 @@ const { ref: managerRef, inView: managerInView } = useInView()
         <div className="line-grid-3d opacity-40" />
         <Orb className="w-[600px] h-[400px] bg-emerald-500/8 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-float-slow" />
         <div className="max-w-5xl mx-auto relative">
-          <p className={`text-center text-xs font-semibold text-emerald-400 uppercase tracking-widest mb-3 ${demoInView ? 'animate-fade-in' : 'opacity-0'}`}>The product</p>
+          <p className={`text-center text-xs font-semibold text-emerald-400 uppercase tracking-widest mb-3 ${demoInView ? 'animate-fade-in' : 'opacity-0'}`}>See it in action</p>
           <h2 className={`text-3xl sm:text-4xl font-black text-center mb-4 text-white ${demoInView ? 'animate-fade-up' : 'opacity-0'}`} style={{ animationDelay: '100ms', animationFillMode: 'forwards' }}>
-            Your AI Command Center
+            Your complete AI hub — explore it live
           </h2>
-          <p className={`text-center text-gray-500 mb-12 max-w-xl mx-auto text-sm ${demoInView ? 'animate-fade-up' : 'opacity-0'}`} style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}>
-            Tell it what you want to accomplish. It tells you which tool to use, why, and gives you a ready-to-paste prompt — built around your role and your stack.
+          <p className={`text-center text-gray-500 mb-12 max-w-2xl mx-auto text-sm ${demoInView ? 'animate-fade-up' : 'opacity-0'}`} style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}>
+            Click through the tabs below — this is the real product. The <strong className="text-gray-300">Overview</strong> tab shows the AI Command Center (right tool + ready prompt for any task). <strong className="text-gray-300">Daily Tasks</strong> shows your 10-min practice queue. <strong className="text-gray-300">Prompt Lab</strong> rewrites and scores any prompt. <strong className="text-gray-300">Saved Prompts</strong> is your personal library organized by folder.
           </p>
           <div className={`${demoInView ? 'animate-fade-up' : 'opacity-0'}`} style={{ animationDelay: '300ms', animationFillMode: 'forwards' }}>
             <ProductDemo />
@@ -840,12 +918,12 @@ const { ref: managerRef, inView: managerInView } = useInView()
         <div className="dot-grid-3d" />
         <Orb className="w-[600px] h-[400px] bg-emerald-200/30 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-float-slow" />
         <div className="max-w-5xl mx-auto relative">
-          <p className={`text-center text-xs font-semibold text-emerald-600 uppercase tracking-widest mb-3 ${featuresInView ? 'animate-fade-in' : 'opacity-0'}`}>What you get</p>
+          <p className={`text-center text-xs font-semibold text-emerald-600 uppercase tracking-widest mb-3 ${featuresInView ? 'animate-fade-in' : 'opacity-0'}`}>Everything included</p>
           <h2 className={`text-3xl sm:text-4xl font-black text-center mb-4 text-gray-950 ${featuresInView ? 'animate-fade-up' : 'opacity-0'}`} style={{ animationDelay: '100ms', animationFillMode: 'forwards' }}>
-            Everything to go from AI amateur to power user
+            Every feature you need — for individuals and teams
           </h2>
           <p className={`text-center text-gray-500 mb-14 max-w-xl mx-auto text-sm ${featuresInView ? 'animate-fade-up' : 'opacity-0'}`} style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}>
-            Not a course. Not generic tips. A system built around your role, your stack, and how you actually work.
+            Not a course. Not a generic tips blog. A centralized system built around your role, your exact AI stack, and how you actually work — day to day.
           </p>
           <div className="grid md:grid-cols-3 gap-4">
             {features.map((f, i) => (
@@ -874,12 +952,12 @@ const { ref: managerRef, inView: managerInView } = useInView()
         <Orb className="w-[450px] h-[350px] bg-amber-200/30 top-[-50px] right-[-100px] animate-float-slow" />
         <Orb className="w-[350px] h-[250px] bg-emerald-200/20 bottom-0 left-[-50px] animate-float" style={{ animationDelay: '1.5s' }} />
         <div className="max-w-4xl mx-auto relative">
-          <p className={`text-center text-xs font-semibold text-amber-600 uppercase tracking-widest mb-3 ${managerInView ? 'animate-fade-in' : 'opacity-0'}`}>For team leads & managers</p>
+          <p className={`text-center text-xs font-semibold text-amber-600 uppercase tracking-widest mb-3 ${managerInView ? 'animate-fade-in' : 'opacity-0'}`}>For team leads &amp; managers</p>
           <h2 className={`text-3xl sm:text-4xl font-black text-center mb-3 text-gray-950 ${managerInView ? 'animate-fade-up' : 'opacity-0'}`} style={{ animationDelay: '100ms', animationFillMode: 'forwards' }}>
-            See exactly who needs coaching — and on what
+            Your team&apos;s AI skills, visible in one place
           </h2>
           <p className={`text-center text-gray-500 mb-14 max-w-xl mx-auto text-sm ${managerInView ? 'animate-fade-up' : 'opacity-0'}`} style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}>
-            Stop guessing why output quality varies across your team. The admin dashboard shows skill gaps by person and tool — so you know exactly where to focus.
+            While individuals level up through daily practice, you get a live view of every person on your team — who&apos;s building skill, who&apos;s falling behind, and which tools nobody actually knows how to use yet.
           </p>
           <div className={`grid md:grid-cols-3 gap-4 mb-4 ${managerInView ? 'animate-fade-up' : 'opacity-0'}`} style={{ animationDelay: '300ms', animationFillMode: 'forwards' }}>
             {[
@@ -946,13 +1024,13 @@ const { ref: managerRef, inView: managerInView } = useInView()
             <Zap className="w-3 h-3" /> 7-day free trial
           </div>
           <h2 className="text-4xl sm:text-5xl font-black mb-4 leading-tight text-white">
-            Your team has the tools.<br />
+            You have the tools.<br />
             <span className="relative inline-block">
-              <span className="relative z-10 text-white">Now teach them how to use them.</span>
+              <span className="relative z-10 text-white">Now actually get good at them.</span>
               <span className="absolute bottom-1 left-0 w-full h-3 bg-amber-400/25 -z-0 -rotate-1 rounded-sm" />
             </span>
           </h2>
-          <p className="text-gray-400 mb-8 text-lg">Get your personalized prompt playbook in 3 minutes.</p>
+          <p className="text-gray-400 mb-8 text-lg">Get your personalized prompt playbook in under 3 minutes. Free to start.</p>
           <div className="flex items-center justify-center gap-3 flex-wrap">
             <Link href="/signup" className="group relative">
               <span className="absolute -inset-0.5 bg-gradient-to-r from-amber-400 to-amber-300 rounded-2xl blur opacity-50 group-hover:opacity-80 transition-opacity duration-300" />
