@@ -131,8 +131,7 @@ export default function PricingPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-10">
 
             {/* Free */}
-            <div className="group border border-gray-200 rounded-2xl p-6 flex flex-col bg-white hover:border-emerald-300 hover:shadow-xl hover:shadow-emerald-100/70 hover:-translate-y-1 transition-all duration-300 relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl pointer-events-none" />
+            <div className="border border-gray-200 rounded-2xl p-6 flex flex-col bg-white hover:bg-emerald-50 hover:border-emerald-400 hover:shadow-xl hover:shadow-emerald-200/60 hover:-translate-y-1 transition-all duration-200">
               <div className="mb-5">
                 <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Free</p>
                 <div className="flex items-end gap-1 mb-1">
@@ -156,8 +155,7 @@ export default function PricingPage() {
             </div>
 
             {/* Pro */}
-            <div className="group border border-blue-100 rounded-2xl p-6 flex flex-col bg-white hover:border-blue-400 hover:shadow-xl hover:shadow-blue-100/70 hover:-translate-y-1 transition-all duration-300 relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-50/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl pointer-events-none" />
+            <div className="border border-blue-100 rounded-2xl p-6 flex flex-col bg-white hover:bg-blue-50 hover:border-blue-400 hover:shadow-xl hover:shadow-blue-200/60 hover:-translate-y-1 transition-all duration-200">
               <div className="mb-5">
                 <div className="flex items-center gap-2 mb-3">
                   <Sparkles className="w-3.5 h-3.5 text-blue-400" />
@@ -190,9 +188,9 @@ export default function PricingPage() {
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
                 <span className="bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap shadow-lg shadow-emerald-500/30">Most popular</span>
               </div>
-              <div className="group rounded-2xl p-6 flex flex-col flex-1 relative overflow-hidden bg-gray-950 transition-all duration-300 hover:shadow-2xl hover:shadow-emerald-500/30 hover:-translate-y-1" style={{ border: '1px solid rgba(52,211,153,0.35)' }}
-                onMouseEnter={e => (e.currentTarget.style.border = '1px solid rgba(52,211,153,0.7)')}
-                onMouseLeave={e => (e.currentTarget.style.border = '1px solid rgba(52,211,153,0.35)')}>
+              <div className="rounded-2xl p-6 flex flex-col flex-1 relative overflow-hidden bg-gray-950 transition-all duration-200 hover:shadow-2xl hover:shadow-emerald-500/40 hover:-translate-y-1" style={{ border: '1px solid rgba(52,211,153,0.35)' }}
+                onMouseEnter={e => { e.currentTarget.style.border = '1px solid rgba(52,211,153,0.8)'; e.currentTarget.style.background = '#0a1f17' }}
+                onMouseLeave={e => { e.currentTarget.style.border = '1px solid rgba(52,211,153,0.35)'; e.currentTarget.style.background = '' }}>
                 <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-emerald-400 to-transparent" />
                 <div className="absolute inset-0 rounded-2xl pointer-events-none" style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(16,185,129,0.15), transparent 70%)' }} />
                 <div className="mb-5 relative">
