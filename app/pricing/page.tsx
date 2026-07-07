@@ -131,7 +131,8 @@ export default function PricingPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-10">
 
             {/* Free */}
-            <div className="border border-gray-200 rounded-2xl p-6 flex flex-col bg-white hover:border-gray-300 hover:shadow-lg hover:shadow-gray-100 transition-all duration-300">
+            <div className="group border border-gray-200 rounded-2xl p-6 flex flex-col bg-white hover:border-emerald-300 hover:shadow-xl hover:shadow-emerald-100/70 hover:-translate-y-1 transition-all duration-300 relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl pointer-events-none" />
               <div className="mb-5">
                 <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Free</p>
                 <div className="flex items-end gap-1 mb-1">
@@ -155,7 +156,8 @@ export default function PricingPage() {
             </div>
 
             {/* Pro */}
-            <div className="border border-blue-100 rounded-2xl p-6 flex flex-col bg-white hover:border-blue-200 hover:shadow-lg hover:shadow-blue-50 transition-all duration-300">
+            <div className="group border border-blue-100 rounded-2xl p-6 flex flex-col bg-white hover:border-blue-400 hover:shadow-xl hover:shadow-blue-100/70 hover:-translate-y-1 transition-all duration-300 relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-50/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl pointer-events-none" />
               <div className="mb-5">
                 <div className="flex items-center gap-2 mb-3">
                   <Sparkles className="w-3.5 h-3.5 text-blue-400" />
@@ -188,7 +190,9 @@ export default function PricingPage() {
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
                 <span className="bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap shadow-lg shadow-emerald-500/30">Most popular</span>
               </div>
-              <div className="rounded-2xl p-6 flex flex-col flex-1 relative overflow-hidden bg-gray-950 transition-all duration-300 hover:shadow-xl hover:shadow-emerald-500/20" style={{ border: '1px solid rgba(52,211,153,0.35)' }}>
+              <div className="group rounded-2xl p-6 flex flex-col flex-1 relative overflow-hidden bg-gray-950 transition-all duration-300 hover:shadow-2xl hover:shadow-emerald-500/30 hover:-translate-y-1" style={{ border: '1px solid rgba(52,211,153,0.35)' }}
+                onMouseEnter={e => (e.currentTarget.style.border = '1px solid rgba(52,211,153,0.7)')}
+                onMouseLeave={e => (e.currentTarget.style.border = '1px solid rgba(52,211,153,0.35)')}>
                 <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-emerald-400 to-transparent" />
                 <div className="absolute inset-0 rounded-2xl pointer-events-none" style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(16,185,129,0.15), transparent 70%)' }} />
                 <div className="mb-5 relative">
@@ -407,22 +411,53 @@ export default function PricingPage() {
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="max-w-5xl mx-auto px-6 py-8 border-t border-white/[0.06] flex items-center justify-between flex-wrap gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-emerald-600 rounded-md flex items-center justify-center">
-              <span className="text-white font-black text-xs">L</span>
-            </div>
-            <span className="text-sm font-bold text-white">LessAI</span>
-          </div>
-          <div className="flex items-center gap-5 flex-wrap">
-            <Link href="/" className="text-xs text-gray-500 hover:text-white transition-colors">Home</Link>
-            <Link href="/signup" className="text-xs text-gray-500 hover:text-white transition-colors">Sign up</Link>
-            <a href="mailto:hello@lessai.io" className="text-xs text-gray-500 hover:text-emerald-400 transition-colors">hello@lessai.io</a>
-          </div>
-          <p className="text-xs text-gray-600">© 2026 LessAI</p>
-        </div>
       </div>
+
+      {/* Footer */}
+      <footer className="bg-gray-950 border-t border-white/[0.06]">
+        <div className="max-w-6xl mx-auto px-6 py-10">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 mb-8">
+            <div className="col-span-2 sm:col-span-1">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-7 h-7 bg-emerald-600 rounded-lg flex items-center justify-center">
+                  <span className="text-white font-black text-xs">L</span>
+                </div>
+                <span className="font-bold text-white">LessAI</span>
+              </div>
+              <p className="text-xs text-gray-500 leading-relaxed mb-4">The centralized hub for mastering every AI tool your team uses — one place for prompts, practice, and skill tracking.</p>
+              <a href="mailto:hello@lessai.io" className="text-xs text-emerald-400 hover:text-emerald-300 transition-colors">hello@lessai.io</a>
+            </div>
+            <div>
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Product</p>
+              <ul className="space-y-2">
+                {[{ label: 'Home', href: '/' }, { label: 'Pricing', href: '/pricing' }, { label: 'Sign up', href: '/signup' }, { label: 'Sign in', href: '/login' }].map(l => (
+                  <li key={l.label}><Link href={l.href} className="text-sm text-gray-500 hover:text-white transition-colors">{l.label}</Link></li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Company</p>
+              <ul className="space-y-2">
+                {[{ label: 'Contact us', href: 'mailto:hello@lessai.io' }, { label: 'Support', href: 'mailto:hello@lessai.io' }].map(l => (
+                  <li key={l.label}><a href={l.href} className="text-sm text-gray-500 hover:text-white transition-colors">{l.label}</a></li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Legal</p>
+              <ul className="space-y-2">
+                {['Privacy Policy', 'Terms of Service'].map(l => (
+                  <li key={l}><span className="text-sm text-gray-600 cursor-default">{l}</span></li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          <div className="border-t border-white/[0.06] pt-6 flex items-center justify-between flex-wrap gap-3">
+            <p className="text-xs text-gray-600">© 2026 LessAI. All rights reserved.</p>
+            <p className="text-xs text-gray-600">Built for teams who take AI seriously.</p>
+          </div>
+        </div>
+      </footer>
 
     </div>
   )
