@@ -2225,27 +2225,29 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                       <p className="text-xs text-gray-400 mt-0.5">Last week</p>
                     </div>
                   </div>
-                  <div className="mt-4 flex gap-1.5 items-end h-10">
-                    {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map((dow, i) => {
-                      const d = new Date(startOfWeek)
-                      d.setDate(startOfWeek.getDate() + i)
-                      const key = d.toISOString().slice(0, 10)
-                      const count = activityMap[key] ?? 0
-                      const isPast = d <= now
-                      return (
-                        <div key={dow} className="flex-1 flex flex-col items-center gap-1">
+                  <div className="mt-4 flex gap-1.5 items-end h-10 overflow-hidden">
+                    {(() => {
+                      const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map((dow, i) => {
+                        const d = new Date(startOfWeek)
+                        d.setDate(startOfWeek.getDate() + i)
+                        const key = d.toISOString().slice(0, 10)
+                        return { dow, key, count: activityMap[key] ?? 0, isPast: d <= now }
+                      })
+                      const maxCount = Math.max(1, ...days.map(d => d.count))
+                      return days.map(({ dow, key, count, isPast }) => (
+                        <div key={key} className="flex-1 flex flex-col items-center gap-1">
                           <div
                             className="w-full rounded-sm transition-all"
                             style={{
-                              height: `${Math.max(4, count * 12)}px`,
+                              height: `${Math.max(4, Math.round((count / maxCount) * 32))}px`,
                               background: count > 0 ? 'linear-gradient(180deg,#10b981,#059669)' : isPast ? '#f3f4f6' : '#f9fafb',
                               opacity: isPast ? 1 : 0.4,
                             }}
                           />
                           <span className="text-[9px] text-gray-300">{dow[0]}</span>
                         </div>
-                      )
-                    })}
+                      ))
+                    })()}
                   </div>
                 </div>
 
