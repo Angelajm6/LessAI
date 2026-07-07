@@ -7,7 +7,7 @@ export async function POST(req: Request) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { original, tool } = await req.json()
+  const { original } = await req.json()
   if (!original?.trim()) return NextResponse.json({ error: 'No prompt provided' }, { status: 400 })
 
   const { data: profile } = await supabase
@@ -20,7 +20,7 @@ export async function POST(req: Request) {
   const tools: string[] = profile?.tools ?? []
 
   try {
-    const result = await improvePrompt(original.trim(), role, tools, tool ?? null)
+    const result = await improvePrompt(original.trim(), role, tools, null)
     return NextResponse.json(result)
   } catch (e) {
     console.error('improvePrompt error:', e)

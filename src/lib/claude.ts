@@ -373,6 +373,9 @@ export interface PromptImprovement {
     after: { specificity: number; context: number; output_clarity: number }
   }
   summary: string
+  recommended_tool: string
+  why_this_tool: string
+  why_not_others: Array<{ tool: string; reason: string }>
 }
 
 export async function improvePrompt(
@@ -410,16 +413,19 @@ export async function improvePrompt(
             role: 'user',
             content: `A ${role} wrote this prompt: "${original.replace(/"/g, "'")}"
 
-${toolLine}
+Their AI tools: ${tools.join(', ')}.
 
 Return this exact JSON structure:
-{"improved":"rewritten prompt here","changes":[{"label":"label","description":"description"}],"scores":{"before":{"specificity":3,"context":2,"output_clarity":2},"after":{"specificity":8,"context":9,"output_clarity":8}},"summary":"key improvement sentence"}
+{"improved":"rewritten prompt here","changes":[{"label":"label","description":"description"}],"scores":{"before":{"specificity":3,"context":2,"output_clarity":2},"after":{"specificity":8,"context":9,"output_clarity":8}},"summary":"key improvement sentence","recommended_tool":"ChatGPT","why_this_tool":"one sentence explaining why this tool is best for this specific prompt","why_not_others":[{"tool":"Claude","reason":"one sentence why it's not the best pick for this task"},{"tool":"Notion AI","reason":"one sentence why it's not the best pick for this task"}]}
 
 Rules:
 - improved: rewrite as a much more effective, structured prompt (3-8 sentences, role-specific for a ${role})
 - changes: 3-5 items, each a distinct improvement
 - scores: integers 1-10 for specificity, context, output_clarity
 - summary: one sentence on the most important improvement
+- recommended_tool: pick the single best tool from [${tools.join(', ')}] for this prompt based on the task type
+- why_this_tool: one clear sentence on why this tool wins for this specific task — be specific, not generic
+- why_not_others: include ALL other tools from the user's stack (not the recommended one), each with a brief honest reason why it's not the best pick here
 - Return ONLY valid JSON, no markdown`,
           },
         ],

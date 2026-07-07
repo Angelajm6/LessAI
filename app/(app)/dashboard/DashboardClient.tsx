@@ -12,7 +12,7 @@ import {
   Copy, Trash2, ArrowRight, LayoutDashboard, BookOpen,
   MessageSquare, FolderPlus, Folder, FolderOpen, Plus, X, Pencil,
   FileText, ChevronUp, Home, TrendingUp, Star, Settings, FlaskConical,
-  RefreshCw, TrendingDown, BarChart2, Flame, Trophy, Target, Calendar
+  RefreshCw, TrendingDown, BarChart2, Flame, Trophy, Target, Calendar, Brain
 } from 'lucide-react'
 import Link from 'next/link'
 import type { StackMap, ToolCard, ToolTrack, DailyTask, Playbook, ToolPlaybook, PromptFramework, Recommendation, PromptImprovement } from '@/lib/claude'
@@ -197,7 +197,6 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
   const resultRef = useRef<HTMLDivElement>(null)
   // Prompt Lab state
   const [labInput, setLabInput] = useState('')
-  const [labTool, setLabTool] = useState('')
   const [labResult, setLabResult] = useState<PromptImprovement | null>(null)
   const [labLoading, setLabLoading] = useState(false)
   const [labError, setLabError] = useState('')
@@ -1678,21 +1677,7 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                 placeholder={'e.g. "Write me an email about the meeting"'}
                 className="min-h-[90px] text-sm border-gray-200 focus:ring-emerald-400 resize-none mb-4 bg-gray-50"
               />
-              <label className="text-xs font-bold text-gray-700 block mb-2 flex items-center gap-1.5">
-                <span className="w-4 h-4 bg-gray-100 rounded flex items-center justify-center text-gray-500 text-xs">2</span>
-                Which tool are you prompting? <span className="font-normal text-gray-400">(optional)</span>
-              </label>
               <div className="flex items-center gap-3 flex-wrap">
-                <div className="flex-1 min-w-[140px]">
-                  <select
-                    value={labTool}
-                    onChange={e => setLabTool(e.target.value)}
-                    className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-emerald-400"
-                  >
-                    <option value="">Any tool (auto-detect)</option>
-                    {tools.map(t => <option key={t} value={t}>{t}</option>)}
-                  </select>
-                </div>
                 <Button
                   disabled={!labInput.trim() || labLoading}
                   onClick={async () => {
@@ -1705,7 +1690,7 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                       const res = await fetch('/api/prompt/improve', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ original: labInput, tool: labTool || null }),
+                        body: JSON.stringify({ original: labInput }),
                       })
                       const body = await res.json().catch(() => ({}))
                       if (!res.ok) {
@@ -1724,7 +1709,7 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                             user_id: labUser.id,
                             original: labInput,
                             improved: body.improved,
-                            tool: labTool || null,
+                            tool: body.recommended_tool ?? null,
                             scores_before: body.scores.before,
                             scores_after: body.scores.after,
                             summary: body.summary,
@@ -1794,6 +1779,40 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                   </div>
                 </div>
 
+                {/* Tool recommendation */}
+                {labResult.recommended_tool && (
+                  <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                    <p className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-1.5">
+                      <Brain className="w-4 h-4 text-emerald-500" /> Best tool for this prompt
+                    </p>
+                    <div className="flex items-start gap-3 bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-3">
+                      <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center shrink-0">
+                        <span className="text-white font-black text-xs">{labResult.recommended_tool.charAt(0)}</span>
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-emerald-800">{labResult.recommended_tool}</p>
+                        <p className="text-xs text-emerald-700 mt-1 leading-relaxed">{labResult.why_this_tool}</p>
+                      </div>
+                    </div>
+                    {labResult.why_not_others && labResult.why_not_others.length > 0 && (
+                      <div className="space-y-2">
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">Why not the others</p>
+                        {labResult.why_not_others.map((w, i) => (
+                          <div key={i} className="flex items-start gap-2.5 bg-gray-50 rounded-lg px-3 py-2">
+                            <div className="w-5 h-5 bg-gray-200 rounded flex items-center justify-center shrink-0 mt-0.5">
+                              <span className="text-gray-500 font-black text-xs">{w.tool.charAt(0)}</span>
+                            </div>
+                            <div>
+                              <span className="text-xs font-semibold text-gray-600">{w.tool} — </span>
+                              <span className="text-xs text-gray-500">{w.reason}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Before / After */}
                 <div className="grid sm:grid-cols-2 gap-3">
                   <div className="rounded-2xl p-4 border border-red-200" style={{ background: 'linear-gradient(135deg, #fff5f5 0%, #fef2f2 100%)' }}>
@@ -1853,7 +1872,7 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                       if (!user) { setLabError('Not signed in'); return }
                       const { data, error } = await supabase
                         .from('saved_prompts')
-                        .insert({ user_id: user.id, content: labResult.improved, label: `✨ ${label}`, tool: labTool || null, folder_id: null })
+                        .insert({ user_id: user.id, content: labResult.improved, label: `✨ ${label}`, tool: labResult.recommended_tool || null, folder_id: null })
                         .select('id, content, label, tool, folder_id, created_at')
                         .single()
                       if (error) { setLabError(`Save failed: ${error.message}`); return }
