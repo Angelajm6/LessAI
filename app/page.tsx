@@ -775,7 +775,7 @@ const { ref: managerRef, inView: managerInView } = useInView()
   }, [])
 
   return (
-    <div className="bg-gray-950 text-gray-900 overflow-x-hidden">
+    <div className="bg-white text-gray-900 overflow-x-hidden">
 
       <ParticleField />
 
@@ -802,7 +802,7 @@ const { ref: managerRef, inView: managerInView } = useInView()
       </nav>
 
       {/* ── HERO ── */}
-      <section className="relative pt-20 pb-28 px-6 overflow-hidden">
+      <section className="relative pt-20 pb-28 px-6 overflow-hidden bg-white">
         <div className="dot-grid-3d" />
         <Orb className="w-[700px] h-[500px] bg-emerald-300/20 -top-40 -left-60 animate-float-slow" />
         <Orb className="w-[500px] h-[400px] bg-amber-200/20 top-10 right-[-200px] animate-float" style={{ animationDelay: '2s' }} />
@@ -957,7 +957,7 @@ const { ref: managerRef, inView: managerInView } = useInView()
       </section>
 
       {/* ── STATS ── */}
-      <section ref={statsRef} className="py-24 px-6 relative overflow-hidden">
+      <section ref={statsRef} className="py-24 px-6 relative overflow-hidden bg-white">
         <div className="dot-grid-3d" />
         <Orb className="w-[500px] h-[400px] bg-emerald-200/25 top-0 left-1/2 -translate-x-1/2 animate-float-slow" />
         <div className="max-w-4xl mx-auto relative">
@@ -1049,7 +1049,7 @@ const { ref: managerRef, inView: managerInView } = useInView()
       </section>
 
       {/* ── FEATURES ── */}
-      <section ref={featuresRef} className="py-24 px-6 relative overflow-hidden">
+      <section ref={featuresRef} className="py-24 px-6 relative overflow-hidden bg-white">
         <div className="dot-grid-3d" />
         <Orb className="w-[600px] h-[400px] bg-emerald-200/30 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-float-slow" />
         <div className="max-w-5xl mx-auto relative">
