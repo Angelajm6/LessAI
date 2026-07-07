@@ -2072,7 +2072,6 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                                   className="gap-1.5 text-emerald-700 border-emerald-200 hover:bg-emerald-50 text-xs"
                                   onClick={() => {
                                     setLabInput(item.original)
-                                    setLabTool(item.tool ?? '')
                                     setLabResult(null)
                                     setLabView('improve')
                                   }}>
