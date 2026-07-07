@@ -20,45 +20,59 @@ function ParticleField() {
     canvas.width = W
     canvas.height = H
 
-    const N = Math.min(70, Math.floor((W * H) / 18000))
-    const COLORS = ['16,185,129', '52,211,153', '251,191,36', '255,255,255']
+    const N = Math.min(90, Math.floor((W * H) / 12000))
+    const COLORS = ['16,185,129', '16,185,129', '52,211,153', '245,158,11']
 
     const particles = Array.from({ length: N }, () => ({
       x: Math.random() * W,
       y: Math.random() * H,
-      vx: (Math.random() - 0.5) * 0.25,
-      vy: (Math.random() - 0.5) * 0.25,
-      r: Math.random() * 1.2 + 0.5,
+      ox: 0, oy: 0,
+      vx: (Math.random() - 0.5) * 0.3,
+      vy: (Math.random() - 0.5) * 0.3,
+      r: Math.random() * 1.8 + 1,
       color: COLORS[Math.floor(Math.random() * COLORS.length)],
-      baseOpacity: Math.random() * 0.25 + 0.08,
+      baseOpacity: Math.random() * 0.3 + 0.15,
     }))
+
+    const REPEL = 180
+    const LINK = 140
 
     function draw() {
       ctx.clearRect(0, 0, W, H)
       const mx = mouseRef.current.x
       const my = mouseRef.current.y
-      const REPEL = 130
-      const LINK = 110
 
       for (const p of particles) {
         const dx = p.x - mx
         const dy = p.y - my
         const d = Math.sqrt(dx * dx + dy * dy)
-        if (d < REPEL && d > 0) {
-          const f = (1 - d / REPEL) * 1.1
+        if (d < REPEL && d > 1) {
+          const f = (1 - d / REPEL) * 3.5
           p.vx += (dx / d) * f
           p.vy += (dy / d) * f
         }
-        p.vx *= 0.94
-        p.vy *= 0.94
+        p.vx *= 0.92
+        p.vy *= 0.92
         p.x += p.vx
         p.y += p.vy
-        if (p.x < -10) p.x = W + 10
-        if (p.x > W + 10) p.x = -10
-        if (p.y < -10) p.y = H + 10
-        if (p.y > H + 10) p.y = -10
+        if (p.x < -20) p.x = W + 20
+        if (p.x > W + 20) p.x = -20
+        if (p.y < -20) p.y = H + 20
+        if (p.y > H + 20) p.y = -20
       }
 
+      // Cursor aura
+      if (mx > 0) {
+        const grad = ctx.createRadialGradient(mx, my, 0, mx, my, REPEL)
+        grad.addColorStop(0, 'rgba(16,185,129,0.07)')
+        grad.addColorStop(1, 'rgba(16,185,129,0)')
+        ctx.beginPath()
+        ctx.arc(mx, my, REPEL, 0, Math.PI * 2)
+        ctx.fillStyle = grad
+        ctx.fill()
+      }
+
+      // Connection lines
       for (let i = 0; i < particles.length; i++) {
         for (let j = i + 1; j < particles.length; j++) {
           const dx = particles[i].x - particles[j].x
@@ -68,21 +82,36 @@ function ParticleField() {
             ctx.beginPath()
             ctx.moveTo(particles[i].x, particles[i].y)
             ctx.lineTo(particles[j].x, particles[j].y)
-            ctx.strokeStyle = `rgba(16,185,129,${(1 - d / LINK) * 0.13})`
-            ctx.lineWidth = 0.6
+            ctx.strokeStyle = `rgba(16,185,129,${(1 - d / LINK) * 0.22})`
+            ctx.lineWidth = 0.7
             ctx.stroke()
           }
         }
       }
 
+      // Dots
       for (const p of particles) {
         const dx = p.x - mx
         const dy = p.y - my
         const d = Math.sqrt(dx * dx + dy * dy)
-        const glow = d < 160 ? (1 - d / 160) * 0.45 : 0
+        const near = d < 200 ? (1 - d / 200) : 0
+        const opacity = Math.min(1, p.baseOpacity + near * 0.5)
+        const radius = p.r + near * 2
+
+        // Glow halo for nearby dots
+        if (near > 0.1) {
+          const halo = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, radius * 4)
+          halo.addColorStop(0, `rgba(${p.color},${near * 0.25})`)
+          halo.addColorStop(1, `rgba(${p.color},0)`)
+          ctx.beginPath()
+          ctx.arc(p.x, p.y, radius * 4, 0, Math.PI * 2)
+          ctx.fillStyle = halo
+          ctx.fill()
+        }
+
         ctx.beginPath()
-        ctx.arc(p.x, p.y, p.r + glow * 1.5, 0, Math.PI * 2)
-        ctx.fillStyle = `rgba(${p.color},${Math.min(1, p.baseOpacity + glow)})`
+        ctx.arc(p.x, p.y, radius, 0, Math.PI * 2)
+        ctx.fillStyle = `rgba(${p.color},${opacity})`
         ctx.fill()
       }
 
@@ -98,10 +127,14 @@ function ParticleField() {
     }
     window.addEventListener('mousemove', onMouse)
     window.addEventListener('resize', onResize)
-    return () => { cancelAnimationFrame(animId); window.removeEventListener('mousemove', onMouse); window.removeEventListener('resize', onResize) }
+    return () => {
+      cancelAnimationFrame(animId)
+      window.removeEventListener('mousemove', onMouse)
+      window.removeEventListener('resize', onResize)
+    }
   }, [])
 
-  return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none" style={{ zIndex: 1, opacity: 0.55 }} />
+  return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none" style={{ zIndex: 1 }} />
 }
 
 function useCounter(target: number, duration = 1800, start = false) {
