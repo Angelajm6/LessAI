@@ -2,7 +2,20 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { CheckCircle, X, ArrowRight, Zap, Users, Building2, MessageSquare, Sparkles, FlaskConical } from 'lucide-react'
+import { CheckCircle, X, ArrowRight, Zap, Users, Building2, MessageSquare, Sparkles, FlaskConical, Mail } from 'lucide-react'
+
+function LogoMark({ size = 28 }: { size?: number }) {
+  return (
+    <div
+      className="rounded-lg flex items-center justify-center shrink-0"
+      style={{ width: size, height: size, background: 'linear-gradient(135deg, #059669 0%, #0F766E 100%)' }}
+    >
+      <svg width={size * 0.55} height={size * 0.55} viewBox="0 0 16 16" fill="none">
+        <path d="M11 2.5L5 8L11 13.5" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    </div>
+  )
+}
 
 const FREE_FEATURES = [
   { text: '2 tools in your stack', included: true },
@@ -78,9 +91,7 @@ export default function PricingPage() {
       <nav className="sticky top-0 z-50 border-b border-gray-100 bg-white/90 backdrop-blur-xl">
         <div className="flex items-center justify-between px-4 sm:px-6 py-4 max-w-6xl mx-auto">
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-7 h-7 bg-gray-950 rounded-lg flex items-center justify-center">
-              <span className="text-white font-black text-xs">L</span>
-            </div>
+            <LogoMark size={28} />
             <span className="font-bold text-gray-950 text-lg tracking-tight">LessAI</span>
           </Link>
           <div className="flex items-center gap-1">
@@ -95,8 +106,6 @@ export default function PricingPage() {
       {/* Hero */}
       <div className="relative bg-white overflow-hidden">
         <div className="dot-grid-3d" />
-        <div className="absolute -top-40 -left-40 w-[600px] h-[500px] bg-emerald-300/15 rounded-full blur-3xl pointer-events-none animate-float-slow" />
-        <div className="absolute -top-20 right-[-100px] w-[400px] h-[350px] bg-amber-200/15 rounded-full blur-3xl pointer-events-none animate-float" style={{ animationDelay: '2s' }} />
 
         <div className="relative max-w-5xl mx-auto px-4 sm:px-6 py-16">
           <div className="text-center mb-10">
@@ -416,14 +425,12 @@ export default function PricingPage() {
         <div className="max-w-6xl mx-auto px-6 py-10">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 mb-8">
             <div className="col-span-2 sm:col-span-1">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-7 h-7 bg-emerald-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-black text-xs">L</span>
-                </div>
+              <div className="flex items-center gap-2.5 mb-3">
+                <LogoMark size={26} />
                 <span className="font-bold text-white">LessAI</span>
               </div>
               <p className="text-xs text-gray-500 leading-relaxed mb-4">The centralized hub for mastering every AI tool your team uses — one place for prompts, practice, and skill tracking.</p>
-              <a href="mailto:hello@lessai.io" className="text-xs text-emerald-400 hover:text-emerald-300 transition-colors">hello@lessai.io</a>
+              <a href="mailto:hello@lessai.io" className="text-xs text-emerald-400 hover:text-emerald-300 transition-colors flex items-center gap-1.5"><Mail className="w-3 h-3" />hello@lessai.io</a>
             </div>
             <div>
               <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Product</p>
