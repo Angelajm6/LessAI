@@ -294,12 +294,13 @@ function PromptPreview() {
 
 /* ─── Product demo ───────────────────────────────────────────────────── */
 function ProductDemo() {
-  const [activeTab, setActiveTab] = useState<'home' | 'tasks' | 'lab' | 'saved'>('home')
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'studio' | 'tasks' | 'saved'>('dashboard')
   const [checkedTasks, setCheckedTasks] = useState<number[]>([])
   const [commandText, setCommandText] = useState('')
   const [showResult, setShowResult] = useState(false)
   const [typing, setTyping] = useState(false)
   const [activeFolder, setActiveFolder] = useState<string | null>(null)
+  const [studioMode, setStudioMode] = useState<'command' | 'lab'>('command')
 
   const EXAMPLE = 'Build a Q2 pipeline forecast from our CRM data'
 
@@ -316,7 +317,7 @@ function ProductDemo() {
     { tool: 'Claude', title: 'Analyze churn data and surface the top 3 risk factors', time: 10, level: 'Practitioner' },
     { tool: 'ChatGPT', title: 'Draft a pipeline review memo for leadership', time: 10, level: 'Explorer' },
     { tool: 'Perplexity', title: 'Research a target account before outreach', time: 10, level: 'Explorer' },
-    { tool: 'Notion AI', title: 'Summarize last quarter\'s deal velocity notes', time: 10, level: 'Novice' },
+    { tool: 'Notion AI', title: "Summarize last quarter's deal velocity notes", time: 10, level: 'Novice' },
   ]
 
   const folders = [
@@ -339,76 +340,81 @@ function ProductDemo() {
   const visiblePrompts = activeFolder ? allPrompts.filter(p => p.folder === activeFolder) : allPrompts.slice(0, 5)
 
   const levelColors: Record<string, string> = {
-    Novice: 'bg-gray-700 text-gray-300', Explorer: 'bg-teal-900/60 text-teal-300',
-    Practitioner: 'bg-emerald-900/60 text-emerald-300', Pro: 'bg-amber-900/60 text-amber-300',
+    Novice: 'bg-gray-100 text-gray-600',
+    Explorer: 'bg-teal-50 text-teal-700 border border-teal-200',
+    Practitioner: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+    Pro: 'bg-amber-50 text-amber-700 border border-amber-200',
   }
 
   const navItems = [
-    { key: 'home', label: 'Overview' }, { key: 'tasks', label: 'Daily Tasks' },
-    { key: 'lab', label: 'Prompt Lab' }, { key: 'saved', label: 'Saved Prompts' },
+    { key: 'dashboard', label: 'Dashboard' },
+    { key: 'studio', label: 'Prompt Studio' },
+    { key: 'tasks', label: 'Daily Tasks' },
+    { key: 'saved', label: 'Saved Prompts' },
   ]
 
   return (
     <div className="relative max-w-5xl mx-auto">
       <div className="absolute -inset-6 bg-gradient-to-br from-emerald-500/10 via-transparent to-amber-400/10 rounded-3xl blur-3xl pointer-events-none" />
-      <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-gray-950/80" style={{ background: '#0d1117' }}>
-        <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[0.06]" style={{ background: 'rgba(255,255,255,0.03)' }}>
+      <div className="relative rounded-2xl overflow-hidden border border-gray-200 shadow-2xl shadow-gray-300/50">
+        {/* Browser chrome */}
+        <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-200 bg-gray-100">
           <div className="flex gap-1.5">
-            <div className="w-3 h-3 rounded-full bg-red-500/60" /><div className="w-3 h-3 rounded-full bg-amber-500/60" /><div className="w-3 h-3 rounded-full bg-emerald-500/60" />
+            <div className="w-3 h-3 rounded-full bg-red-400" /><div className="w-3 h-3 rounded-full bg-amber-400" /><div className="w-3 h-3 rounded-full bg-emerald-400" />
           </div>
           <div className="flex-1 flex justify-center">
-            <div className="bg-white/[0.06] rounded-md px-4 py-1 text-xs text-gray-500">app.lessai.io/dashboard</div>
+            <div className="bg-white border border-gray-200 rounded-md px-4 py-1 text-xs text-gray-400">app.lessai.io/dashboard</div>
           </div>
         </div>
 
         {/* Mobile nav */}
-        <div className="md:hidden border-b border-white/[0.06]" style={{ background: 'rgba(255,255,255,0.02)' }}>
+        <div className="md:hidden border-b border-gray-100 bg-white">
           <div className="px-4 pt-3 pb-2 flex items-center justify-between">
-            <div><p className="text-sm font-semibold text-white">Jordan Reyes</p><p className="text-xs text-gray-500">RevOps Manager · 5 tools</p></div>
-            <div className="flex items-center gap-3 text-xs"><span className="flex items-center gap-1 text-amber-400 font-semibold"><span>🔥</span>7</span><span className="text-emerald-400 font-semibold">310 XP</span></div>
+            <div><p className="text-sm font-semibold text-gray-900">Jordan Reyes</p><p className="text-xs text-gray-400">RevOps Manager · 5 tools</p></div>
+            <div className="flex items-center gap-3 text-xs"><span className="flex items-center gap-1 text-amber-500 font-semibold"><span>🔥</span>7</span><span className="text-emerald-600 font-semibold">310 XP</span></div>
           </div>
-          <div className="flex border-t border-white/[0.06]">
+          <div className="flex border-t border-gray-100">
             {navItems.map(item => (
               <button key={item.key} onClick={() => setActiveTab(item.key as typeof activeTab)}
-                className={`flex-1 py-2.5 text-xs font-medium transition-all relative ${activeTab === item.key ? 'text-white' : 'text-gray-500'}`}>
+                className={`flex-1 py-2.5 text-xs font-medium transition-all relative ${activeTab === item.key ? 'text-emerald-600' : 'text-gray-400'}`}>
                 {item.label}
-                {activeTab === item.key && <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-emerald-400 rounded-full" />}
+                {activeTab === item.key && <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-emerald-500 rounded-full" />}
               </button>
             ))}
           </div>
         </div>
 
-        <div className="flex" style={{ minHeight: 540 }}>
+        <div className="flex bg-gray-50" style={{ minHeight: 540 }}>
           {/* Sidebar */}
-          <div className="hidden md:flex w-48 shrink-0 border-r border-white/[0.06] p-4 flex-col">
+          <div className="hidden md:flex w-48 shrink-0 bg-white border-r border-gray-100 p-4 flex-col">
             <div className="px-1 mb-4">
-              <p className="text-sm font-semibold text-white truncate">Jordan Reyes</p>
-              <p className="text-xs text-gray-500 truncate mb-2.5">RevOps Manager · 5 tools</p>
-              <div className="flex justify-between text-xs text-gray-500 mb-1"><span>Stack progress</span><span className="text-emerald-400 font-semibold">14/25</span></div>
-              <div className="h-1.5 bg-white/10 rounded-full overflow-hidden"><div className="h-1.5 rounded-full" style={{ width: '56%', background: 'linear-gradient(90deg,#10b981,#f59e0b)' }} /></div>
+              <p className="text-sm font-semibold text-gray-900 truncate">Jordan Reyes</p>
+              <p className="text-xs text-gray-400 truncate mb-2.5">RevOps Manager · 5 tools</p>
+              <div className="flex justify-between text-xs text-gray-400 mb-1"><span>Stack progress</span><span className="text-emerald-600 font-semibold">14/25</span></div>
+              <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden"><div className="h-1.5 rounded-full" style={{ width: '56%', background: 'linear-gradient(90deg,#10b981,#f59e0b)' }} /></div>
             </div>
-            <div className="px-1 pb-4 mb-3 border-b border-white/[0.06]">
-              <div className="flex items-center gap-1.5 mb-2"><span className="text-sm">🔥</span><span className="text-sm font-bold text-white">7-day streak</span></div>
-              <div className="flex justify-between text-xs mb-1"><span className="font-bold text-emerald-400">Practitioner</span><span className="text-gray-500">310 XP</span></div>
-              <div className="h-1.5 bg-white/10 rounded-full overflow-hidden"><div className="h-1.5 rounded-full" style={{ width: '62%', background: 'linear-gradient(90deg,#10b981,#14b8a6)' }} /></div>
-              <p className="text-xs text-gray-600 mt-1">190 XP to Pro</p>
+            <div className="px-1 pb-4 mb-3 border-b border-gray-100">
+              <div className="flex items-center gap-1.5 mb-2"><span className="text-sm">🔥</span><span className="text-sm font-bold text-gray-900">7-day streak</span></div>
+              <div className="flex justify-between text-xs mb-1"><span className="font-bold text-emerald-600">Practitioner</span><span className="text-gray-400">310 XP</span></div>
+              <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden"><div className="h-1.5 rounded-full" style={{ width: '62%', background: 'linear-gradient(90deg,#10b981,#14b8a6)' }} /></div>
+              <p className="text-xs text-gray-400 mt-1">190 XP to Pro</p>
             </div>
             <div className="space-y-0.5 flex-1">
               {navItems.map(item => (
                 <button key={item.key} onClick={() => setActiveTab(item.key as typeof activeTab)}
-                  className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-xs font-medium transition-all text-left ${activeTab === item.key ? 'bg-emerald-600 text-white' : 'text-gray-400 hover:text-gray-200 hover:bg-white/[0.04]'}`}>
-                  <div className={`w-3 h-3 rounded-sm shrink-0 ${activeTab === item.key ? 'bg-white/40' : 'bg-white/10'}`} />
+                  className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-xs font-medium transition-all text-left ${activeTab === item.key ? 'bg-emerald-600 text-white shadow-sm' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}>
+                  <div className={`w-3 h-3 rounded-sm shrink-0 ${activeTab === item.key ? 'bg-white/40' : 'bg-gray-200'}`} />
                   {item.label}
-                  {item.key === 'saved' && <span className="ml-auto text-xs bg-emerald-500/20 text-emerald-400 px-1.5 rounded-full font-bold">23</span>}
+                  {item.key === 'saved' && <span className="ml-auto text-xs bg-emerald-100 text-emerald-600 px-1.5 rounded-full font-bold">23</span>}
                 </button>
               ))}
             </div>
-            <div className="mt-auto pt-4 border-t border-white/[0.06]">
-              <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Your stack</p>
+            <div className="mt-auto pt-4 border-t border-gray-100">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Your stack</p>
               {[{ name: 'Claude', level: '✓' }, { name: 'ChatGPT', level: '✓' }, { name: 'Perplexity', level: '~' }, { name: 'Notion AI', level: '~' }, { name: 'Grok', level: '·' }].map(t => (
                 <div key={t.name} className="flex items-center justify-between py-0.5">
                   <span className="text-xs text-gray-500 truncate">{t.name}</span>
-                  <span className={`text-xs ${t.level === '✓' ? 'text-emerald-500' : t.level === '~' ? 'text-teal-500' : 'text-gray-600'}`}>{t.level}</span>
+                  <span className={`text-xs ${t.level === '✓' ? 'text-emerald-500' : t.level === '~' ? 'text-teal-500' : 'text-gray-300'}`}>{t.level}</span>
                 </div>
               ))}
             </div>
@@ -416,50 +422,124 @@ function ProductDemo() {
 
           {/* Main */}
           <div className="flex-1 min-w-0">
-            {activeTab === 'home' && (
+            {activeTab === 'dashboard' && (
               <div className="p-4 sm:p-5 space-y-3 sm:space-y-4">
-                <div className="hidden md:block"><h2 className="text-base font-bold text-white">Good morning, Jordan.</h2><p className="text-xs text-gray-500 mt-0.5">RevOps Manager · 5 tools in your stack</p></div>
-                <div className="relative rounded-2xl overflow-hidden" style={{ background: '#030712', border: '1px solid rgba(255,255,255,0.07)' }}>
-                  <div className="line-grid-3d absolute inset-0 opacity-60" />
-                  <div className="relative z-10 px-4 sm:px-6 pt-5 sm:pt-6 pb-4 sm:pb-5">
-                    <div className="flex items-center gap-2 mb-1"><div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /><span className="text-xs font-bold text-emerald-400 uppercase tracking-widest">AI Command Center</span></div>
-                    <h3 className="text-base sm:text-xl font-black text-white mb-3 sm:mb-4">What do you want to <span className="bg-gradient-to-r from-emerald-400 to-amber-400 bg-clip-text text-transparent">accomplish</span> today?</h3>
-                    <div className="flex gap-2 mb-3">
-                      <div className="flex-1 bg-white/[0.06] border border-white/[0.1] rounded-xl px-3 py-2.5 text-sm text-gray-300 min-h-[40px] flex items-center min-w-0">
-                        <span className="truncate">{commandText || <span className="text-gray-600">Describe any work task…</span>}</span>
-                        {typing && <span className="ml-0.5 w-0.5 h-4 bg-emerald-400 inline-block animate-pulse shrink-0" />}
-                      </div>
-                      <button onClick={runDemo} className={`shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-all ${showResult ? 'bg-white/10 text-gray-400' : 'bg-emerald-600 hover:bg-emerald-500 text-white'}`}>
-                        {showResult ? <span className="text-xs">✕</span> : <ArrowRight className="w-4 h-4" />}
-                      </button>
+                <div className="hidden md:block">
+                  <h2 className="text-base font-bold text-gray-900">Good morning, Jordan.</h2>
+                  <p className="text-xs text-gray-400 mt-0.5">RevOps Manager · 5 tools in your stack</p>
+                </div>
+                <div className="grid grid-cols-4 gap-2">
+                  {[
+                    { label: 'Total XP', value: '310', accent: 'text-emerald-600' },
+                    { label: 'Day streak', value: '7 🔥', accent: 'text-amber-500' },
+                    { label: 'This week', value: '90 XP', accent: 'text-blue-600' },
+                    { label: 'Tasks done', value: '14', accent: 'text-purple-600' },
+                  ].map(s => (
+                    <div key={s.label} className="bg-white rounded-xl p-2.5 border border-gray-100 shadow-sm text-center">
+                      <p className={`text-base font-black ${s.accent}`}>{s.value}</p>
+                      <p className="text-[10px] text-gray-400 mt-0.5">{s.label}</p>
                     </div>
-                    <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-                      {['Build Q2 forecast', 'Analyze churn signals', 'Draft pipeline memo'].map(chip => (
-                        <button key={chip} onClick={() => { setCommandText(chip); setTimeout(() => setShowResult(true), 200) }}
-                          className="text-xs px-3 py-1.5 bg-white/[0.06] border border-white/[0.08] rounded-full text-gray-400 hover:text-gray-200 hover:bg-white/[0.1] transition-all whitespace-nowrap shrink-0">{chip}</button>
-                      ))}
+                  ))}
+                </div>
+                <div className="bg-white rounded-xl p-3 border border-gray-100 shadow-sm">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-gray-900">Practitioner</span>
+                      <span className="text-[10px] bg-emerald-50 text-emerald-600 border border-emerald-100 px-1.5 py-0.5 rounded-full font-semibold">Level 3</span>
                     </div>
+                    <span className="text-xs text-gray-400">190 XP to Pro</span>
+                  </div>
+                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-2 rounded-full" style={{ width: '62%', background: 'linear-gradient(90deg,#10b981,#14b8a6)' }} />
                   </div>
                 </div>
-                {showResult && (
-                  <div className="rounded-2xl p-4 border border-emerald-500/25 animate-fade-up" style={{ background: 'rgba(16,185,129,0.05)', animationFillMode: 'forwards' }}>
-                    <div className="flex items-center gap-2 mb-3 flex-wrap"><div className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" /><span className="text-xs font-bold text-emerald-400 uppercase tracking-widest">Best tool for this</span><span className="ml-auto text-xs bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full font-medium">Claude</span></div>
-                    <p className="text-xs font-semibold text-white mb-1">Use Claude — best for structured analysis with narrative</p>
-                    <p className="text-xs text-gray-400 leading-relaxed mb-3">Claude handles multi-variable reasoning well. Give it your CRM export and ask for coverage ratio, risk flags, and a narrative summary in one prompt.</p>
-                    <div className="bg-white/[0.04] border border-white/[0.07] rounded-xl p-3"><p className="text-xs text-emerald-400 font-semibold mb-1.5">Ready-to-paste prompt:</p><p className="text-xs text-gray-300 leading-relaxed font-mono break-words">&ldquo;You are a RevOps analyst. Calculate Q2 coverage ratio, flag deals at risk (stalled &gt;14 days or missing next step), and write a 3-sentence forecast narrative for the VP of Sales. Data: [paste CRM export]&rdquo;</p></div>
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Continue where you left off</p>
+                    <button onClick={() => setActiveTab('tasks')} className="text-xs text-emerald-600 hover:text-emerald-500 transition-colors font-medium">View all →</button>
+                  </div>
+                  <div className="space-y-2">
+                    {tasks.slice(0, 2).map((t, i) => (
+                      <div key={i} className="flex items-center gap-3 p-3 rounded-xl border border-gray-100 bg-white shadow-sm">
+                        <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0">
+                          <div className="w-3 h-3 rounded-full border-2 border-emerald-400" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <span className="text-xs font-medium text-gray-800 truncate block">{t.title}</span>
+                          <span className="text-[10px] text-emerald-600 font-semibold">{t.tool}</span>
+                        </div>
+                        <span className="text-xs text-gray-400 shrink-0">{t.time}m</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'studio' && (
+              <div className="p-4 sm:p-5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-sm font-bold text-gray-900">Prompt Studio</h2>
+                    <p className="text-xs text-gray-400 mt-0.5">Build and test AI prompts for your workflow</p>
+                  </div>
+                  <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1">
+                    <button onClick={() => setStudioMode('command')} className={`text-xs font-medium px-3 py-1.5 rounded-lg transition-all ${studioMode === 'command' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>Command</button>
+                    <button onClick={() => setStudioMode('lab')} className={`text-xs font-medium px-3 py-1.5 rounded-lg transition-all ${studioMode === 'lab' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>Lab</button>
+                  </div>
+                </div>
+                {studioMode === 'command' && (
+                  <div className="relative rounded-2xl overflow-hidden" style={{ background: '#030712', border: '1px solid rgba(255,255,255,0.07)' }}>
+                    <div className="line-grid-3d absolute inset-0 opacity-60" />
+                    <div className="relative z-10 px-4 sm:px-5 pt-5 pb-4">
+                      <div className="flex items-center gap-2 mb-1"><div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /><span className="text-xs font-bold text-emerald-400 uppercase tracking-widest">AI Command Center</span></div>
+                      <h3 className="text-base sm:text-lg font-black text-white mb-3">What do you want to <span className="bg-gradient-to-r from-emerald-400 to-amber-400 bg-clip-text text-transparent">accomplish</span> today?</h3>
+                      <div className="flex gap-2 mb-3">
+                        <div className="flex-1 bg-white/[0.06] border border-white/[0.1] rounded-xl px-3 py-2.5 text-sm text-gray-300 min-h-[40px] flex items-center min-w-0">
+                          <span className="truncate">{commandText || <span className="text-gray-600">Describe any work task…</span>}</span>
+                          {typing && <span className="ml-0.5 w-0.5 h-4 bg-emerald-400 inline-block animate-pulse shrink-0" />}
+                        </div>
+                        <button onClick={runDemo} className={`shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-all ${showResult ? 'bg-white/10 text-gray-400' : 'bg-emerald-600 hover:bg-emerald-500 text-white'}`}>
+                          {showResult ? <span className="text-xs">✕</span> : <ArrowRight className="w-4 h-4" />}
+                        </button>
+                      </div>
+                      <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+                        {['Build Q2 forecast', 'Analyze churn signals', 'Draft pipeline memo'].map(chip => (
+                          <button key={chip} onClick={() => { setCommandText(chip); setTimeout(() => setShowResult(true), 200) }}
+                            className="text-xs px-3 py-1.5 bg-white/[0.06] border border-white/[0.08] rounded-full text-gray-400 hover:text-gray-200 hover:bg-white/[0.1] transition-all whitespace-nowrap shrink-0">{chip}</button>
+                        ))}
+                      </div>
+                    </div>
+                    {showResult && (
+                      <div className="mx-4 mb-4 rounded-xl p-3 border border-emerald-500/25 animate-fade-up" style={{ background: 'rgba(16,185,129,0.05)', animationFillMode: 'forwards' }}>
+                        <div className="flex items-center gap-2 mb-2 flex-wrap"><div className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" /><span className="text-xs font-bold text-emerald-400 uppercase tracking-widest">Best tool for this</span><span className="ml-auto text-xs bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full font-medium">Claude</span></div>
+                        <p className="text-xs font-semibold text-white mb-1">Use Claude — best for structured analysis with narrative</p>
+                        <p className="text-xs text-gray-400 leading-relaxed mb-2">Claude handles multi-variable reasoning well. Give it your CRM export and ask for coverage ratio, risk flags, and a narrative summary.</p>
+                        <div className="bg-white/[0.04] border border-white/[0.07] rounded-lg p-2.5"><p className="text-xs text-emerald-400 font-semibold mb-1">Ready-to-paste prompt:</p><p className="text-xs text-gray-300 leading-relaxed font-mono break-words">&ldquo;You are a RevOps analyst. Calculate Q2 coverage ratio, flag deals at risk, and write a 3-sentence forecast narrative for the VP of Sales. Data: [paste CRM export]&rdquo;</p></div>
+                      </div>
+                    )}
                   </div>
                 )}
-                {!showResult && (
-                  <div>
-                    <div className="flex items-center justify-between mb-2"><p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Today&apos;s tasks</p><button onClick={() => setActiveTab('tasks')} className="text-xs text-emerald-400 hover:text-emerald-300 transition-colors">View all →</button></div>
-                    <div className="space-y-2">
-                      {tasks.slice(0, 2).map((t, i) => (
-                        <div key={i} className="flex items-center gap-3 p-3 rounded-xl border border-white/[0.06] bg-white/[0.02]">
-                          <div className="w-4 h-4 rounded-full border border-gray-600 shrink-0" />
-                          <span className="text-xs text-gray-300 truncate flex-1">{t.tool} — {t.title}</span>
-                          <span className="text-xs text-gray-600 shrink-0">{t.time}m</span>
+                {studioMode === 'lab' && (
+                  <div className="space-y-3">
+                    <div className="bg-white border border-gray-100 rounded-xl p-3 shadow-sm"><p className="text-xs text-gray-400 mb-1.5">Your prompt</p><p className="text-xs text-gray-700 font-mono leading-relaxed italic">&ldquo;Write a cold email for a sales prospect.&rdquo;</p></div>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { label: 'Specificity', before: 2, after: 9, color: 'text-blue-600', bg: 'bg-blue-50 border-blue-100' },
+                        { label: 'Context', before: 1, after: 8, color: 'text-purple-600', bg: 'bg-purple-50 border-purple-100' },
+                        { label: 'Output clarity', before: 3, after: 9, color: 'text-amber-600', bg: 'bg-amber-50 border-amber-100' },
+                      ].map(s => (
+                        <div key={s.label} className={`rounded-xl p-2.5 border ${s.bg} text-center`}>
+                          <p className="text-[10px] text-gray-400 mb-1">{s.label}</p>
+                          <div className="flex items-center justify-center gap-1.5"><span className="text-xs text-gray-400 line-through">{s.before}</span><span className="text-[10px] text-gray-400">→</span><span className={`text-base font-black ${s.color}`}>{s.after}</span></div>
+                          <p className="text-[10px] text-gray-400 mt-0.5">out of 10</p>
                         </div>
                       ))}
+                    </div>
+                    <div className="rounded-xl p-3 border border-emerald-100 bg-emerald-50"><p className="text-[10px] font-bold text-emerald-600 uppercase tracking-wide mb-1.5">✨ Improved prompt</p><p className="text-xs text-gray-700 font-mono leading-relaxed">&ldquo;You are a B2B sales rep at a SaaS company. Write a 3-sentence cold email to a VP of Engineering at a 200-person fintech startup. Their pain: slow deployments. My value prop: we cut deploy time by 40%. Tone: direct, no fluff.&rdquo;</p></div>
+                    <div className="flex gap-2">
+                      <button className="flex-1 text-xs bg-white border border-gray-200 text-gray-600 rounded-lg py-2 font-medium">Copy prompt</button>
+                      <button className="flex-1 text-xs bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-lg py-2 font-medium">Save to library</button>
                     </div>
                   </div>
                 )}
@@ -469,76 +549,51 @@ function ProductDemo() {
             {activeTab === 'tasks' && (
               <div className="p-4 sm:p-5">
                 <div className="flex items-center justify-between mb-4">
-                  <div><h2 className="text-sm font-bold text-white">Daily Tasks</h2><p className="text-xs text-gray-500 mt-0.5">{checkedTasks.length}/{tasks.length} done today</p></div>
-                  <div className="flex items-center gap-2"><div className="h-1.5 w-20 sm:w-24 bg-white/10 rounded-full overflow-hidden"><div className="h-1.5 rounded-full bg-emerald-500 transition-all" style={{ width: `${(checkedTasks.length / tasks.length) * 100}%` }} /></div><span className="text-xs text-emerald-400 font-semibold">{Math.round((checkedTasks.length / tasks.length) * 100)}%</span></div>
+                  <div><h2 className="text-sm font-bold text-gray-900">Daily Tasks</h2><p className="text-xs text-gray-400 mt-0.5">{checkedTasks.length}/{tasks.length} done today</p></div>
+                  <div className="flex items-center gap-2"><div className="h-1.5 w-20 sm:w-24 bg-gray-100 rounded-full overflow-hidden"><div className="h-1.5 rounded-full bg-emerald-500 transition-all" style={{ width: `${(checkedTasks.length / tasks.length) * 100}%` }} /></div><span className="text-xs text-emerald-600 font-semibold">{Math.round((checkedTasks.length / tasks.length) * 100)}%</span></div>
                 </div>
                 <div className="space-y-2.5">
                   {tasks.map((t, i) => (
-                    <div key={i} className={`flex items-start gap-3 p-3 sm:p-3.5 rounded-xl border transition-all cursor-pointer ${checkedTasks.includes(i) ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-white/[0.06] bg-white/[0.02] hover:border-white/[0.12]'}`}
+                    <div key={i} className={`flex items-start gap-3 p-3 sm:p-3.5 rounded-xl border transition-all cursor-pointer ${checkedTasks.includes(i) ? 'border-emerald-200 bg-emerald-50' : 'border-gray-100 bg-white hover:border-gray-200 shadow-sm'}`}
                       onClick={() => setCheckedTasks(prev => prev.includes(i) ? prev.filter(x => x !== i) : [...prev, i])}>
-                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 transition-all ${checkedTasks.includes(i) ? 'bg-emerald-500 border-emerald-500' : 'border-gray-600'}`}>
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 transition-all ${checkedTasks.includes(i) ? 'bg-emerald-500 border-emerald-500' : 'border-gray-300'}`}>
                         {checkedTasks.includes(i) && <CheckCircle className="w-3.5 h-3.5 text-white fill-white" />}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <span className={`text-xs font-medium block mb-1 ${checkedTasks.includes(i) ? 'text-gray-500 line-through' : 'text-gray-200'}`}>{t.title}</span>
-                        <div className="flex items-center gap-2"><span className="text-xs text-emerald-600 font-semibold">{t.tool}</span><span className="text-gray-700">·</span><span className={`text-xs px-1.5 py-0.5 rounded font-medium ${levelColors[t.level]}`}>{t.level}</span></div>
+                        <span className={`text-xs font-medium block mb-1 ${checkedTasks.includes(i) ? 'text-gray-400 line-through' : 'text-gray-800'}`}>{t.title}</span>
+                        <div className="flex items-center gap-2"><span className="text-xs text-emerald-600 font-semibold">{t.tool}</span><span className="text-gray-300">·</span><span className={`text-xs px-1.5 py-0.5 rounded font-medium ${levelColors[t.level]}`}>{t.level}</span></div>
                       </div>
-                      <span className="text-xs text-gray-600 shrink-0">{t.time}m</span>
+                      <span className="text-xs text-gray-400 shrink-0">{t.time}m</span>
                     </div>
                   ))}
                 </div>
                 {checkedTasks.length > 0 && (
-                  <div className="mt-4 flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-4 py-3">
+                  <div className="mt-4 flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
                     <span className="text-base">⚡</span>
-                    <div><p className="text-xs font-bold text-emerald-400">+{checkedTasks.length * 20} XP earned today</p><p className="text-xs text-gray-500">{checkedTasks.length === tasks.length ? 'Perfect day — streak extended! 🔥' : `${tasks.length - checkedTasks.length} task${tasks.length - checkedTasks.length > 1 ? 's' : ''} left`}</p></div>
+                    <div><p className="text-xs font-bold text-emerald-700">+{checkedTasks.length * 20} XP earned today</p><p className="text-xs text-gray-500">{checkedTasks.length === tasks.length ? 'Perfect day — streak extended! 🔥' : `${tasks.length - checkedTasks.length} task${tasks.length - checkedTasks.length > 1 ? 's' : ''} left`}</p></div>
                   </div>
                 )}
               </div>
             )}
 
-            {activeTab === 'lab' && (
-              <div className="p-4 sm:p-5 space-y-3">
-                <div><h2 className="text-sm font-bold text-white">Prompt Lab</h2><p className="text-xs text-gray-500 mt-0.5">Paste any prompt → get a smarter version + score</p></div>
-                <div className="bg-white/[0.04] border border-white/[0.08] rounded-xl p-3"><p className="text-xs text-gray-500 mb-1.5">Your prompt</p><p className="text-xs text-gray-300 font-mono leading-relaxed italic">&ldquo;Write a cold email for a sales prospect.&rdquo;</p></div>
-                <div className="grid grid-cols-3 gap-2">
-                  {[
-                    { label: 'Specificity', before: 2, after: 9, color: 'text-blue-400', bg: 'bg-blue-500/10 border-blue-500/20' },
-                    { label: 'Context', before: 1, after: 8, color: 'text-purple-400', bg: 'bg-purple-500/10 border-purple-500/20' },
-                    { label: 'Output clarity', before: 3, after: 9, color: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/20' },
-                  ].map(s => (
-                    <div key={s.label} className={`rounded-xl p-2.5 border ${s.bg} text-center`}>
-                      <p className="text-[10px] text-gray-500 mb-1">{s.label}</p>
-                      <div className="flex items-center justify-center gap-1.5"><span className="text-xs text-gray-600 line-through">{s.before}</span><span className="text-[10px] text-gray-600">→</span><span className={`text-base font-black ${s.color}`}>{s.after}</span></div>
-                      <p className="text-[10px] text-gray-600 mt-0.5">out of 10</p>
-                    </div>
-                  ))}
-                </div>
-                <div className="rounded-xl p-3 border border-emerald-500/20 bg-emerald-500/5"><p className="text-[10px] font-bold text-emerald-400 uppercase tracking-wide mb-1.5">✨ Improved prompt</p><p className="text-xs text-gray-300 font-mono leading-relaxed">&ldquo;You are a B2B sales rep at a SaaS company. Write a 3-sentence cold email to a VP of Engineering at a 200-person fintech startup. Their pain: slow deployments. My value prop: we cut deploy time by 40%. Tone: direct, no fluff.&rdquo;</p></div>
-                <div className="flex gap-2">
-                  <button className="flex-1 text-xs bg-white/[0.06] border border-white/[0.1] text-gray-300 rounded-lg py-2 font-medium">Copy prompt</button>
-                  <button className="flex-1 text-xs bg-emerald-600/20 border border-emerald-500/30 text-emerald-300 rounded-lg py-2 font-medium">Save to library</button>
-                </div>
-              </div>
-            )}
-
             {activeTab === 'saved' && (
               <div className="flex flex-col h-full">
-                <div className="md:hidden px-4 pt-3 pb-2 flex gap-2 overflow-x-auto no-scrollbar border-b border-white/[0.06]">
-                  <button onClick={() => setActiveFolder(null)} className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${!activeFolder ? 'bg-emerald-600 text-white' : 'bg-white/[0.06] text-gray-400'}`}>All</button>
-                  {folders.map(f => (<button key={f.id} onClick={() => setActiveFolder(f.id)} className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${activeFolder === f.id ? 'bg-emerald-600 text-white' : 'bg-white/[0.06] text-gray-400'}`}>{f.name}</button>))}
+                <div className="md:hidden px-4 pt-3 pb-2 flex gap-2 overflow-x-auto no-scrollbar border-b border-gray-100 bg-white">
+                  <button onClick={() => setActiveFolder(null)} className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${!activeFolder ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-500'}`}>All</button>
+                  {folders.map(f => (<button key={f.id} onClick={() => setActiveFolder(f.id)} className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${activeFolder === f.id ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-500'}`}>{f.name}</button>))}
                 </div>
                 <div className="flex flex-1 min-h-0">
-                  <div className="hidden md:block w-36 shrink-0 border-r border-white/[0.06] p-3 space-y-1">
-                    <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2 px-1">Folders</p>
-                    <button onClick={() => setActiveFolder(null)} className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all ${!activeFolder ? 'bg-white/[0.08] text-white' : 'text-gray-500 hover:text-gray-300 hover:bg-white/[0.04]'}`}>All prompts <span className="ml-1 text-gray-600">{allPrompts.length}</span></button>
-                    {folders.map(f => (<button key={f.id} onClick={() => setActiveFolder(f.id)} className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center justify-between ${activeFolder === f.id ? 'bg-emerald-600/20 text-emerald-300 border border-emerald-500/20' : 'text-gray-500 hover:text-gray-300 hover:bg-white/[0.04]'}`}><span className="truncate">{f.name}</span><span className="text-gray-600 ml-1 shrink-0">{f.count}</span></button>))}
+                  <div className="hidden md:block w-36 shrink-0 border-r border-gray-100 bg-white p-3 space-y-1">
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 px-1">Folders</p>
+                    <button onClick={() => setActiveFolder(null)} className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all ${!activeFolder ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'}`}>All prompts <span className="ml-1 text-gray-400">{allPrompts.length}</span></button>
+                    {folders.map(f => (<button key={f.id} onClick={() => setActiveFolder(f.id)} className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center justify-between ${activeFolder === f.id ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'}`}><span className="truncate">{f.name}</span><span className="text-gray-400 ml-1 shrink-0">{f.count}</span></button>))}
                   </div>
                   <div className="flex-1 min-w-0 p-3 sm:p-4 space-y-2 overflow-y-auto">
-                    <div className="flex items-center justify-between mb-2"><p className="text-xs font-semibold text-white">{activeFolder ? folders.find(f => f.id === activeFolder)?.name : 'All prompts'}</p><span className="text-xs text-gray-600">{visiblePrompts.length} prompts</span></div>
+                    <div className="flex items-center justify-between mb-2"><p className="text-xs font-semibold text-gray-900">{activeFolder ? folders.find(f => f.id === activeFolder)?.name : 'All prompts'}</p><span className="text-xs text-gray-400">{visiblePrompts.length} prompts</span></div>
                     {visiblePrompts.map(p => (
-                      <div key={p.id} className="border border-white/[0.07] rounded-xl bg-white/[0.02] hover:border-white/[0.12] transition-all group">
-                        <div className="flex items-center gap-2.5 px-3 py-2.5"><span className="text-xs bg-emerald-900/50 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full font-medium shrink-0">{p.tool}</span><p className="text-xs font-semibold text-gray-200 flex-1 truncate">{p.title}</p><button className="text-xs text-gray-600 hover:text-gray-200 transition-colors sm:opacity-0 group-hover:opacity-100 px-2 py-1 rounded-lg hover:bg-white/[0.06] shrink-0">Copy</button></div>
-                        <div className="px-3 pb-2.5"><p className="text-xs text-gray-600 leading-relaxed line-clamp-2 font-mono break-words">{p.prompt}</p></div>
+                      <div key={p.id} className="border border-gray-100 rounded-xl bg-white hover:border-gray-200 transition-all group shadow-sm">
+                        <div className="flex items-center gap-2.5 px-3 py-2.5"><span className="text-xs bg-emerald-50 text-emerald-700 border border-emerald-100 px-2 py-0.5 rounded-full font-medium shrink-0">{p.tool}</span><p className="text-xs font-semibold text-gray-800 flex-1 truncate">{p.title}</p><button className="text-xs text-gray-400 hover:text-gray-700 transition-colors sm:opacity-0 group-hover:opacity-100 px-2 py-1 rounded-lg hover:bg-gray-50 shrink-0">Copy</button></div>
+                        <div className="px-3 pb-2.5"><p className="text-xs text-gray-400 leading-relaxed line-clamp-2 font-mono break-words">{p.prompt}</p></div>
                       </div>
                     ))}
                   </div>
@@ -548,13 +603,13 @@ function ProductDemo() {
           </div>
         </div>
 
-        <div className="border-t border-white/[0.04] px-4 sm:px-5 py-3 flex items-center justify-between gap-4" style={{ background: 'rgba(255,255,255,0.02)' }}>
-          <p className="text-xs text-gray-600 truncate">
-            {activeTab === 'home' ? '👆 Tap a chip to see the AI recommend a tool + prompt' : activeTab === 'tasks' ? '👆 Tap any task to mark it done and earn XP' : activeTab === 'lab' ? '👆 Paste a prompt, get a smarter version with scores' : '👆 Browse folders or tap a prompt to copy it'}
+        <div className="border-t border-gray-100 px-4 sm:px-5 py-3 flex items-center justify-between gap-4 bg-white">
+          <p className="text-xs text-gray-400 truncate">
+            {activeTab === 'dashboard' ? '👆 Your AI activity hub — stats, tasks, and progress at a glance' : activeTab === 'tasks' ? '👆 Tap any task to mark it done and earn XP' : activeTab === 'studio' ? '👆 Switch between Command Center and Prompt Lab modes' : '👆 Browse folders or tap a prompt to copy it'}
           </p>
           <div className="flex items-center gap-2 shrink-0">
-            {(['home', 'tasks', 'lab', 'saved'] as const).map(tab => (
-              <button key={tab} onClick={() => setActiveTab(tab)} className={`w-1.5 h-1.5 rounded-full transition-all ${activeTab === tab ? 'bg-emerald-400' : 'bg-white/20'}`} />
+            {(['dashboard', 'studio', 'tasks', 'saved'] as const).map(tab => (
+              <button key={tab} onClick={() => setActiveTab(tab)} className={`w-1.5 h-1.5 rounded-full transition-all ${activeTab === tab ? 'bg-emerald-500' : 'bg-gray-200'}`} />
             ))}
           </div>
         </div>
@@ -805,7 +860,7 @@ export default function Home() {
             Your complete AI hub — explore it live
           </h2>
           <p className={`text-center text-gray-500 mb-12 max-w-2xl mx-auto text-sm ${demoInView ? 'animate-fade-up' : 'opacity-0'}`} style={{ animationDelay: '180ms', animationFillMode: 'forwards' }}>
-            Click through the tabs — this is the real product. <strong className="text-gray-300">Overview</strong> shows the AI Command Center. <strong className="text-gray-300">Daily Tasks</strong> is your 10-min practice queue. <strong className="text-gray-300">Prompt Lab</strong> rewrites and scores any prompt. <strong className="text-gray-300">Saved Prompts</strong> is your personal library.
+            Click through the tabs — this is the real product. <strong className="text-gray-300">Dashboard</strong> shows your progress and daily tasks. <strong className="text-gray-300">Prompt Studio</strong> is your AI Command Center and Prompt Lab in one. <strong className="text-gray-300">Daily Tasks</strong> is your 10-min practice queue. <strong className="text-gray-300">Saved Prompts</strong> is your personal library.
           </p>
           <div className={`${demoInView ? 'animate-fade-up' : 'opacity-0'}`} style={{ animationDelay: '260ms', animationFillMode: 'forwards' }}>
             <ProductDemo />
