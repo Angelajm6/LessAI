@@ -1,9 +1,11 @@
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY
 const MODEL = 'anthropic/claude-sonnet-4.5'
+// Haiku is ~4x faster — used for onboarding generation to fit Vercel's timeout
+const FAST_MODEL = 'anthropic/claude-haiku-4-5'
 
-async function chat(prompt: string, maxTokens: number): Promise<string> {
+async function chat(prompt: string, maxTokens: number, model = MODEL): Promise<string> {
   const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), 60_000)
+  const timeout = setTimeout(() => controller.abort(), 55_000)
 
   let res: Response
   try {
@@ -17,7 +19,7 @@ async function chat(prompt: string, maxTokens: number): Promise<string> {
         'X-Title': 'LessAI',
       },
       body: JSON.stringify({
-        model: MODEL,
+        model: model,
         max_tokens: maxTokens,
         messages: [{ role: 'user', content: prompt }],
       }),
@@ -100,7 +102,7 @@ export async function generateStackMap(
   const text = await chat(
     `You are an AI adoption coach. A ${role} has these AI tools: ${toolList}. ${companyLine} ${summaryLine}
 
-Use the company context to make every task, example, and use case specific to their actual business — reference their industry, customers, and product where relevant.
+Use the company context to make every task, example, and use case specific to their actual business.
 
 Return a JSON object with this EXACT structure (no extra text, no markdown):
 
@@ -123,7 +125,7 @@ Return a JSON object with this EXACT structure (no extra text, no markdown):
       "skill_level": "level from input",
       "why_this_role": "1 sentence why this matters for ${role}",
       "daily_tasks": [
-        {"day": 1, "title": "short name", "task": "Specific 10-min task with exact steps for a ${role}. Name the feature, give example input, state expected output.", "time_minutes": 10},
+        {"day": 1, "title": "short name", "task": "Specific 10-min task with exact steps. Name the feature, give example input, state expected output.", "time_minutes": 10},
         {"day": 2, "title": "short name", "task": "...", "time_minutes": 10},
         {"day": 3, "title": "short name", "task": "...", "time_minutes": 10},
         {"day": 4, "title": "short name", "task": "...", "time_minutes": 10},
@@ -134,9 +136,9 @@ Return a JSON object with this EXACT structure (no extra text, no markdown):
 }
 
 Include ALL ${tools.length} tools in both tool_cards and tool_tracks: ${tools.join(', ')}.
-daily_tasks: exactly 5 per tool, day 1=beginner, day 5=intermediate. Be specific not generic.
-Return ONLY the JSON object.`,
-    8192
+daily_tasks: exactly 5 per tool. Return ONLY the JSON object.`,
+    4096,
+    FAST_MODEL
   )
 
   return JSON.parse(text)
@@ -273,7 +275,8 @@ Rules:
 - The "after" example should be filled in with realistic ${role} content, not placeholders
 - Make the before/after contrast stark and educational
 - Return ONLY the JSON object`,
-    tools.length * 3 * 500 + 2000
+    Math.min(tools.length * 3 * 400 + 1500, 4096),
+    FAST_MODEL
   )
 
   return JSON.parse(text)

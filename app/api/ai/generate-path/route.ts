@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+export const runtime = 'edge'
 export const maxDuration = 60
 import { createClient } from '@/lib/supabase/server'
 import { generateStackMap, generatePlaybook } from '@/lib/claude'

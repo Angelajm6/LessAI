@@ -188,7 +188,7 @@ const STAT_THEMES = {
 function StatCard({ value, suffix, label, source, href, delay, floatDelay, color }: { value: number; suffix: string; label: string; source: string; href: string; delay: number; floatDelay: number; color: keyof typeof STAT_THEMES }) {
   const { ref, inView } = useInView()
   const count = useCounter(value, 2000, inView)
-  const theme = STAT_THEMES[color]
+  const theme = STAT_THEMES[color] ?? STAT_THEMES.green
   return (
     <div style={inView ? { animation: `float 4s ease-in-out ${floatDelay}ms infinite` } : undefined}>
       <div
