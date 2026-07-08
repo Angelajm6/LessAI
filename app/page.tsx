@@ -911,42 +911,131 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── MANAGER ── */}
-      <section ref={managerRef} className="py-24 px-6 bg-gray-50 border-t border-gray-100">
-        <div className="max-w-4xl mx-auto">
-          <p className={`text-center text-xs font-semibold text-amber-600 uppercase tracking-widest mb-3 ${managerInView ? 'animate-fade-in' : 'opacity-0'}`}>For team leads &amp; managers</p>
+      {/* ── FOR TEAMS ── */}
+      <section ref={managerRef} className="py-24 px-6 bg-white border-t border-gray-100">
+        <div className="max-w-5xl mx-auto">
+          <p className={`text-center text-xs font-semibold text-amber-600 uppercase tracking-widest mb-3 ${managerInView ? 'animate-fade-in' : 'opacity-0'}`}>For teams &amp; managers</p>
           <h2 className={`text-3xl sm:text-4xl font-black text-center mb-3 text-gray-950 ${managerInView ? 'animate-fade-up' : 'opacity-0'}`} style={{ animationDelay: '100ms', animationFillMode: 'forwards' }}>
-            Your team&apos;s AI skills, visible in one place
+            Full visibility into who&apos;s actually leveling up
           </h2>
-          <p className={`text-center text-gray-500 mb-12 max-w-xl mx-auto text-sm ${managerInView ? 'animate-fade-up' : 'opacity-0'}`} style={{ animationDelay: '180ms', animationFillMode: 'forwards' }}>
-            While individuals level up through daily practice, you get a live view of who&apos;s building skill, who&apos;s falling behind, and which tools nobody actually knows how to use yet.
+          <p className={`text-center text-gray-500 mb-14 max-w-xl mx-auto text-sm ${managerInView ? 'animate-fade-up' : 'opacity-0'}`} style={{ animationDelay: '180ms', animationFillMode: 'forwards' }}>
+            While your team builds AI skills daily, you get a live admin dashboard — see who&apos;s practicing, who&apos;s falling behind, and which tools nobody&apos;s actually using yet.
           </p>
-          <div className={`grid md:grid-cols-3 gap-4 mb-4 ${managerInView ? 'animate-fade-up' : 'opacity-0'}`} style={{ animationDelay: '280ms', animationFillMode: 'forwards' }}>
-            {[
-              { icon: TrendingUp, label: 'Team avg XP', value: '410', sub: 'up 38% from last month', accent: 'emerald' },
-              { icon: Shield, label: 'Needs coaching', value: '3', sub: 'members below 10 tasks done', accent: 'amber' },
-              { icon: Users, label: 'Top streak', value: 'Sarah M.', sub: '12-day streak 🔥', accent: 'emerald' },
-            ].map(card => (
-              <div key={card.label} className={`rounded-2xl p-6 border bg-white hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 ${card.accent === 'amber' ? 'border-amber-100 hover:border-amber-200' : 'border-gray-100 hover:border-gray-200'}`}>
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center mb-3 ${card.accent === 'amber' ? 'bg-amber-50' : 'bg-emerald-50'}`}>
-                  <card.icon className={`w-4 h-4 ${card.accent === 'amber' ? 'text-amber-500' : 'text-emerald-500'}`} />
+
+          <div className={`grid lg:grid-cols-2 gap-10 items-start ${managerInView ? 'animate-fade-up' : 'opacity-0'}`} style={{ animationDelay: '260ms', animationFillMode: 'forwards' }}>
+
+            {/* Feature list */}
+            <div className="space-y-4">
+              {[
+                { icon: Users, title: 'Invite your team in seconds', desc: 'Send invite links by email. Members join, complete onboarding, and show up in your dashboard automatically — no IT setup required.', color: 'bg-emerald-50 text-emerald-600' },
+                { icon: TrendingUp, title: 'XP & streak leaderboard', desc: 'See every team member\'s XP, current streak, level, and tasks completed at a glance. Know who\'s building the habit and who needs a nudge.', color: 'bg-blue-50 text-blue-600' },
+                { icon: Target, title: 'Tool adoption by person', desc: 'Find out which tools each person is actually using vs ignoring. If your team has Notion AI and nobody\'s touched it — you\'ll see that clearly.', color: 'bg-amber-50 text-amber-600' },
+                { icon: Shield, title: 'Spot skill gaps before they cost you', desc: 'Filter by tool or skill level to see exactly who needs coaching. No surveys, no guesswork — real task completion data per person.', color: 'bg-rose-50 text-rose-600' },
+                { icon: BarChart3, title: 'Prove ROI to leadership', desc: 'Export adoption data and improvement trends. When finance asks what the AI investment achieved, you\'ll have the numbers.', color: 'bg-violet-50 text-violet-600' },
+              ].map(({ icon: Icon, title, desc, color }) => (
+                <div key={title} className="flex gap-4">
+                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${color}`}>
+                    <Icon className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-gray-900 mb-1">{title}</p>
+                    <p className="text-sm text-gray-500 leading-relaxed">{desc}</p>
+                  </div>
                 </div>
-                <p className="text-xs text-gray-400 font-medium mb-1">{card.label}</p>
-                <p className={`text-3xl font-black mb-1 ${card.accent === 'amber' ? 'text-amber-500' : 'text-emerald-600'}`}>{card.value}</p>
-                <p className="text-xs text-gray-400">{card.sub}</p>
+              ))}
+              <div className="pt-2">
+                <Link href="/signup" className="group inline-flex items-center gap-2 bg-gray-950 hover:bg-gray-800 text-white font-bold px-6 py-3 rounded-xl transition-all duration-200 text-sm hover:shadow-xl hover:shadow-gray-900/20">
+                  Set up your team <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                </Link>
               </div>
-            ))}
+            </div>
+
+            {/* Admin dashboard mock */}
+            <div className="rounded-2xl overflow-hidden border border-gray-200 shadow-xl shadow-gray-200/60">
+              {/* Browser chrome */}
+              <div className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 border-b border-gray-200">
+                <div className="flex gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-red-400" /><div className="w-2.5 h-2.5 rounded-full bg-amber-400" /><div className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
+                </div>
+                <div className="flex-1 flex justify-center">
+                  <div className="bg-white border border-gray-200 rounded px-3 py-0.5 text-[10px] text-gray-400">app.lessai.io/admin</div>
+                </div>
+              </div>
+              {/* Header */}
+              <div className="bg-white border-b border-gray-100 px-5 py-4 flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-black text-gray-900">Team Overview</p>
+                  <p className="text-xs text-gray-400 mt-0.5">Acme Corp · 8 members · week of Jul 7</p>
+                </div>
+                <div className="flex gap-2">
+                  <div className="text-center">
+                    <p className="text-base font-black text-emerald-600">412</p>
+                    <p className="text-[10px] text-gray-400">avg XP</p>
+                  </div>
+                  <div className="w-px bg-gray-100 mx-1" />
+                  <div className="text-center">
+                    <p className="text-base font-black text-amber-500">6</p>
+                    <p className="text-[10px] text-gray-400">active this week</p>
+                  </div>
+                </div>
+              </div>
+              {/* Table */}
+              <div className="bg-white">
+                <div className="grid grid-cols-[1fr_auto_auto_auto] gap-x-3 px-5 py-2 border-b border-gray-100 bg-gray-50">
+                  {['Member', 'XP', 'Streak', 'Tasks'].map(h => (
+                    <p key={h} className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">{h}</p>
+                  ))}
+                </div>
+                {[
+                  { name: 'Sarah M.', role: 'Marketing', xp: 640, streak: 12, tasks: 28, level: 'Pro', flag: null },
+                  { name: 'Jordan R.', role: 'RevOps', xp: 510, streak: 9, tasks: 22, level: 'Pro', flag: null },
+                  { name: 'Alex T.', role: 'Sales', xp: 310, streak: 4, tasks: 14, level: 'Practitioner', flag: null },
+                  { name: 'Maya K.', role: 'Content', xp: 180, streak: 2, tasks: 8, level: 'Explorer', flag: null },
+                  { name: 'Chris D.', role: 'Design', xp: 60, streak: 0, tasks: 3, level: 'Novice', flag: 'needs nudge' },
+                  { name: 'Priya L.', role: 'Ops', xp: 40, streak: 0, tasks: 2, level: 'Novice', flag: 'needs nudge' },
+                ].map((row, i) => (
+                  <div key={row.name} className={`grid grid-cols-[1fr_auto_auto_auto] gap-x-3 items-center px-5 py-3 border-b border-gray-50 ${row.flag ? 'bg-amber-50/60' : 'hover:bg-gray-50'} transition-colors`}>
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-[10px] font-black text-white ${['bg-emerald-500','bg-teal-500','bg-blue-500','bg-violet-500','bg-amber-400','bg-orange-400'][i]}`}>
+                        {row.name.split(' ').map(n => n[0]).join('')}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold text-gray-900 truncate">{row.name}</p>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] text-gray-400">{row.role}</span>
+                          {row.flag && <span className="text-[10px] font-semibold text-amber-600 bg-amber-100 px-1.5 rounded-full">needs nudge</span>}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs font-black text-emerald-600">{row.xp}</p>
+                      <p className="text-[10px] text-gray-400">{row.level}</p>
+                    </div>
+                    <p className="text-xs font-semibold text-gray-700 text-right">{row.streak > 0 ? `🔥 ${row.streak}d` : '—'}</p>
+                    <p className="text-xs font-semibold text-gray-500 text-right">{row.tasks}</p>
+                  </div>
+                ))}
+              </div>
+              {/* Footer */}
+              <div className="bg-gray-50 border-t border-gray-100 px-5 py-3 flex items-center justify-between">
+                <p className="text-xs text-gray-400">2 members need attention this week</p>
+                <button className="text-xs font-semibold text-amber-600 hover:text-amber-700 transition-colors">Send reminder →</button>
+              </div>
+            </div>
+
           </div>
-          <div className={`relative rounded-2xl overflow-hidden ${managerInView ? 'animate-fade-up' : 'opacity-0'}`} style={{ animationDelay: '360ms', animationFillMode: 'forwards' }}>
+
+          {/* Pitch quote */}
+          <div className={`mt-10 relative rounded-2xl overflow-hidden ${managerInView ? 'animate-fade-up' : 'opacity-0'}`} style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}>
             <div className="bg-gray-950 p-6 sm:p-8 relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent" />
+              <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-amber-400/40 to-transparent" />
               <div className="relative flex items-center justify-between gap-6 flex-wrap">
                 <div>
-                  <p className="font-bold text-lg mb-1 text-white">The pitch to your leadership team:</p>
-                  <p className="text-gray-400 text-sm max-w-md leading-relaxed">&ldquo;We gave everyone AI tools. Now we&apos;re giving them the training to actually use them. LessAI shows us skill gaps, tracks improvement, and proves our AI investment is paying off.&rdquo;</p>
+                  <p className="font-bold text-base mb-1.5 text-white">The pitch to your leadership team:</p>
+                  <p className="text-gray-400 text-sm max-w-lg leading-relaxed">&ldquo;We gave everyone AI tools. Now we&apos;re giving them the training to use them well. LessAI shows skill gaps, tracks improvement, and proves our AI investment is paying off — with real data.&rdquo;</p>
                 </div>
                 <Link href="/signup" className="group shrink-0 flex items-center gap-2 bg-amber-400 hover:bg-amber-300 text-gray-950 font-bold px-5 py-2.5 rounded-xl transition-all duration-200 hover:shadow-lg hover:shadow-amber-400/30 text-sm">
-                  See the dashboard <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                  Get the admin dashboard <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                 </Link>
               </div>
             </div>
