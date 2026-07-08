@@ -9,7 +9,7 @@
 
 DO $$
 DECLARE
-  demo_id uuid := 'REPLACE_WITH_DEMO_USER_UUID';  -- ← paste UUID here
+  demo_id uuid := '4dd66995-666b-4544-8301-8bbe55c6a8b9';  -- ← paste UUID here
   path_id uuid := gen_random_uuid();
   playbook_id uuid := gen_random_uuid();
 BEGIN
@@ -28,8 +28,8 @@ INSERT INTO profiles (
   'Meridian Analytics',
   'meridiananalytics.io',
   'Meridian Analytics is a B2B SaaS platform that helps mid-market companies turn customer data into retention insights. Their CSM team uses AI tools to write renewal QBR decks, generate health score summaries, and draft proactive outreach emails for at-risk accounts.',
-  ARRAY['ChatGPT', 'Claude', 'Notion AI', 'HubSpot AI'],
-  '{"ChatGPT": "comfortable", "Claude": "learning", "Notion AI": "never", "HubSpot AI": "learning"}',
+  '["ChatGPT", "Claude", "Notion AI", "HubSpot AI"]'::jsonb,
+  '{"ChatGPT": "comfortable", "Claude": "learning", "Notion AI": "never", "HubSpot AI": "learning"}'::jsonb,
   true,
   310, 8, false
 ) ON CONFLICT (id) DO UPDATE SET
@@ -135,40 +135,38 @@ INSERT INTO playbooks (id, user_id, data, created_at) VALUES (
   now() - interval '44 days'
 ) ON CONFLICT DO NOTHING;
 
--- ── Task completions (spread over last 30 days for a good heatmap) ──
-INSERT INTO task_completions (user_id, tool, day, created_at) VALUES
-  (demo_id, 'ChatGPT', 1, now() - interval '30 days'),
-  (demo_id, 'ChatGPT', 2, now() - interval '28 days'),
-  (demo_id, 'Claude',  1, now() - interval '28 days'),
-  (demo_id, 'ChatGPT', 3, now() - interval '26 days'),
-  (demo_id, 'Notion AI', 1, now() - interval '25 days'),
-  (demo_id, 'ChatGPT', 4, now() - interval '24 days'),
-  (demo_id, 'Claude',  2, now() - interval '23 days'),
+-- ── Task completions (spread over last 30 days for a good heatmap + this-week card) ──
+INSERT INTO task_completions (user_id, tool, day, completed_at) VALUES
+  (demo_id, 'ChatGPT',    1, now() - interval '30 days'),
+  (demo_id, 'ChatGPT',    2, now() - interval '28 days'),
+  (demo_id, 'Claude',     1, now() - interval '28 days'),
+  (demo_id, 'ChatGPT',    3, now() - interval '26 days'),
+  (demo_id, 'Notion AI',  1, now() - interval '25 days'),
+  (demo_id, 'ChatGPT',    4, now() - interval '24 days'),
+  (demo_id, 'Claude',     2, now() - interval '23 days'),
   (demo_id, 'HubSpot AI', 1, now() - interval '22 days'),
-  (demo_id, 'ChatGPT', 5, now() - interval '21 days'),
-  (demo_id, 'Notion AI', 2, now() - interval '20 days'),
-  (demo_id, 'Claude',  3, now() - interval '18 days'),
-  (demo_id, 'ChatGPT', 1, now() - interval '17 days'),
+  (demo_id, 'ChatGPT',    5, now() - interval '21 days'),
+  (demo_id, 'Notion AI',  2, now() - interval '20 days'),
+  (demo_id, 'Claude',     3, now() - interval '18 days'),
+  (demo_id, 'ChatGPT',    1, now() - interval '17 days'),
   (demo_id, 'HubSpot AI', 2, now() - interval '16 days'),
-  (demo_id, 'ChatGPT', 2, now() - interval '15 days'),
-  (demo_id, 'Claude',  1, now() - interval '14 days'),
-  (demo_id, 'ChatGPT', 3, now() - interval '13 days'),
-  (demo_id, 'Notion AI', 1, now() - interval '12 days'),
-  (demo_id, 'ChatGPT', 4, now() - interval '11 days'),
-  (demo_id, 'Claude',  2, now() - interval '10 days'),
+  (demo_id, 'ChatGPT',    2, now() - interval '15 days'),
+  (demo_id, 'Claude',     1, now() - interval '14 days'),
+  (demo_id, 'ChatGPT',    3, now() - interval '13 days'),
+  (demo_id, 'Notion AI',  1, now() - interval '12 days'),
+  (demo_id, 'ChatGPT',    4, now() - interval '11 days'),
+  (demo_id, 'Claude',     2, now() - interval '10 days'),
   (demo_id, 'HubSpot AI', 1, now() - interval '9 days'),
-  (demo_id, 'ChatGPT', 5, now() - interval '8 days'),
-  (demo_id, 'Claude',  3, now() - interval '7 days'),
-  (demo_id, 'Notion AI', 2, now() - interval '7 days'),
-  (demo_id, 'ChatGPT', 1, now() - interval '6 days'),
-  (demo_id, 'HubSpot AI', 2, now() - interval '5 days'),
-  (demo_id, 'ChatGPT', 2, now() - interval '4 days'),
-  (demo_id, 'Claude',  1, now() - interval '3 days'),
-  (demo_id, 'Notion AI', 1, now() - interval '2 days'),
-  (demo_id, 'ChatGPT', 3, now() - interval '1 day'),
-  (demo_id, 'Claude',  2, now() - interval '1 day'),
-  (demo_id, 'ChatGPT', 4, now()),
-  (demo_id, 'HubSpot AI', 1, now())
+  (demo_id, 'ChatGPT',    5, now() - interval '8 days'),
+  (demo_id, 'Claude',     3, now() - interval '7 days'),
+  (demo_id, 'Notion AI',  2, now() - interval '7 days'),
+  -- This week (Mon + Tue) — shows active bars in the "This Week" card
+  (demo_id, 'ChatGPT',    1, now() - interval '1 day'),
+  (demo_id, 'Claude',     1, now() - interval '1 day'),
+  (demo_id, 'HubSpot AI', 1, now() - interval '1 day'),
+  (demo_id, 'ChatGPT',    2, now()),
+  (demo_id, 'Claude',     2, now()),
+  (demo_id, 'Notion AI',  1, now())
 ON CONFLICT DO NOTHING;
 
 -- ── Saved prompts ──────────────────────────────────────────────
