@@ -118,6 +118,29 @@ const LEVELS = [
 
 const STEP_LABELS = ['Your role', 'Your company', 'Your AI tools', 'Skill levels']
 
+function RoleButton({ label, emoji, customText, selected, disabled, onToggle, fullWidth }: {
+  label: string; emoji: string; customText?: string; selected: boolean
+  disabled: boolean; onToggle: (label: string) => void; fullWidth?: boolean
+}) {
+  return (
+    <button
+      onClick={() => onToggle(label)}
+      disabled={disabled}
+      className={`${fullWidth ? 'w-full' : ''} text-left px-4 py-3 rounded-xl border text-sm font-medium transition-all flex items-center gap-2.5 ${
+        selected
+          ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm shadow-emerald-100'
+          : disabled
+            ? 'bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed'
+            : 'bg-white/80 text-gray-700 border-gray-200 hover:border-emerald-300 hover:bg-emerald-50 backdrop-blur-sm'
+      }`}
+    >
+      <span className="text-lg">{emoji}</span>
+      <span className="flex-1">{customText ?? label}</span>
+      {selected && <CheckCircle className="w-3.5 h-3.5 shrink-0 opacity-80" />}
+    </button>
+  )
+}
+
 function OnboardingFlow() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -388,47 +411,32 @@ function OnboardingFlow() {
             </div>
 
             <div className="space-y-4 mb-4">
-              {ROLE_CATEGORIES.map(({ category, roles: catRoles }) => (
+              {ROLE_CATEGORIES.map(({ category, roles: categoryRoles }) => (
                 <div key={category}>
                   <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">{category}</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {catRoles.map(({ label, emoji }) => {
-                      const selected = roles.includes(label)
-                      const atLimit = roles.length >= 3 && !selected
-                      return (
-                        <button key={label} onClick={() => toggleRole(label)} disabled={atLimit}
-                          className={`text-left px-4 py-3 rounded-xl border text-sm font-medium transition-all flex items-center gap-2.5 ${
-                            selected
-                              ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm shadow-emerald-100'
-                              : atLimit
-                                ? 'bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed'
-                                : 'bg-white/80 text-gray-700 border-gray-200 hover:border-emerald-300 hover:bg-emerald-50 backdrop-blur-sm'
-                          }`}>
-                          <span className="text-lg">{emoji}</span>
-                          <span className="flex-1">{label}</span>
-                          {selected && <CheckCircle className="w-3.5 h-3.5 shrink-0 opacity-80" />}
-                        </button>
-                      )
-                    })}
+                    {categoryRoles.map(({ label, emoji }) => (
+                      <RoleButton
+                        key={label}
+                        label={label}
+                        emoji={emoji}
+                        selected={roles.includes(label)}
+                        disabled={roles.length >= 3 && !roles.includes(label)}
+                        onToggle={toggleRole}
+                      />
+                    ))}
                   </div>
                 </div>
               ))}
-              {(() => {
-                const selected = roles.includes('Other')
-                const atLimit = roles.length >= 3 && !selected
-                return (
-                  <button onClick={() => toggleRole('Other')} disabled={atLimit}
-                    className={`w-full text-left px-4 py-3 rounded-xl border text-sm font-medium transition-all flex items-center gap-2.5 ${
-                      selected ? 'bg-emerald-600 text-white border-emerald-600'
-                        : atLimit ? 'bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed'
-                        : 'bg-white/80 text-gray-700 border-gray-200 hover:border-emerald-300 backdrop-blur-sm'
-                    }`}>
-                    <span className="text-lg">✏️</span>
-                    <span className="flex-1">Other — type your role</span>
-                    {selected && <CheckCircle className="w-3.5 h-3.5 shrink-0 opacity-80" />}
-                  </button>
-                )
-              })()}
+              <RoleButton
+                label="Other"
+                emoji="✏️"
+                customText="Other — type your role"
+                selected={roles.includes('Other')}
+                disabled={roles.length >= 3 && !roles.includes('Other')}
+                onToggle={toggleRole}
+                fullWidth
+              />
             </div>
 
             {roles.includes('Other') && (
