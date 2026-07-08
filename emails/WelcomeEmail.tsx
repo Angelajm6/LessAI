@@ -21,9 +21,7 @@ export default function WelcomeEmail({ firstName, role, tools, stackSummary, das
 
           {/* Header */}
           <Section style={header}>
-            <div style={logoWrap}>
-              <span style={logoLetter}>L</span>
-            </div>
+            <Img src="https://lessai.io/logo.svg" width="28" height="28" alt="LessAI" style={logoImg} />
             <Text style={logoText}>LessAI</Text>
           </Section>
 
@@ -131,21 +129,10 @@ const header: React.CSSProperties = {
   alignItems: 'center',
 }
 
-const logoWrap: React.CSSProperties = {
-  width: '28px',
-  height: '28px',
-  backgroundColor: 'rgba(255,255,255,0.2)',
-  borderRadius: '6px',
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
+const logoImg: React.CSSProperties = {
   marginRight: '8px',
-}
-
-const logoLetter: React.CSSProperties = {
-  color: '#ffffff',
-  fontWeight: 800,
-  fontSize: '14px',
+  display: 'inline-block',
+  verticalAlign: 'middle',
 }
 
 const logoText: React.CSSProperties = {
