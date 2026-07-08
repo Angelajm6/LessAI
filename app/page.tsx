@@ -169,23 +169,29 @@ function StatCard({ value, suffix, label, source, href, delay, floatDelay }: { v
   const { ref, inView } = useInView()
   const count = useCounter(value, 2000, inView)
   return (
-    /* float wrapper — only animates after card has entered */
+    /* float wrapper */
     <div style={inView ? { animation: `float 4s ease-in-out ${floatDelay}ms infinite` } : undefined}>
-      <a
-        ref={ref as unknown as React.RefObject<HTMLAnchorElement>}
-        href={href} target="_blank" rel="noopener noreferrer"
+      {/* animated border shell */}
+      <div
+        ref={ref as unknown as React.RefObject<HTMLDivElement>}
         style={{ animationDelay: `${delay}ms`, animationFillMode: 'forwards' }}
-        className={`group block bg-white rounded-2xl p-8 border border-gray-200 hover:border-emerald-200 hover:shadow-xl hover:shadow-emerald-100/60 transition-all duration-300 ${inView ? 'animate-scale-in' : 'opacity-0'}`}
+        className={`relative rounded-2xl p-px overflow-hidden ${inView ? 'animate-scale-in' : 'opacity-0'}`}
       >
-        <div className="text-[3.75rem] font-black tabular-nums leading-none mb-3 text-gray-950 group-hover:text-emerald-600 transition-colors duration-300">
-          {count}{suffix}
-        </div>
-        <div className="text-sm text-gray-500 leading-relaxed mb-4">{label}</div>
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-amber-600 font-semibold">{source}</span>
-          <span className="text-xs text-emerald-600 font-medium opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center gap-1">Read source <ArrowRight className="w-3 h-3" /></span>
-        </div>
-      </a>
+        <div className="animate-border-spin absolute" style={{ width: '200%', height: '200%', top: '-50%', left: '-50%', background: 'conic-gradient(from 0deg, transparent 0deg, #10b981 60deg, #34d399 90deg, #fbbf24 150deg, #f59e0b 180deg, transparent 240deg, #10b981 300deg, transparent 360deg)' }} />
+        <a
+          href={href} target="_blank" rel="noopener noreferrer"
+          className="group relative block bg-white rounded-2xl p-8 hover:shadow-xl hover:shadow-emerald-100/60 transition-all duration-300"
+        >
+          <div className="text-[3.75rem] font-black tabular-nums leading-none mb-3 text-gray-950 group-hover:text-emerald-600 transition-colors duration-300">
+            {count}{suffix}
+          </div>
+          <div className="text-sm text-gray-500 leading-relaxed mb-4">{label}</div>
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-amber-600 font-semibold">{source}</span>
+            <span className="text-xs text-emerald-600 font-medium opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center gap-1">Read source <ArrowRight className="w-3 h-3" /></span>
+          </div>
+        </a>
+      </div>
     </div>
   )
 }
