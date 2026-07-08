@@ -85,6 +85,10 @@ export default function WelcomeEmail({ firstName, role, tools, stackSummary, das
 
           {/* Footer */}
           <Section style={footer}>
+            <div style={footerLogo}>
+              <Img src="https://lessai.io/logo.svg" width="20" height="20" alt="LessAI" style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '6px' }} />
+              <span style={footerBrand}>LessAI</span>
+            </div>
             <Text style={footerText}>
               You're receiving this because you just completed onboarding on LessAI.
             </Text>
@@ -258,6 +262,18 @@ const ctaNote: React.CSSProperties = {
 const footer: React.CSSProperties = {
   padding: '20px 32px',
   backgroundColor: '#f9fafb',
+}
+
+const footerLogo: React.CSSProperties = {
+  textAlign: 'center',
+  marginBottom: '8px',
+}
+
+const footerBrand: React.CSSProperties = {
+  fontSize: '14px',
+  fontWeight: 700,
+  color: '#6b7280',
+  verticalAlign: 'middle',
 }
 
 const footerText: React.CSSProperties = {
