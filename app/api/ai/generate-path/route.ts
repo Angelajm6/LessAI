@@ -16,6 +16,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'No tools provided' }, { status: 400 })
   }
 
+  if (!process.env.OPENROUTER_API_KEY) {
+    console.error('OPENROUTER_API_KEY is not set')
+    return NextResponse.json({ error: 'Server misconfiguration: AI key missing. Please contact hello@lessai.io.' }, { status: 500 })
+  }
+
   let stackMap
   let playbook
   try {
