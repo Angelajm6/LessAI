@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { CheckCircle, X, ArrowRight, Zap, Users, Building2, MessageSquare, Sparkles, FlaskConical, Mail } from 'lucide-react'
+import { CheckCircle, X, ArrowRight, Zap, Users, Building2, MessageSquare, Sparkles, Mail } from 'lucide-react'
 
 function LogoMark({ size = 28 }: { size?: number }) {
   return (
@@ -19,7 +19,7 @@ const FREE_FEATURES = [
   { text: 'Company website context', included: true },
   { text: 'Prompt playbook', included: false },
   { text: 'Saved prompts + folders', included: false },
-  { text: 'Prompt Lab', included: false },
+  { text: 'Prompt Studio (Lab + Command)', included: false },
   { text: 'Team features', included: false },
 ]
 
@@ -29,7 +29,7 @@ const PRO_FEATURES = [
   { text: 'Unlimited daily practice tasks', included: true },
   { text: 'Unlimited Ask AI messages', included: true },
   { text: 'Saved prompts + folders', included: true },
-  { text: 'Prompt Lab — rewrite & score any prompt', included: true },
+  { text: 'Prompt Studio — rewrite, score & command', included: true },
   { text: 'Tool comparison guides', included: true },
   { text: 'Company website context', included: true },
   { text: 'Priority AI generation', included: true },
@@ -50,11 +50,11 @@ const TEAM_FEATURES = [
 const FAQS = [
   {
     q: 'Is the Free plan really free?',
-    a: 'Yes — no credit card required. You get 2 tools, daily tasks, and the AI Command Center forever. Upgrade to Pro when you want the full prompt playbook and Prompt Lab.',
+    a: 'Yes — no credit card required. You get 2 tools, daily tasks, and the AI Command Center forever. Upgrade to Pro when you want the full prompt playbook and Prompt Studio.',
   },
   {
-    q: 'What is the Prompt Lab?',
-    a: 'Prompt Lab lets you paste any prompt you\'ve been using and get an AI-rewritten version that\'s sharper, more specific, and scored on three dimensions. It\'s exclusive to Pro and Team.',
+    q: 'What is Prompt Studio?',
+    a: 'Prompt Studio combines two modes: Command Center (describe any task → get the right tool + a ready-to-paste prompt) and Prompt Lab (paste any prompt → get an AI-rewritten version scored on Specificity, Context, and Output clarity). Exclusive to Pro and Team.',
   },
   {
     q: 'Who is Pro for?',
@@ -133,7 +133,7 @@ export default function PricingPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-10">
 
             {/* Free */}
-            <div className="border border-gray-200 rounded-2xl p-6 flex flex-col bg-white hover:bg-emerald-50 hover:border-emerald-400 hover:shadow-xl hover:shadow-emerald-200/60 hover:-translate-y-1 transition-all duration-200">
+            <div className="border border-gray-100 rounded-2xl p-6 flex flex-col bg-white shadow-sm hover:shadow-md hover:border-gray-200 hover:-translate-y-1 transition-all duration-200">
               <div className="mb-5">
                 <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Free</p>
                 <div className="flex items-end gap-1 mb-1">
@@ -145,7 +145,7 @@ export default function PricingPage() {
                 {FREE_FEATURES.map(f => (
                   <li key={f.text} className={`flex items-start gap-2 text-sm ${f.included ? 'text-gray-600' : 'text-gray-300'}`}>
                     {f.included
-                      ? <CheckCircle className="w-4 h-4 text-gray-400 shrink-0 mt-0.5" />
+                      ? <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
                       : <X className="w-4 h-4 text-gray-200 shrink-0 mt-0.5" />}
                     {f.text}
                   </li>
@@ -157,11 +157,11 @@ export default function PricingPage() {
             </div>
 
             {/* Pro */}
-            <div className="border border-blue-100 rounded-2xl p-6 flex flex-col bg-white hover:bg-blue-50 hover:border-blue-400 hover:shadow-xl hover:shadow-blue-200/60 hover:-translate-y-1 transition-all duration-200">
+            <div className="border border-emerald-100 rounded-2xl p-6 flex flex-col bg-white shadow-sm hover:shadow-lg hover:shadow-emerald-100/60 hover:border-emerald-300 hover:-translate-y-1 transition-all duration-200">
               <div className="mb-5">
                 <div className="flex items-center gap-2 mb-3">
-                  <Sparkles className="w-3.5 h-3.5 text-blue-400" />
-                  <p className="text-xs font-bold uppercase tracking-widest text-blue-500">Pro</p>
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-500" />
+                  <p className="text-xs font-bold uppercase tracking-widest text-emerald-600">Pro</p>
                 </div>
                 <div className="flex items-end gap-1 mb-1">
                   <span className="text-5xl font-black text-gray-950">${annual ? '8' : '10'}</span>
@@ -173,14 +173,14 @@ export default function PricingPage() {
               <ul className="space-y-2.5 flex-1 mb-6">
                 {PRO_FEATURES.map(f => (
                   <li key={f.text} className="flex items-start gap-2 text-sm text-gray-600">
-                    <CheckCircle className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
-                    {f.text === 'Prompt Lab — rewrite & score any prompt'
-                      ? <span>{f.text} <span className="text-xs bg-blue-50 text-blue-500 font-semibold px-1.5 py-0.5 rounded-full border border-blue-100 ml-0.5">New</span></span>
+                    <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                    {f.text === 'Prompt Studio — rewrite, score & command'
+                      ? <span>{f.text} <span className="text-xs bg-emerald-50 text-emerald-600 font-semibold px-1.5 py-0.5 rounded-full border border-emerald-100 ml-0.5">New</span></span>
                       : f.text}
                   </li>
                 ))}
               </ul>
-              <Link href="/signup" className="block text-center bg-gray-950 hover:bg-gray-800 text-white font-semibold text-sm py-3 rounded-xl transition-colors">
+              <Link href="/signup" className="block text-center bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm py-3 rounded-xl transition-colors shadow-sm">
                 Start Pro trial
               </Link>
             </div>
@@ -259,7 +259,7 @@ export default function PricingPage() {
                     </th>
                     {[
                       { label: 'Free', color: 'text-gray-400' },
-                      { label: 'Pro', color: 'text-blue-400' },
+                      { label: 'Pro', color: 'text-emerald-300' },
                       { label: 'Team', color: 'text-emerald-400' },
                     ].map(col => (
                       <th key={col.label} className={`text-center px-3 py-4 text-sm font-bold ${col.color}`}>
@@ -283,7 +283,7 @@ export default function PricingPage() {
                     { feature: 'Ask AI messages', free: '20/mo', pro: 'Unlimited', team: 'Unlimited' },
                     { feature: 'Prompt playbook', free: false, pro: true, team: true },
                     { feature: 'Saved prompts + folders', free: false, pro: true, team: true },
-                    { feature: 'Prompt Lab ✨', free: false, pro: true, team: true },
+                    { feature: 'Prompt Studio ✨', free: false, pro: true, team: true },
                     { feature: 'Priority AI generation', free: false, pro: true, team: true },
                     { feature: 'Admin dashboard', free: false, pro: false, team: true },
                     { feature: 'Tool adoption analytics', free: false, pro: false, team: true },
@@ -299,11 +299,11 @@ export default function PricingPage() {
                       {([row.free, row.pro, row.team] as (boolean | string)[]).map((val, col) => (
                         <td key={col} className={`text-center px-3 py-3.5 ${col === 2 ? 'bg-emerald-500/5' : ''}`}>
                           {val === true ? (
-                            <CheckCircle className={`w-4 h-4 mx-auto ${col === 2 ? 'text-emerald-400' : col === 1 ? 'text-blue-400' : 'text-gray-400'}`} />
+                            <CheckCircle className={`w-4 h-4 mx-auto ${col === 2 ? 'text-emerald-400' : col === 1 ? 'text-emerald-300' : 'text-gray-400'}`} />
                           ) : val === false ? (
                             <X className="w-3.5 h-3.5 text-white/15 mx-auto" />
                           ) : (
-                            <span className={`text-xs font-semibold ${col === 2 ? 'text-emerald-400' : col === 1 ? 'text-blue-400' : 'text-gray-400'}`}>{val}</span>
+                            <span className={`text-xs font-semibold ${col === 2 ? 'text-emerald-400' : col === 1 ? 'text-emerald-300' : 'text-gray-400'}`}>{val}</span>
                           )}
                         </td>
                       ))}
@@ -322,21 +322,21 @@ export default function PricingPage() {
         <div className="absolute top-0 right-[-100px] w-[500px] h-[400px] bg-emerald-200/20 rounded-full blur-3xl pointer-events-none animate-float-slow" />
         <div className="relative max-w-5xl mx-auto px-4 sm:px-6 py-16">
 
-          {/* Prompt Lab callout */}
+          {/* Prompt Studio callout */}
           <div className="relative rounded-2xl p-8 mb-10 overflow-hidden" style={{ background: 'linear-gradient(135deg, #064e3b 0%, #065f46 40%, #1e3a5f 100%)', border: '1px solid rgba(52,211,153,0.25)' }}>
             <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-400/20 rounded-full blur-3xl pointer-events-none" />
             <div className="relative flex items-start gap-5 flex-wrap">
               <div className="w-12 h-12 bg-emerald-400/20 border border-emerald-400/30 rounded-2xl flex items-center justify-center shrink-0">
-                <FlaskConical className="w-6 h-6 text-emerald-300" />
+                <Sparkles className="w-6 h-6 text-emerald-300" />
               </div>
               <div className="flex-1 min-w-[200px]">
                 <div className="flex items-center gap-2 mb-2">
-                  <h3 className="text-lg font-black text-white">Prompt Lab</h3>
+                  <h3 className="text-lg font-black text-white">Prompt Studio</h3>
                   <span className="text-xs bg-amber-400/20 border border-amber-400/30 text-amber-300 font-bold px-2 py-0.5 rounded-full">Pro & Team only</span>
                 </div>
-                <p className="text-sm text-emerald-100/80 leading-relaxed mb-4">Paste any prompt you&apos;ve been using — we&apos;ll rewrite it to be sharper, more specific, and score it on three dimensions: Specificity, Context, and Output clarity. See exactly what changed and why.</p>
+                <p className="text-sm text-emerald-100/80 leading-relaxed mb-4">Two modes in one place. <strong className="text-white">Command Center</strong> — describe any task and get the right tool + a ready-to-paste prompt. <strong className="text-white">Prompt Lab</strong> — paste any prompt you&apos;ve been using, get an AI-rewritten version scored on Specificity, Context, and Output clarity.</p>
                 <div className="flex gap-3 flex-wrap">
-                  {['🎯 Scored before & after', '✨ AI-rewritten', '📖 Changes explained', '💾 Save to your prompts'].map(b => (
+                  {['⚡ AI tool recommendations', '🎯 Scored before & after', '✨ AI-rewritten prompts', '💾 Save to your library'].map(b => (
                     <span key={b} className="text-xs bg-white/10 text-emerald-200 px-2.5 py-1 rounded-full font-medium">{b}</span>
                   ))}
                 </div>
@@ -394,7 +394,7 @@ export default function PricingPage() {
             <div className="relative">
               <h2 className="text-2xl font-bold mb-3">Start free. No credit card needed.</h2>
               <p className="text-gray-400 mb-6 max-w-lg mx-auto">
-                Get started with 2 tools and daily practice tasks for free. Upgrade when you&apos;re ready for the full playbook and Prompt Lab.
+                Get started with 2 tools and daily practice tasks for free. Upgrade when you&apos;re ready for the full playbook and Prompt Studio.
               </p>
               <div className="flex items-center justify-center gap-3 flex-wrap">
                 <Link href="/signup" className="relative group">
