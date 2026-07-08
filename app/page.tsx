@@ -180,7 +180,7 @@ function StatCard({ value, suffix, label, source, href, delay, floatDelay }: { v
         <div className="animate-border-spin absolute" style={{ width: '200%', height: '200%', top: '-50%', left: '-50%', background: 'conic-gradient(from 0deg, transparent 0deg, #10b981 60deg, #34d399 90deg, #fbbf24 150deg, #f59e0b 180deg, transparent 240deg, #10b981 300deg, transparent 360deg)' }} />
         <a
           href={href} target="_blank" rel="noopener noreferrer"
-          className="group relative block bg-white rounded-2xl p-8 hover:shadow-xl hover:shadow-emerald-100/60 transition-all duration-300"
+          className="group relative block bg-white rounded-2xl p-8 hover:bg-emerald-50 hover:shadow-xl hover:shadow-emerald-100/60 transition-all duration-300"
         >
           <div className="text-[3.75rem] font-black tabular-nums leading-none mb-3 text-gray-950 group-hover:text-emerald-600 transition-colors duration-300">
             {count}{suffix}
