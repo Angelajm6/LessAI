@@ -1070,7 +1070,7 @@ export default function Home() {
               Sign in
             </Link>
           </div>
-          <p className="text-xs text-gray-600 mt-4">No credit card required · setup in under 3 minutes</p>
+          <p className="text-xs text-gray-600 mt-4">Setup in under 3 minutes · cancel any time</p>
         </div>
       </section>
 
