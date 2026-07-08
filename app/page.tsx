@@ -164,21 +164,24 @@ const features = [
 ]
 
 /* ─── Stat card ─────────────────────────────────────────────────────── */
+/* ─── Stat card ──────────────────────────────────────────────────────── */
 function StatCard({ value, suffix, label, source, href, delay }: { value: number; suffix: string; label: string; source: string; href: string; delay: number }) {
   const { ref, inView } = useInView()
-  const count = useCounter(value, 1600, inView)
+  const count = useCounter(value, 1800, inView)
   return (
     <a
       ref={ref as unknown as React.RefObject<HTMLAnchorElement>}
       href={href} target="_blank" rel="noopener noreferrer"
       style={{ animationDelay: `${delay}ms`, animationFillMode: 'forwards' }}
-      className={`group rounded-2xl p-7 border border-gray-100 bg-white hover:border-emerald-200 hover:shadow-lg hover:shadow-emerald-50 hover:-translate-y-0.5 transition-all duration-200 block ${inView ? 'animate-fade-up' : 'opacity-0'}`}
+      className={`group block bg-white rounded-2xl p-8 border border-gray-200 hover:border-emerald-200 hover:shadow-lg hover:shadow-emerald-50 hover:-translate-y-1 transition-all duration-300 ${inView ? 'animate-scale-in' : 'opacity-0'}`}
     >
-      <div className="text-[3.25rem] font-black text-gray-950 mb-3 tabular-nums leading-none group-hover:text-emerald-600 transition-colors duration-200">{count}{suffix}</div>
-      <div className="text-sm text-gray-500 mb-4 leading-relaxed">{label}</div>
+      <div className="text-[3.75rem] font-black tabular-nums leading-none mb-3 text-gray-950 group-hover:text-emerald-600 transition-colors duration-300">
+        {count}{suffix}
+      </div>
+      <div className="text-sm text-gray-500 leading-relaxed mb-4">{label}</div>
       <div className="flex items-center justify-between">
         <span className="text-xs text-amber-600 font-semibold">{source}</span>
-        <span className="text-xs text-emerald-600 font-medium opacity-0 group-hover:opacity-100 transition-all duration-150 flex items-center gap-1">Read source <ArrowRight className="w-3 h-3" /></span>
+        <span className="text-xs text-emerald-600 font-medium opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center gap-1">Read source <ArrowRight className="w-3 h-3" /></span>
       </div>
     </a>
   )
@@ -707,17 +710,17 @@ export default function Home() {
       </section>
 
       {/* ── STATS ── */}
-      <section ref={statsRef} className="py-24 px-6 bg-white border-t border-gray-100">
-        <div className="max-w-4xl mx-auto">
+      <section ref={statsRef} className="py-24 px-6 bg-gray-50 border-t border-gray-100">
+        <div className="max-w-5xl mx-auto">
           <p className={`text-center text-xs font-semibold text-emerald-600 uppercase tracking-widest mb-3 ${statsInView ? 'animate-fade-in' : 'opacity-0'}`}>Why this matters</p>
           <h2 className={`text-3xl sm:text-4xl font-black text-center mb-4 text-gray-950 ${statsInView ? 'animate-fade-up' : 'opacity-0'}`} style={{ animationDelay: '100ms', animationFillMode: 'forwards' }}>
             The AI skills gap is costing you — every day
           </h2>
-          <p className={`text-center text-gray-500 mb-12 max-w-xl mx-auto text-sm ${statsInView ? 'animate-fade-up' : 'opacity-0'}`} style={{ animationDelay: '180ms', animationFillMode: 'forwards' }}>
-            Companies buy the tools. They skip the training. Individuals waste hours on mediocre outputs. Nobody connects the dots back to one thing: knowing how to prompt.
+          <p className={`text-center text-gray-500 mb-14 max-w-xl mx-auto text-sm ${statsInView ? 'animate-fade-up' : 'opacity-0'}`} style={{ animationDelay: '180ms', animationFillMode: 'forwards' }}>
+            Companies buy the tools. They skip the training. Nobody connects the dots back to one thing: knowing how to prompt.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {stats.map((s, i) => <StatCard key={s.value} {...s} delay={(i + 1) * 100} />)}
+            {stats.map((s, i) => <StatCard key={s.value} {...s} delay={(i + 1) * 120} />)}
           </div>
         </div>
       </section>
