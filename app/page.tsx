@@ -710,7 +710,7 @@ export default function Home() {
               },
               {
                 n: '02', label: 'Employees', sub: 'Have tools, got no training',
-                color: 'teal',
+                color: 'blue',
                 items: ['Company context scraped from your website — every prompt fits your business', 'Know which AI tool to use for each task, and exactly why', 'Claude vs. ChatGPT vs. Gemini: learn when each one wins', 'No fluff, no generic advice — built for your actual role'],
               },
               {
@@ -719,16 +719,16 @@ export default function Home() {
                 items: ['Admin dashboard: XP, streaks, task completion by person', 'See who\'s using which tools — and who needs coaching', 'Skill gaps visible across the team in one view', 'Prove AI ROI with adoption data — not survey responses'],
               },
             ].map(card => (
-              <div key={card.n} className={`rounded-2xl p-7 border border-gray-100 transition-all duration-200 bg-white group hover:shadow-md ${card.color === 'emerald' ? 'hover:border-emerald-300 hover:shadow-emerald-50' : card.color === 'teal' ? 'hover:border-teal-300 hover:shadow-teal-50' : 'hover:border-amber-300 hover:shadow-amber-50'}`}>
+              <div key={card.n} className={`rounded-2xl p-7 border border-gray-100 transition-all duration-200 bg-white group hover:shadow-md ${card.color === 'emerald' ? 'hover:border-emerald-300 hover:shadow-emerald-50' : card.color === 'blue' ? 'hover:border-blue-300 hover:shadow-blue-50' : 'hover:border-amber-300 hover:shadow-amber-50'}`}>
                 <div className="flex items-center justify-between mb-5">
-                  <span className={`text-xs font-bold uppercase tracking-widest ${card.color === 'emerald' ? 'text-emerald-500' : card.color === 'teal' ? 'text-teal-500' : 'text-amber-500'}`}>{card.label}</span>
+                  <span className={`text-xs font-bold uppercase tracking-widest ${card.color === 'emerald' ? 'text-emerald-500' : card.color === 'blue' ? 'text-blue-500' : 'text-amber-500'}`}>{card.label}</span>
                   <span className="text-2xl font-black text-gray-100 group-hover:text-gray-200 transition-colors tabular-nums">{card.n}</span>
                 </div>
                 <p className="font-semibold text-gray-800 mb-4 text-sm">{card.sub}</p>
                 <ul className="space-y-2.5">
                   {card.items.map((item, i) => (
                     <li key={i} className="flex items-start gap-2.5">
-                      <div className={`w-1 h-1 rounded-full mt-1.5 shrink-0 ${card.color === 'emerald' ? 'bg-emerald-400' : card.color === 'teal' ? 'bg-teal-400' : 'bg-amber-400'}`} />
+                      <div className={`w-1 h-1 rounded-full mt-1.5 shrink-0 ${card.color === 'emerald' ? 'bg-emerald-400' : card.color === 'blue' ? 'bg-blue-400' : 'bg-amber-400'}`} />
                       <span className="text-sm text-gray-500 leading-snug">{item}</span>
                     </li>
                   ))}
