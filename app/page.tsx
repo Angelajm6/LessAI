@@ -719,7 +719,7 @@ export default function Home() {
                 items: ['Admin dashboard: XP, streaks, task completion by person', 'See who\'s using which tools — and who needs coaching', 'Skill gaps visible across the team in one view', 'Prove AI ROI with adoption data — not survey responses'],
               },
             ].map(card => (
-              <div key={card.n} className="rounded-2xl p-7 border border-gray-100 hover:border-gray-200 hover:shadow-md transition-all duration-200 bg-white group">
+              <div key={card.n} className={`rounded-2xl p-7 border border-gray-100 transition-all duration-200 bg-white group hover:shadow-md ${card.color === 'emerald' ? 'hover:border-emerald-300 hover:shadow-emerald-50' : card.color === 'teal' ? 'hover:border-teal-300 hover:shadow-teal-50' : 'hover:border-amber-300 hover:shadow-amber-50'}`}>
                 <div className="flex items-center justify-between mb-5">
                   <span className={`text-xs font-bold uppercase tracking-widest ${card.color === 'emerald' ? 'text-emerald-500' : card.color === 'teal' ? 'text-teal-500' : 'text-amber-500'}`}>{card.label}</span>
                   <span className="text-2xl font-black text-gray-100 group-hover:text-gray-200 transition-colors tabular-nums">{card.n}</span>
