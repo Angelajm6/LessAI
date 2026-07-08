@@ -794,7 +794,7 @@ export default function Home() {
                     <span className={`text-xs font-bold ${stepColors.numColor}`}>0{i + 1}</span>
                     <h3 className={`font-bold ${stepColors.titleColor}`}>{item.title}</h3>
                   </div>
-                  <p className="text-gray-500 text-sm leading-relaxed">{item.desc}</p>
+                  <p className="text-gray-500 group-hover:text-white text-sm leading-relaxed transition-colors duration-300">{item.desc}</p>
                 </div>
               </div>
               )
