@@ -123,7 +123,7 @@ function OnboardingFlow() {
   const searchParams = useSearchParams()
   const updateStackMode = searchParams.get('from') === 'stack'
   const [step, setStep] = useState(1)
-  const [role, setRole] = useState('')
+  const [roles, setRoles] = useState<string[]>([])
   const [customRole, setCustomRole] = useState('')
   const [company, setCompany] = useState('')
   const [selectedTools, setSelectedTools] = useState<string[]>([])
@@ -146,9 +146,12 @@ function OnboardingFlow() {
         .then(({ data }) => {
           if (data) {
             if (data.role) {
-              const preset = PRESET_ROLES.find(r => r.label === data.role)
-              if (preset) setRole(data.role)
-              else { setRole('Other'); setCustomRole(data.role) }
+              const parts = (data.role as string).split(',').map((s: string) => s.trim()).filter(Boolean)
+              const presetParts = parts.filter(p => PRESET_ROLES.some(r => r.label === p))
+              const customParts = parts.filter(p => !PRESET_ROLES.some(r => r.label === p))
+              const newRoles = [...presetParts, ...(customParts.length ? ['Other'] : [])]
+              setRoles(newRoles)
+              if (customParts.length) setCustomRole(customParts.join(', '))
             }
             if (data.company_name) setCompany(data.company_name)
             if (data.company_website) setWebsite(data.company_website)
@@ -160,7 +163,18 @@ function OnboardingFlow() {
     })
   }, [updateStackMode])
 
-  const selectedRole = role === 'Other' ? customRole : role
+  function toggleRole(label: string) {
+    setRoles(prev => {
+      if (prev.includes(label)) return prev.filter(r => r !== label)
+      if (prev.length >= 3) return prev
+      return [...prev, label]
+    })
+  }
+
+  const selectedRole = roles
+    .map(r => r === 'Other' ? customRole.trim() : r)
+    .filter(Boolean)
+    .join(', ')
 
   function toggleTool(tool: string) {
     setSelectedTools(prev =>
@@ -358,40 +372,66 @@ function OnboardingFlow() {
         {/* Step 1 — Role */}
         {step === 1 && (
           <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-            <div className="mb-6">
+            <div className="mb-5">
               <p className="text-xs font-semibold text-emerald-600 uppercase tracking-widest mb-1">{updateStackMode ? 'Update stack · Step 1 of 4' : 'Step 1 of 4'}</p>
               <h1 className="text-2xl font-bold text-gray-900 mb-1">{updateStackMode ? 'Update your role' : "What's your role?"}</h1>
-              <p className="text-gray-500 text-sm">{updateStackMode ? 'Changed roles or want to refocus? Update here and we\'ll rebuild your entire stack around it.' : 'Your prompt playbook is built around your role — a PM and a marketer should use AI very differently.'}</p>
+              <p className="text-gray-500 text-sm">{updateStackMode ? 'Changed roles or want to refocus? Update here and we\'ll rebuild your entire stack around it.' : 'Your prompt playbook is built around your role — pick up to 3 that describe you best.'}</p>
+            </div>
+
+            <div className="flex items-center gap-2 mb-4">
+              <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border transition-colors ${
+                roles.length === 3 ? 'bg-emerald-50 border-emerald-300 text-emerald-700' : 'bg-gray-50 border-gray-200 text-gray-500'
+              }`}>
+                {roles.length} / 3 selected
+              </span>
+              {roles.length === 3 && <span className="text-xs text-emerald-600 font-medium">Maximum reached</span>}
             </div>
 
             <div className="space-y-4 mb-4">
-              {ROLE_CATEGORIES.map(({ category, roles }) => (
+              {ROLE_CATEGORIES.map(({ category, roles: catRoles }) => (
                 <div key={category}>
                   <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">{category}</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {roles.map(({ label, emoji }) => (
-                      <button key={label} onClick={() => setRole(label)}
-                        className={`text-left px-4 py-3 rounded-xl border text-sm font-medium transition-all flex items-center gap-2.5 ${
-                          role === label
-                            ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm shadow-emerald-100'
-                            : 'bg-white/80 text-gray-700 border-gray-200 hover:border-emerald-300 hover:bg-emerald-50 backdrop-blur-sm'
-                        }`}>
-                        <span className="text-lg">{emoji}</span>
-                        {label}
-                      </button>
-                    ))}
+                    {catRoles.map(({ label, emoji }) => {
+                      const selected = roles.includes(label)
+                      const atLimit = roles.length >= 3 && !selected
+                      return (
+                        <button key={label} onClick={() => toggleRole(label)} disabled={atLimit}
+                          className={`text-left px-4 py-3 rounded-xl border text-sm font-medium transition-all flex items-center gap-2.5 ${
+                            selected
+                              ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm shadow-emerald-100'
+                              : atLimit
+                                ? 'bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed'
+                                : 'bg-white/80 text-gray-700 border-gray-200 hover:border-emerald-300 hover:bg-emerald-50 backdrop-blur-sm'
+                          }`}>
+                          <span className="text-lg">{emoji}</span>
+                          <span className="flex-1">{label}</span>
+                          {selected && <CheckCircle className="w-3.5 h-3.5 shrink-0 opacity-80" />}
+                        </button>
+                      )
+                    })}
                   </div>
                 </div>
               ))}
-              <button onClick={() => setRole('Other')}
-                className={`w-full text-left px-4 py-3 rounded-xl border text-sm font-medium transition-all flex items-center gap-2.5 ${
-                  role === 'Other' ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white/80 text-gray-700 border-gray-200 hover:border-emerald-300 backdrop-blur-sm'
-                }`}>
-                <span className="text-lg">✏️</span> Other — type your role
-              </button>
+              {(() => {
+                const selected = roles.includes('Other')
+                const atLimit = roles.length >= 3 && !selected
+                return (
+                  <button onClick={() => toggleRole('Other')} disabled={atLimit}
+                    className={`w-full text-left px-4 py-3 rounded-xl border text-sm font-medium transition-all flex items-center gap-2.5 ${
+                      selected ? 'bg-emerald-600 text-white border-emerald-600'
+                        : atLimit ? 'bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed'
+                        : 'bg-white/80 text-gray-700 border-gray-200 hover:border-emerald-300 backdrop-blur-sm'
+                    }`}>
+                    <span className="text-lg">✏️</span>
+                    <span className="flex-1">Other — type your role</span>
+                    {selected && <CheckCircle className="w-3.5 h-3.5 shrink-0 opacity-80" />}
+                  </button>
+                )
+              })()}
             </div>
 
-            {role === 'Other' && (
+            {roles.includes('Other') && (
               <div className="mb-4">
                 <Input placeholder="e.g. Growth Hacker, Founder, Legal Counsel"
                   value={customRole} onChange={(e) => setCustomRole(e.target.value)}
@@ -399,7 +439,7 @@ function OnboardingFlow() {
               </div>
             )}
 
-            <Button onClick={() => setStep(2)} disabled={!role || (role === 'Other' && !customRole.trim())}
+            <Button onClick={() => setStep(2)} disabled={roles.length === 0 || (roles.includes('Other') && !customRole.trim())}
               className="bg-emerald-600 hover:bg-emerald-700 gap-2 h-11 px-6 shadow-md shadow-emerald-100">
               Continue <ArrowRight className="w-4 h-4" />
             </Button>
