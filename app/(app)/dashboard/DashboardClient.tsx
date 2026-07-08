@@ -674,6 +674,20 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
           startOfWeek.setHours(0, 0, 0, 0)
           const thisWeekDone = completed.filter(c => c.completed_at && new Date(c.completed_at) >= startOfWeek)
 
+          const weekDays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
+          const weekDayActivity = weekDays.map((label, i) => {
+            const day = new Date(startOfWeek)
+            day.setDate(startOfWeek.getDate() + i)
+            const dayStr = day.toISOString().split('T')[0]
+            const count = thisWeekDone.filter(c => c.completed_at?.startsWith(dayStr)).length
+            const isToday = dayStr === now.toISOString().split('T')[0]
+            const isPast = day < now && !isToday
+            return { label, count, isToday, isPast }
+          })
+          const weekToolsSet = new Set(thisWeekDone.map(c => c.tool))
+          const weekTools = Array.from(weekToolsSet)
+          const xpThisWeek = thisWeekDone.length * 10
+
           const todayTasks = stackMap?.tool_tracks.map(track => {
             const nextTask = track.daily_tasks.find(t => !completed.some(c => c.tool === track.tool && c.day === t.day))
             return nextTask ? { track, task: nextTask } : null
@@ -751,6 +765,49 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                   </p>
                 )}
               </div>
+
+              {/* This week */}
+              {thisWeekDone.length > 0 && (
+                <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <Target className="w-4 h-4 text-blue-500" />
+                      <h3 className="text-sm font-bold text-gray-900">This week</h3>
+                    </div>
+                    <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-full px-2.5 py-0.5">
+                      +{xpThisWeek} XP
+                    </span>
+                  </div>
+                  {/* Day dots */}
+                  <div className="flex items-end gap-1.5 mb-3">
+                    {weekDayActivity.map((d, i) => (
+                      <div key={i} className="flex flex-col items-center gap-1 flex-1">
+                        <div className={`w-full rounded-md transition-all ${
+                          d.count > 0
+                            ? 'bg-emerald-500 h-6'
+                            : d.isToday
+                            ? 'bg-gray-200 h-6 border-2 border-dashed border-gray-300'
+                            : d.isPast
+                            ? 'bg-gray-100 h-4'
+                            : 'bg-gray-100 h-4'
+                        }`} />
+                        <span className={`text-[10px] font-medium ${d.isToday ? 'text-gray-700' : 'text-gray-400'}`}>{d.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                  {/* Tools practiced */}
+                  {weekTools.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {weekTools.map(tool => (
+                        <span key={tool} className="text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-full px-2.5 py-0.5">
+                          {tool}
+                        </span>
+                      ))}
+                      <span className="text-xs text-gray-400 self-center">practiced this week</span>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Continue where you left off */}
               {todayTasks.length > 0 && (

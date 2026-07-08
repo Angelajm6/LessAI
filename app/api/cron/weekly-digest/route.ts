@@ -44,10 +44,10 @@ export async function GET(req: NextRequest) {
     .select('user_id, tool, created_at')
     .gte('created_at', weekAgo.toISOString())
 
-  // All task completions ever (for totals)
+  // All task completions ever (for totals + next-task lookup)
   const { data: allCompletions } = await supabase
     .from('task_completions')
-    .select('user_id, tool')
+    .select('user_id, tool, day')
 
   // All stack maps for next-task lookup
   const { data: aiPaths } = await supabase
@@ -75,7 +75,7 @@ export async function GET(req: NextRequest) {
     const stackMap = (aiPaths ?? []).find(p => p.user_id === user.id)?.use_cases
     let nextTask: { tool: string; title: string; task: string } | null = null
     if (stackMap?.tool_tracks) {
-      const completedKeys = new Set(allDone.map(c => `${c.tool}-${(c as { day?: number }).day ?? 0}`))
+      const completedKeys = new Set(allDone.map(c => `${c.tool}-${c.day ?? 0}`))
       outer: for (const track of stackMap.tool_tracks) {
         for (const t of track.daily_tasks) {
           if (!completedKeys.has(`${track.tool}-${t.day}`)) {
