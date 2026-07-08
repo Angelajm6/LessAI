@@ -165,25 +165,28 @@ const features = [
 
 /* ─── Stat card ─────────────────────────────────────────────────────── */
 /* ─── Stat card ──────────────────────────────────────────────────────── */
-function StatCard({ value, suffix, label, source, href, delay }: { value: number; suffix: string; label: string; source: string; href: string; delay: number }) {
+function StatCard({ value, suffix, label, source, href, delay, floatDelay }: { value: number; suffix: string; label: string; source: string; href: string; delay: number; floatDelay: number }) {
   const { ref, inView } = useInView()
-  const count = useCounter(value, 1800, inView)
+  const count = useCounter(value, 2000, inView)
   return (
-    <a
-      ref={ref as unknown as React.RefObject<HTMLAnchorElement>}
-      href={href} target="_blank" rel="noopener noreferrer"
-      style={{ animationDelay: `${delay}ms`, animationFillMode: 'forwards' }}
-      className={`group block bg-white rounded-2xl p-8 border border-gray-200 hover:border-emerald-200 hover:shadow-lg hover:shadow-emerald-50 hover:-translate-y-1 transition-all duration-300 ${inView ? 'animate-scale-in' : 'opacity-0'}`}
-    >
-      <div className="text-[3.75rem] font-black tabular-nums leading-none mb-3 text-gray-950 group-hover:text-emerald-600 transition-colors duration-300">
-        {count}{suffix}
-      </div>
-      <div className="text-sm text-gray-500 leading-relaxed mb-4">{label}</div>
-      <div className="flex items-center justify-between">
-        <span className="text-xs text-amber-600 font-semibold">{source}</span>
-        <span className="text-xs text-emerald-600 font-medium opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center gap-1">Read source <ArrowRight className="w-3 h-3" /></span>
-      </div>
-    </a>
+    /* float wrapper — only animates after card has entered */
+    <div style={inView ? { animation: `float 4s ease-in-out ${floatDelay}ms infinite` } : undefined}>
+      <a
+        ref={ref as unknown as React.RefObject<HTMLAnchorElement>}
+        href={href} target="_blank" rel="noopener noreferrer"
+        style={{ animationDelay: `${delay}ms`, animationFillMode: 'forwards' }}
+        className={`group block bg-white rounded-2xl p-8 border border-gray-200 hover:border-emerald-200 hover:shadow-xl hover:shadow-emerald-100/60 transition-all duration-300 ${inView ? 'animate-scale-in' : 'opacity-0'}`}
+      >
+        <div className="text-[3.75rem] font-black tabular-nums leading-none mb-3 text-gray-950 group-hover:text-emerald-600 transition-colors duration-300">
+          {count}{suffix}
+        </div>
+        <div className="text-sm text-gray-500 leading-relaxed mb-4">{label}</div>
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-amber-600 font-semibold">{source}</span>
+          <span className="text-xs text-emerald-600 font-medium opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center gap-1">Read source <ArrowRight className="w-3 h-3" /></span>
+        </div>
+      </a>
+    </div>
   )
 }
 
@@ -720,7 +723,7 @@ export default function Home() {
             Companies buy the tools. They skip the training. Nobody connects the dots back to one thing: knowing how to prompt.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {stats.map((s, i) => <StatCard key={s.value} {...s} delay={(i + 1) * 120} />)}
+            {stats.map((s, i) => <StatCard key={s.value} {...s} delay={(i + 1) * 120} floatDelay={i * 600} />)}
           </div>
         </div>
       </section>
