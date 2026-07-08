@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -154,7 +155,11 @@ function PlaybookGenerator({ profile, onDone }: { profile: Props['profile']; onD
 }
 
 export default function DashboardClient({ profile, stackMap, playbook, completedTasks: initialCompleted, savedPrompts: initialSaved, promptFolders: initialFolders, initialXp = 0, initialStreak = 0, teamPrompts = [], teamLeaderboard = [], labHistory: initialLabHistory = [] }: Props) {
-  const [section, setSection] = useState<Section>('dashboard')
+  const searchParams = useSearchParams()
+  const [section, setSection] = useState<Section>(() => {
+    const s = searchParams.get('section')
+    return (s === 'workflows' || s === 'studio' || s === 'tasks' || s === 'playbook' || s === 'guides' || s === 'saved') ? s : 'dashboard'
+  })
   const [completed, setCompleted] = useState<CompletedTask[]>(initialCompleted)
   const [expanded, setExpanded] = useState<string | null>(null)
   const [marking, setMarking] = useState<string | null>(null)
@@ -210,7 +215,7 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
   const [studioMode, setStudioMode] = useState<'command' | 'lab'>('command')
   // Workflows state
   const [workflowCategory, setWorkflowCategory] = useState<Workflow['category'] | 'all'>('all')
-  const [myStackOnly, setMyStackOnly] = useState(false)
+  const [myStackOnly, setMyStackOnly] = useState(() => searchParams.get('from') === 'onboarding')
   const [activeWorkflow, setActiveWorkflow] = useState<Workflow | null>(null)
   const [savedWorkflowIds, setSavedWorkflowIds] = useState<Set<string>>(new Set())
   const [copiedStep, setCopiedStep] = useState<string | null>(null)

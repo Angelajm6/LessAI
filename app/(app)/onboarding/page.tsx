@@ -228,7 +228,7 @@ function OnboardingFlow() {
         throw new Error(err.error ?? `Generation failed (${res.status})`)
       }
 
-      router.push('/dashboard')
+      router.push('/dashboard?section=workflows&from=onboarding')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
       setGenerating(false)

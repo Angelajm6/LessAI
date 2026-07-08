@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import DashboardClient from './DashboardClient'
 
@@ -91,18 +92,20 @@ export default async function DashboardPage() {
   }
 
   return (
-    <DashboardClient
-      profile={profile}
-      stackMap={aiPath?.use_cases ?? null}
-      playbook={playbookRow?.data ?? null}
-      completedTasks={completedTasks ?? []}
-      savedPrompts={savedPrompts ?? []}
-      promptFolders={promptFolders ?? []}
-      initialXp={profileXp?.xp ?? 0}
-      initialStreak={profileXp?.streak ?? 0}
-      teamPrompts={teamPromptsData ?? []}
-      teamLeaderboard={teamLeaderboard}
-      labHistory={labHistoryData as never}
-    />
+    <Suspense>
+      <DashboardClient
+        profile={profile}
+        stackMap={aiPath?.use_cases ?? null}
+        playbook={playbookRow?.data ?? null}
+        completedTasks={completedTasks ?? []}
+        savedPrompts={savedPrompts ?? []}
+        promptFolders={promptFolders ?? []}
+        initialXp={profileXp?.xp ?? 0}
+        initialStreak={profileXp?.streak ?? 0}
+        teamPrompts={teamPromptsData ?? []}
+        teamLeaderboard={teamLeaderboard}
+        labHistory={labHistoryData as never}
+      />
+    </Suspense>
   )
 }
