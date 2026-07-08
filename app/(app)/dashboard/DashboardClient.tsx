@@ -82,15 +82,15 @@ const LEVEL_COLORS: Record<string, string> = {
   comfortable: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
 }
 
-type Section = 'home' | 'tasks' | 'playbook' | 'guides' | 'saved' | 'lab' | 'progress'
+type Section = 'dashboard' | 'studio' | 'tasks' | 'playbook' | 'guides' | 'saved' | 'progress'
 
 const NAV_ITEMS: { key: Section; icon: React.ElementType; label: string }[] = [
-  { key: 'home', icon: Home, label: 'Overview' },
+  { key: 'dashboard', icon: Home, label: 'Dashboard' },
+  { key: 'studio', icon: Sparkles, label: 'Prompt Studio' },
   { key: 'tasks', icon: LayoutDashboard, label: 'Daily Tasks' },
+  { key: 'saved', icon: Bookmark, label: 'Saved Prompts' },
   { key: 'progress', icon: BarChart2, label: 'Progress' },
   { key: 'guides', icon: BookOpen, label: 'Tool Guides' },
-  { key: 'saved', icon: Bookmark, label: 'Saved Prompts' },
-  { key: 'lab', icon: FlaskConical, label: 'Prompt Lab' },
 ]
 
 function PlaybookGenerator({ profile, onDone }: { profile: Props['profile']; onDone: () => void }) {
@@ -152,7 +152,7 @@ function PlaybookGenerator({ profile, onDone }: { profile: Props['profile']; onD
 }
 
 export default function DashboardClient({ profile, stackMap, playbook, completedTasks: initialCompleted, savedPrompts: initialSaved, promptFolders: initialFolders, initialXp = 0, initialStreak = 0, teamPrompts = [], teamLeaderboard = [], labHistory: initialLabHistory = [] }: Props) {
-  const [section, setSection] = useState<Section>('home')
+  const [section, setSection] = useState<Section>('dashboard')
   const [completed, setCompleted] = useState<CompletedTask[]>(initialCompleted)
   const [expanded, setExpanded] = useState<string | null>(null)
   const [marking, setMarking] = useState<string | null>(null)
@@ -205,6 +205,7 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
   const [labView, setLabView] = useState<'improve' | 'history'>('improve')
   const [labHistory, setLabHistory] = useState<LabHistoryItem[]>(initialLabHistory)
   const [labExpandedId, setLabExpandedId] = useState<string | null>(null)
+  const [studioMode, setStudioMode] = useState<'command' | 'lab'>('command')
 
   const firstName = profile.full_name?.split(' ')[0] ?? 'there'
   const tools = profile.tools ?? []
@@ -380,7 +381,8 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
   function launchTask(taskText: string) {
     setCommandInput(taskText)
     setRecommendation(null)
-    setSection('home')
+    setSection('studio')
+    setStudioMode('command')
     // Auto-run recommendation after state settles
     setTimeout(async () => {
       setRecommending(true)
@@ -651,28 +653,28 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
           </div>
         )}
 
-        {/* ── Overview / Home — AI Command Center ── */}
-        {section === 'home' && (() => {
+        {/* ── Dashboard Overview ── */}
+        {section === 'dashboard' && (() => {
           const today = new Date().toISOString().split('T')[0]
           const doneToday = completed.some(c => c.completed_at && c.completed_at.startsWith(today))
           const hasStreak = streakState > 0
           const showNudge = !doneToday && totalDone > 0
+
+          const now = new Date()
+          const startOfWeek = new Date(now)
+          startOfWeek.setDate(now.getDate() - now.getDay())
+          startOfWeek.setHours(0, 0, 0, 0)
+          const thisWeekDone = completed.filter(c => c.completed_at && new Date(c.completed_at) >= startOfWeek)
 
           const todayTasks = stackMap?.tool_tracks.map(track => {
             const nextTask = track.daily_tasks.find(t => !completed.some(c => c.tool === track.tool && c.day === t.day))
             return nextTask ? { track, task: nextTask } : null
           }).filter(Boolean) ?? []
 
-          const SUGGESTIONS = [
-            'Write a cold outreach email',
-            'Research a competitor',
-            'Prepare for a meeting',
-            'Summarize a long document',
-            'Draft a proposal',
-            'Analyze data and find patterns',
-            'Build a presentation outline',
-            'Respond to a customer complaint',
-          ]
+          const recentCompleted = [...completed]
+            .filter(c => c.completed_at)
+            .sort((a, b) => new Date(b.completed_at!).getTime() - new Date(a.completed_at!).getTime())
+            .slice(0, 3)
 
           return (
             <div className="space-y-5">
@@ -683,16 +685,8 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                   <h2 className="text-lg sm:text-xl font-bold text-gray-900 truncate">
                     {(() => { const h = new Date().getHours(); return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening' })()}, {firstName}.
                   </h2>
-                  <p className="text-xs sm:text-sm text-gray-400 mt-0.5 truncate">{profile.role} · {tools.length} tools in your stack</p>
+                  <p className="text-xs sm:text-sm text-gray-400 mt-0.5">{profile.role} · {tools.length} tools in your stack</p>
                 </div>
-                {totalTasks > 0 && (
-                  <div className="hidden sm:flex items-center gap-2 text-xs text-gray-400 shrink-0">
-                    <div className="w-28 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="h-1.5 rounded-full" style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #10b981, #f59e0b)' }} />
-                    </div>
-                    <span className="font-semibold text-emerald-600">{pct}%</span>
-                  </div>
-                )}
               </div>
 
               {/* Streak nudge */}
@@ -701,7 +695,7 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                   <span className="text-xl shrink-0">🔥</span>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-amber-800">
-                      {hasStreak ? `Keep your ${streakState}-day streak alive!` : 'No task yet today — let\'s go!'}
+                      {hasStreak ? `Keep your ${streakState}-day streak alive!` : "No task yet today — let's go!"}
                     </p>
                     <p className="text-xs text-amber-600 mt-0.5">Complete one task below to stay on track.</p>
                   </div>
@@ -712,224 +706,45 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                 </div>
               )}
 
-              {/* ── Command Center ── */}
-              <div className="relative overflow-hidden rounded-3xl bg-gray-950 shadow-2xl">
-                <div className="line-grid-3d absolute inset-0" />
-                {/* Floating orbs */}
-                <div className="absolute top-6 left-8 w-32 h-32 rounded-full bg-emerald-500/20 blur-3xl pointer-events-none animate-float" />
-                <div className="absolute bottom-4 right-12 w-24 h-24 rounded-full bg-amber-500/15 blur-3xl pointer-events-none animate-float-slow" />
-                <div className="absolute top-2 right-1/3 w-16 h-16 rounded-full bg-teal-400/10 blur-2xl pointer-events-none" />
-
-                <div className="relative z-10 px-5 sm:px-8 pt-7 sm:pt-9 pb-6 sm:pb-7">
-                  {/* Header */}
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    <span className="text-xs font-bold text-emerald-400 uppercase tracking-widest">AI Command Center</span>
+              {/* Stats row */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {[
+                  { icon: <Zap className="w-4 h-4 text-amber-500" />, value: xpState, label: 'Total XP', bg: 'bg-amber-50', border: 'border-amber-100' },
+                  { icon: <Flame className="w-4 h-4 text-orange-500" />, value: `${streakState}d`, label: 'Streak', bg: 'bg-orange-50', border: 'border-orange-100' },
+                  { icon: <Target className="w-4 h-4 text-blue-500" />, value: thisWeekDone.length, label: 'This week', bg: 'bg-blue-50', border: 'border-blue-100' },
+                  { icon: <CheckCircle className="w-4 h-4 text-emerald-500" />, value: `${totalDone}/${totalTasks}`, label: 'Tasks done', bg: 'bg-emerald-50', border: 'border-emerald-100' },
+                ].map(stat => (
+                  <div key={stat.label} className={`${stat.bg} border ${stat.border} rounded-2xl p-4`}>
+                    <div className="flex items-center gap-1.5 mb-1">{stat.icon}</div>
+                    <p className="text-xl font-black text-gray-900">{stat.value}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{stat.label}</p>
                   </div>
-                  <h3 className="text-2xl sm:text-3xl font-black text-white mb-5 sm:mb-6 leading-tight">
-                    What do you want to{' '}
-                    <span className="bg-gradient-to-r from-emerald-400 to-amber-400 bg-clip-text text-transparent">
-                      accomplish
-                    </span>{' '}<span className="text-white">today?</span>
-                  </h3>
-
-                  {/* Input */}
-                  <div className="relative">
-                    <textarea
-                      value={commandInput}
-                      onChange={e => setCommandInput(e.target.value)}
-                      onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); getRecommendation() }}}
-                      placeholder={`e.g. "Research a competitor before a sales call and prep talking points"`}
-                      rows={3}
-                      className="w-full bg-white/[0.06] border border-white/10 text-white placeholder:text-gray-600 rounded-2xl px-5 py-4 text-base leading-relaxed resize-none focus:outline-none focus:border-emerald-500/40 transition-all duration-200 pr-16"
-                      style={{ boxShadow: commandInput ? '0 0 0 3px rgba(16,185,129,0.08), 0 0 20px rgba(16,185,129,0.1)' : 'none' }}
-                    />
-                    <button
-                      onClick={getRecommendation}
-                      disabled={!commandInput.trim() || recommending}
-                      className="absolute right-3 bottom-3 w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-900/40 hover:from-emerald-400 hover:to-teal-400 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200"
-                    >
-                      {recommending
-                        ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        : <ArrowRight className="w-4 h-4 text-white" />
-                      }
-                    </button>
-                  </div>
-
-                  {/* Suggestion chips */}
-                  <div className="flex gap-2 flex-wrap mt-3 overflow-x-auto sm:overflow-visible pb-1 sm:pb-0 no-scrollbar">
-                    {SUGGESTIONS.map(s => (
-                      <button key={s}
-                        onClick={() => { setCommandInput(s); }}
-                        className="text-xs px-3 py-1.5 rounded-full bg-white/[0.07] text-gray-400 border border-white/[0.08] hover:bg-white/[0.13] hover:text-gray-200 hover:border-white/20 transition-all duration-150 whitespace-nowrap shrink-0">
-                        {s}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Loading state */}
-                  {recommending && (
-                    <div className="mt-5 flex items-center gap-3 text-gray-400 animate-fade-in">
-                      <div className="flex gap-1">
-                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-bounce" style={{ animationDelay: '0ms' }} />
-                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-bounce" style={{ animationDelay: '300ms' }} />
-                      </div>
-                      <span className="text-sm">Analyzing your stack and finding the best play…</span>
-                    </div>
-                  )}
-                </div>
+                ))}
               </div>
 
-              {/* ── Recommendation Result ── */}
-              {recommendation && !recommending && (
-                <div ref={resultRef} className="animate-slide-up">
-                  <div className="bg-white rounded-3xl border border-gray-100 shadow-xl overflow-hidden">
-
-                    {/* Result header */}
-                    <div className="px-4 sm:px-6 pt-5 pb-4 border-b border-gray-100">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="min-w-0">
-                          <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-1">Here&apos;s your play</p>
-                          <p className="text-sm sm:text-base font-semibold text-gray-900 italic">&ldquo;{commandTask}&rdquo;</p>
-                        </div>
-                        <button onClick={() => { setRecommendation(null); setCommandInput(''); }}
-                          className="text-xs text-gray-400 hover:text-gray-600 flex items-center gap-1 shrink-0 mt-1 transition-colors">
-                          <X className="w-3.5 h-3.5" /> Clear
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="divide-y divide-gray-50">
-
-                      {/* Best tool */}
-                      <div className="px-4 sm:px-6 py-4 sm:py-5">
-                        <div className="flex items-center gap-2 mb-2">
-                          <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                          <span className="text-xs font-bold text-emerald-600 uppercase tracking-widest">Best tool</span>
-                        </div>
-                        <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-3">
-                          <div className="bg-emerald-50 border border-emerald-100 rounded-2xl px-4 py-2 self-start shrink-0">
-                            <p className="text-sm font-bold text-emerald-700">{recommendation.best_tool}</p>
-                          </div>
-                          <p className="text-sm text-gray-600 leading-relaxed sm:pt-1.5">{recommendation.best_tool_why}</p>
-                        </div>
-                      </div>
-
-                      {/* Second tool */}
-                      {recommendation.second_tool && (
-                        <div className="px-4 sm:px-6 py-4">
-                          <div className="flex items-center gap-2 mb-2">
-                            <div className="w-2 h-2 rounded-full bg-teal-400" />
-                            <span className="text-xs font-bold text-teal-600 uppercase tracking-widest">Also consider</span>
-                          </div>
-                          <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-3">
-                            <div className="bg-teal-50 border border-teal-100 rounded-2xl px-4 py-2 self-start shrink-0">
-                              <p className="text-sm font-bold text-teal-700">{recommendation.second_tool}</p>
-                            </div>
-                            <p className="text-sm text-gray-500 leading-relaxed sm:pt-1.5">{recommendation.second_tool_why}</p>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Avoid tool */}
-                      {recommendation.avoid_tool && (
-                        <div className="px-4 sm:px-6 py-4">
-                          <div className="flex items-center gap-2 mb-2">
-                            <div className="w-2 h-2 rounded-full bg-red-300" />
-                            <span className="text-xs font-bold text-red-400 uppercase tracking-widest">Skip this time</span>
-                          </div>
-                          <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-3">
-                            <div className="bg-red-50 border border-red-100 rounded-2xl px-4 py-2 self-start shrink-0 opacity-70">
-                              <p className="text-sm font-bold text-red-500 line-through decoration-red-300">{recommendation.avoid_tool}</p>
-                            </div>
-                            <p className="text-sm text-gray-400 leading-relaxed sm:pt-1.5">{recommendation.avoid_why}</p>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Ready-to-paste prompt */}
-                      <div className="px-4 sm:px-6 py-4 sm:py-5">
-                        <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
-                          <div className="flex items-center gap-2">
-                            <Sparkles className="w-4 h-4 text-amber-500" />
-                            <span className="text-xs font-bold text-gray-700 uppercase tracking-widest">Ready-to-paste prompt</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <button onClick={() => savePrompt(recommendation.best_tool_prompt, commandTask, recommendation.best_tool)}
-                              disabled={isPromptSaved(recommendation.best_tool_prompt)}
-                              className={`text-xs flex items-center gap-1 px-2.5 py-1.5 rounded-lg border transition-all ${
-                                isPromptSaved(recommendation.best_tool_prompt)
-                                  ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
-                                  : 'text-gray-500 border-gray-200 hover:bg-gray-50 hover:text-gray-700'
-                              }`}>
-                              {isPromptSaved(recommendation.best_tool_prompt)
-                                ? <><BookmarkCheck className="w-3 h-3" /> Saved</>
-                                : <><Bookmark className="w-3 h-3" /> Save</>
-                              }
-                            </button>
-                            <button onClick={() => copyCommandPrompt(recommendation.best_tool_prompt)}
-                              className={`text-xs flex items-center gap-1 px-2.5 py-1.5 rounded-lg border transition-all ${
-                                copiedPrompt
-                                  ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
-                                  : 'text-gray-500 border-gray-200 hover:bg-gray-50 hover:text-gray-700'
-                              }`}>
-                              <Copy className="w-3 h-3" /> {copiedPrompt ? 'Copied!' : 'Copy'}
-                            </button>
-                          </div>
-                        </div>
-                        <div className="bg-gray-950 rounded-2xl p-4 border border-gray-800">
-                          <p className="text-sm text-gray-300 leading-relaxed font-mono whitespace-pre-wrap">{recommendation.best_tool_prompt}</p>
-                        </div>
-                      </div>
-
-                      {/* Sequence */}
-                      {recommendation.sequence && recommendation.sequence.length > 1 && (
-                        <div className="px-4 sm:px-6 py-4">
-                          <div className="flex items-center gap-2 mb-3">
-                            <Zap className="w-4 h-4 text-amber-500" />
-                            <span className="text-xs font-bold text-gray-700 uppercase tracking-widest">Recommended sequence</span>
-                          </div>
-                          <div className="flex items-center gap-2 flex-wrap">
-                            {recommendation.sequence.map((step, i) => (
-                              <div key={i} className="flex items-center gap-2">
-                                <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2">
-                                  <span className="text-xs font-bold text-gray-400">{i + 1}</span>
-                                  <div>
-                                    <p className="text-xs font-bold text-gray-900">{step.tool}</p>
-                                    <p className="text-xs text-gray-500">{step.action}</p>
-                                  </div>
-                                </div>
-                                {i < recommendation.sequence!.length - 1 && (
-                                  <ArrowRight className="w-3.5 h-3.5 text-gray-300 shrink-0" />
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Footer: time saved + insight */}
-                      <div className="px-4 sm:px-6 py-4 bg-gradient-to-r from-emerald-50/50 to-amber-50/50">
-                        <div className="flex items-start gap-4 flex-wrap">
-                          <div className="flex items-center gap-2">
-                            <Clock className="w-4 h-4 text-emerald-600" />
-                            <span className="text-sm font-semibold text-emerald-700">Saves {recommendation.time_saved}</span>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs text-gray-500 leading-relaxed">
-                              <strong className="text-gray-700">💡 </strong>{recommendation.insight}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                    </div>
+              {/* Level progress */}
+              <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <Trophy className="w-4 h-4 text-amber-500" />
+                    <span className="text-sm font-bold text-gray-900">
+                      Level: <span className={getXpLevel(xpState).color}>{getXpLevel(xpState).name}</span>
+                    </span>
                   </div>
+                  <span className="text-xs text-gray-400">{xpState} XP</span>
                 </div>
-              )}
+                <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                  <div className="h-2 rounded-full transition-all duration-700"
+                    style={{ width: `${getXpPct(xpState)}%`, background: 'linear-gradient(90deg, #10b981, #14b8a6)' }} />
+                </div>
+                {getNextXpLevel(xpState) && (
+                  <p className="text-xs text-gray-400 mt-1.5">
+                    {getNextXpLevel(xpState)!.min - xpState} XP to <span className="font-semibold">{getNextXpLevel(xpState)!.name}</span>
+                  </p>
+                )}
+              </div>
 
-              {/* ── Continue where you left off ── */}
+              {/* Continue where you left off */}
               {todayTasks.length > 0 && (
                 <div>
                   <div className="flex items-center justify-between mb-3">
@@ -965,13 +780,93 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                               <p className="text-xs text-gray-500 leading-relaxed line-clamp-2">{task.task}</p>
                             </div>
                           </div>
-                          <div className="mt-3 flex items-center gap-1 text-xs text-gray-400">
-                            <Clock className="w-3 h-3" /> {task.time_minutes}m
+                          <div className="mt-3 flex items-center justify-between">
+                            <div className="flex items-center gap-1 text-xs text-gray-400">
+                              <Clock className="w-3 h-3" /> {task.time_minutes}m
+                            </div>
+                            <button onClick={() => launchTask(task.task)}
+                              className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1">
+                              Use Prompt Studio <ArrowRight className="w-3 h-3" />
+                            </button>
                           </div>
                         </div>
                       )
                     })}
                   </div>
+                </div>
+              )}
+
+              {/* Prompt Studio CTA — shown if they haven't used it yet */}
+              {labHistory.length === 0 && (
+                <div className="relative overflow-hidden rounded-2xl bg-gray-950 p-5">
+                  <div className="line-grid-3d absolute inset-0" />
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none" />
+                  <div className="relative z-10 flex items-center justify-between gap-4 flex-wrap">
+                    <div>
+                      <p className="text-xs font-bold text-emerald-400 uppercase tracking-widest mb-1">Prompt Studio</p>
+                      <p className="text-white font-bold text-base mb-1">Improve any prompt or find the right AI tool</p>
+                      <p className="text-xs text-gray-400">Paste a weak prompt → get it scored and rewritten. Or describe a task → get the best tool for it.</p>
+                    </div>
+                    <button onClick={() => setSection('studio')}
+                      className="shrink-0 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-bold rounded-xl px-4 py-2.5 text-sm transition-all flex items-center gap-2">
+                      <Sparkles className="w-4 h-4" /> Try it now
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Recent activity */}
+              {recentCompleted.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <Star className="w-4 h-4 text-gray-400" />
+                    <h3 className="text-sm font-bold text-gray-900">Recent completions</h3>
+                  </div>
+                  <div className="space-y-2">
+                    {recentCompleted.map((c, i) => {
+                      const task = stackMap?.tool_tracks
+                        .find(t => t.tool === c.tool)
+                        ?.daily_tasks.find(t => t.day === c.day)
+                      return (
+                        <div key={i} className="flex items-center gap-3 bg-white border border-gray-100 rounded-xl px-4 py-3 shadow-sm">
+                          <div className="w-7 h-7 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+                            <CheckCircle className="w-4 h-4 text-emerald-600" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate">{task?.title ?? `Day ${c.day}`}</p>
+                            <p className="text-xs text-emerald-600 font-medium">{c.tool}</p>
+                          </div>
+                          {c.completed_at && (
+                            <span className="text-xs text-gray-400 shrink-0">
+                              {(() => {
+                                const diff = Date.now() - new Date(c.completed_at!).getTime()
+                                const mins = Math.floor(diff / 60000)
+                                if (mins < 60) return mins <= 1 ? 'just now' : `${mins}m ago`
+                                const hrs = Math.floor(mins / 60)
+                                if (hrs < 24) return `${hrs}h ago`
+                                return `${Math.floor(hrs / 24)}d ago`
+                              })()}
+                            </span>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Empty state */}
+              {!stackMap && completed.length === 0 && (
+                <div className="flex flex-col items-center justify-center py-14 px-6 text-center">
+                  <div className="text-4xl mb-4">🚀</div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">Let&apos;s build your AI stack</h3>
+                  <p className="text-sm text-gray-500 max-w-xs mb-6 leading-relaxed">
+                    Complete setup and LessAI will build a personalized learning plan for your role and tools.
+                  </p>
+                  <button onClick={() => window.location.href = '/onboarding'}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl px-5 py-2.5 text-sm flex items-center gap-2 transition-colors">
+                    <Sparkles className="w-4 h-4" /> Set up my stack
+                  </button>
                 </div>
               )}
 
@@ -1618,36 +1513,226 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
           </div>
         )}
 
-        {/* Prompt Lab */}
-        {section === 'lab' && (
+        {/* ── Prompt Studio ── */}
+        {section === 'studio' && (
           <div className="space-y-4">
-            {/* Header — vibrant gradient */}
+            {/* Header */}
             <div className="relative overflow-hidden rounded-2xl px-5 py-6"
               style={{ background: 'linear-gradient(135deg, #064e3b 0%, #065f46 40%, #1e3a5f 100%)' }}>
               <div className="dot-grid-3d absolute inset-0 opacity-20" />
               <div className="absolute top-0 right-0 w-40 h-40 bg-emerald-400/20 rounded-full blur-3xl pointer-events-none" />
               <div className="absolute bottom-0 left-10 w-24 h-24 bg-amber-400/15 rounded-full blur-2xl pointer-events-none" />
-              <div className="relative z-10 flex items-start justify-between gap-4 flex-wrap">
-                <div>
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <div className="w-7 h-7 bg-emerald-400/20 border border-emerald-400/30 rounded-lg flex items-center justify-center">
-                      <FlaskConical className="w-3.5 h-3.5 text-emerald-300" />
-                    </div>
-                    <h2 className="text-base font-black text-white">Prompt Lab</h2>
-                    <span className="text-xs bg-amber-400/20 border border-amber-400/30 text-amber-300 font-semibold px-2 py-0.5 rounded-full">Beta</span>
+              <div className="relative z-10">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <div className="w-7 h-7 bg-emerald-400/20 border border-emerald-400/30 rounded-lg flex items-center justify-center">
+                    <Sparkles className="w-3.5 h-3.5 text-emerald-300" />
                   </div>
-                  <p className="text-xs text-emerald-200/80 max-w-sm">Paste any prompt — we'll rewrite it to be sharper, more specific, and scored so you can see exactly what improved.</p>
+                  <h2 className="text-base font-black text-white">Prompt Studio</h2>
                 </div>
-                <div className="flex gap-3">
-                  {[{ emoji: '🎯', label: 'Scored' }, { emoji: '✨', label: 'Rewritten' }, { emoji: '📖', label: 'Explained' }].map(b => (
-                    <div key={b.label} className="text-center">
-                      <div className="text-lg">{b.emoji}</div>
-                      <div className="text-xs text-emerald-300/70 font-medium">{b.label}</div>
-                    </div>
-                  ))}
-                </div>
+                <p className="text-xs text-emerald-200/80 max-w-sm">Find the right AI tool for any task, or paste a prompt and get it scored, rewritten, and explained.</p>
               </div>
             </div>
+
+            {/* Mode toggle */}
+            <div className="flex gap-1 bg-gray-100 p-1 rounded-xl w-fit">
+              <button onClick={() => setStudioMode('command')}
+                className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-1.5 ${studioMode === 'command' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+                <Zap className="w-3.5 h-3.5" /> AI Command Center
+              </button>
+              <button onClick={() => setStudioMode('lab')}
+                className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-1.5 ${studioMode === 'lab' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+                <FlaskConical className="w-3.5 h-3.5" /> Prompt Lab
+                {labHistory.length > 0 && <span className="text-xs bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full font-bold">{labHistory.length}</span>}
+              </button>
+            </div>
+
+            {/* ── AI Command Center mode ── */}
+            {studioMode === 'command' && (() => {
+              const SUGGESTIONS = [
+                'Write a cold outreach email',
+                'Research a competitor',
+                'Prepare for a meeting',
+                'Summarize a long document',
+                'Draft a proposal',
+                'Analyze data and find patterns',
+                'Build a presentation outline',
+                'Respond to a customer complaint',
+              ]
+              return (
+                <div className="space-y-4">
+                  <div className="relative overflow-hidden rounded-3xl bg-gray-950 shadow-2xl">
+                    <div className="line-grid-3d absolute inset-0" />
+                    <div className="absolute top-6 left-8 w-32 h-32 rounded-full bg-emerald-500/20 blur-3xl pointer-events-none animate-float" />
+                    <div className="absolute bottom-4 right-12 w-24 h-24 rounded-full bg-amber-500/15 blur-3xl pointer-events-none animate-float-slow" />
+                    <div className="relative z-10 px-5 sm:px-8 pt-7 sm:pt-9 pb-6 sm:pb-7">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                        <span className="text-xs font-bold text-emerald-400 uppercase tracking-widest">AI Command Center</span>
+                      </div>
+                      <h3 className="text-2xl sm:text-3xl font-black text-white mb-5 sm:mb-6 leading-tight">
+                        What do you want to{' '}
+                        <span className="bg-gradient-to-r from-emerald-400 to-amber-400 bg-clip-text text-transparent">accomplish</span>{' '}
+                        <span className="text-white">today?</span>
+                      </h3>
+                      <div className="relative">
+                        <textarea
+                          value={commandInput}
+                          onChange={e => setCommandInput(e.target.value)}
+                          onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); getRecommendation() }}}
+                          placeholder={`e.g. "Research a competitor before a sales call and prep talking points"`}
+                          rows={3}
+                          className="w-full bg-white/[0.06] border border-white/10 text-white placeholder:text-gray-600 rounded-2xl px-5 py-4 text-base leading-relaxed resize-none focus:outline-none focus:border-emerald-500/40 transition-all duration-200 pr-16"
+                          style={{ boxShadow: commandInput ? '0 0 0 3px rgba(16,185,129,0.08), 0 0 20px rgba(16,185,129,0.1)' : 'none' }}
+                        />
+                        <button onClick={getRecommendation} disabled={!commandInput.trim() || recommending}
+                          className="absolute right-3 bottom-3 w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-900/40 hover:from-emerald-400 hover:to-teal-400 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200">
+                          {recommending
+                            ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            : <ArrowRight className="w-4 h-4 text-white" />}
+                        </button>
+                      </div>
+                      <div className="flex gap-2 flex-wrap mt-3 overflow-x-auto sm:overflow-visible pb-1 sm:pb-0 no-scrollbar">
+                        {SUGGESTIONS.map(s => (
+                          <button key={s} onClick={() => setCommandInput(s)}
+                            className="text-xs px-3 py-1.5 rounded-full bg-white/[0.07] text-gray-400 border border-white/[0.08] hover:bg-white/[0.13] hover:text-gray-200 hover:border-white/20 transition-all duration-150 whitespace-nowrap shrink-0">
+                            {s}
+                          </button>
+                        ))}
+                      </div>
+                      {recommending && (
+                        <div className="mt-5 flex items-center gap-3 text-gray-400 animate-fade-in">
+                          <div className="flex gap-1">
+                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                          </div>
+                          <span className="text-sm">Analyzing your stack and finding the best play…</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {recommendation && !recommending && (
+                    <div ref={resultRef} className="animate-slide-up">
+                      <div className="bg-white rounded-3xl border border-gray-100 shadow-xl overflow-hidden">
+                        <div className="px-4 sm:px-6 pt-5 pb-4 border-b border-gray-100">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="min-w-0">
+                              <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-1">Here&apos;s your play</p>
+                              <p className="text-sm sm:text-base font-semibold text-gray-900 italic">&ldquo;{commandTask}&rdquo;</p>
+                            </div>
+                            <button onClick={() => { setRecommendation(null); setCommandInput('') }}
+                              className="text-xs text-gray-400 hover:text-gray-600 flex items-center gap-1 shrink-0 mt-1 transition-colors">
+                              <X className="w-3.5 h-3.5" /> Clear
+                            </button>
+                          </div>
+                        </div>
+                        <div className="divide-y divide-gray-50">
+                          <div className="px-4 sm:px-6 py-4 sm:py-5">
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                              <span className="text-xs font-bold text-emerald-600 uppercase tracking-widest">Best tool</span>
+                            </div>
+                            <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-3">
+                              <div className="bg-emerald-50 border border-emerald-100 rounded-2xl px-4 py-2 self-start shrink-0">
+                                <p className="text-sm font-bold text-emerald-700">{recommendation.best_tool}</p>
+                              </div>
+                              <p className="text-sm text-gray-600 leading-relaxed sm:pt-1.5">{recommendation.best_tool_why}</p>
+                            </div>
+                          </div>
+                          {recommendation.second_tool && (
+                            <div className="px-4 sm:px-6 py-4">
+                              <div className="flex items-center gap-2 mb-2">
+                                <div className="w-2 h-2 rounded-full bg-teal-400" />
+                                <span className="text-xs font-bold text-teal-600 uppercase tracking-widest">Also consider</span>
+                              </div>
+                              <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-3">
+                                <div className="bg-teal-50 border border-teal-100 rounded-2xl px-4 py-2 self-start shrink-0">
+                                  <p className="text-sm font-bold text-teal-700">{recommendation.second_tool}</p>
+                                </div>
+                                <p className="text-sm text-gray-500 leading-relaxed sm:pt-1.5">{recommendation.second_tool_why}</p>
+                              </div>
+                            </div>
+                          )}
+                          {recommendation.avoid_tool && (
+                            <div className="px-4 sm:px-6 py-4">
+                              <div className="flex items-center gap-2 mb-2">
+                                <div className="w-2 h-2 rounded-full bg-red-300" />
+                                <span className="text-xs font-bold text-red-400 uppercase tracking-widest">Skip this time</span>
+                              </div>
+                              <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-3">
+                                <div className="bg-red-50 border border-red-100 rounded-2xl px-4 py-2 self-start shrink-0 opacity-70">
+                                  <p className="text-sm font-bold text-red-500 line-through decoration-red-300">{recommendation.avoid_tool}</p>
+                                </div>
+                                <p className="text-sm text-gray-400 leading-relaxed sm:pt-1.5">{recommendation.avoid_why}</p>
+                              </div>
+                            </div>
+                          )}
+                          <div className="px-4 sm:px-6 py-4 sm:py-5">
+                            <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
+                              <div className="flex items-center gap-2">
+                                <Sparkles className="w-4 h-4 text-amber-500" />
+                                <span className="text-xs font-bold text-gray-700 uppercase tracking-widest">Ready-to-paste prompt</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <button onClick={() => savePrompt(recommendation.best_tool_prompt, commandTask, recommendation.best_tool)}
+                                  disabled={isPromptSaved(recommendation.best_tool_prompt)}
+                                  className={`text-xs flex items-center gap-1 px-2.5 py-1.5 rounded-lg border transition-all ${isPromptSaved(recommendation.best_tool_prompt) ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'text-gray-500 border-gray-200 hover:bg-gray-50 hover:text-gray-700'}`}>
+                                  {isPromptSaved(recommendation.best_tool_prompt) ? <><BookmarkCheck className="w-3 h-3" /> Saved</> : <><Bookmark className="w-3 h-3" /> Save</>}
+                                </button>
+                                <button onClick={() => copyCommandPrompt(recommendation.best_tool_prompt)}
+                                  className={`text-xs flex items-center gap-1 px-2.5 py-1.5 rounded-lg border transition-all ${copiedPrompt ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'text-gray-500 border-gray-200 hover:bg-gray-50 hover:text-gray-700'}`}>
+                                  <Copy className="w-3 h-3" /> {copiedPrompt ? 'Copied!' : 'Copy'}
+                                </button>
+                              </div>
+                            </div>
+                            <div className="bg-gray-950 rounded-2xl p-4 border border-gray-800">
+                              <p className="text-sm text-gray-300 leading-relaxed font-mono whitespace-pre-wrap">{recommendation.best_tool_prompt}</p>
+                            </div>
+                          </div>
+                          {recommendation.sequence && recommendation.sequence.length > 1 && (
+                            <div className="px-4 sm:px-6 py-4">
+                              <div className="flex items-center gap-2 mb-3">
+                                <Zap className="w-4 h-4 text-amber-500" />
+                                <span className="text-xs font-bold text-gray-700 uppercase tracking-widest">Recommended sequence</span>
+                              </div>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                {recommendation.sequence.map((step, i) => (
+                                  <div key={i} className="flex items-center gap-2">
+                                    <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2">
+                                      <span className="text-xs font-bold text-gray-400">{i + 1}</span>
+                                      <div>
+                                        <p className="text-xs font-bold text-gray-900">{step.tool}</p>
+                                        <p className="text-xs text-gray-500">{step.action}</p>
+                                      </div>
+                                    </div>
+                                    {i < recommendation.sequence!.length - 1 && <ArrowRight className="w-3.5 h-3.5 text-gray-300 shrink-0" />}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          <div className="px-4 sm:px-6 py-4 bg-gradient-to-r from-emerald-50/50 to-amber-50/50">
+                            <div className="flex items-start gap-4 flex-wrap">
+                              <div className="flex items-center gap-2">
+                                <Clock className="w-4 h-4 text-emerald-600" />
+                                <span className="text-sm font-semibold text-emerald-700">Saves {recommendation.time_saved}</span>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs text-gray-500 leading-relaxed"><strong className="text-gray-700">💡 </strong>{recommendation.insight}</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )
+            })()}
+
+            {/* ── Prompt Lab mode ── */}
+            {studioMode === 'lab' && <>
 
             {/* View toggle */}
             <div className="flex gap-1 bg-gray-100 p-1 rounded-xl w-fit">
@@ -2092,6 +2177,7 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                 </div>
               )
             })()}
+            </>}
           </div>
         )}
 
