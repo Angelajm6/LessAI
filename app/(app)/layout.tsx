@@ -20,9 +20,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <nav className="bg-white border-b border-gray-100 px-3 sm:px-6 py-3 sticky top-0 z-40">
         <div className="max-w-screen-2xl mx-auto flex items-center justify-between">
           <Link href={profile?.is_admin ? '/admin' : '/dashboard'} className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-emerald-600 rounded flex items-center justify-center">
-              <span className="text-white font-bold text-xs">L</span>
-            </div>
+            <img src="/logo.svg" alt="LessAI" width={24} height={24} className="shrink-0" />
             <span className="font-semibold text-gray-900">LessAI</span>
           </Link>
           <div className="flex items-center gap-3">

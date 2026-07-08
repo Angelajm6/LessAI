@@ -6,14 +6,7 @@ import { CheckCircle, X, ArrowRight, Zap, Users, Building2, MessageSquare, Spark
 
 function LogoMark({ size = 28 }: { size?: number }) {
   return (
-    <div
-      className="rounded-lg flex items-center justify-center shrink-0"
-      style={{ width: size, height: size, background: 'linear-gradient(135deg, #059669 0%, #0F766E 100%)' }}
-    >
-      <svg width={size * 0.55} height={size * 0.55} viewBox="0 0 16 16" fill="none">
-        <path d="M11 2.5L5 8L11 13.5" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    </div>
+    <img src="/logo.svg" alt="LessAI" width={size} height={size} className="shrink-0" style={{ width: size, height: size }} />
   )
 }
 

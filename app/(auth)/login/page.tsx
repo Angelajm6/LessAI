@@ -102,9 +102,7 @@ export default function LoginPage() {
 
       <div className="relative">
         <div className="flex items-center gap-2 mb-8">
-          <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center shadow-sm shadow-emerald-200">
-            <span className="text-white font-black text-sm">L</span>
-          </div>
+          <img src="/logo.svg" alt="LessAI" width={32} height={32} className="shrink-0" />
           <span className="font-bold text-gray-900 text-lg tracking-tight">LessAI</span>
         </div>
 
