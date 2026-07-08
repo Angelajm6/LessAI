@@ -865,18 +865,21 @@ export default function Home() {
           <div className={`${demoInView ? 'animate-fade-up' : 'opacity-0'}`} style={{ animationDelay: '260ms', animationFillMode: 'forwards' }}>
             <ProductDemo />
           </div>
-          <div className={`grid grid-cols-2 sm:grid-cols-4 gap-3 mt-8 ${demoInView ? 'animate-fade-up' : 'opacity-0'}`} style={{ animationDelay: '360ms', animationFillMode: 'forwards' }}>
-            {[
-              { label: 'AI Command Center', desc: 'Right tool + ready-to-paste prompt for any task' },
-              { label: 'Daily Tasks', desc: '10-min practice tasks that build real skill fast' },
-              { label: 'Prompt Lab', desc: 'Rewrite & score any prompt before/after' },
-              { label: 'Saved Prompts', desc: 'Your personal prompt library, organized by folder' },
-            ].map(item => (
-              <div key={item.label} className="bg-white/[0.04] border border-white/[0.07] rounded-2xl p-4 text-center hover:bg-white/[0.07] hover:border-white/[0.12] transition-all duration-200">
-                <p className="text-sm font-bold text-white mb-1">{item.label}</p>
-                <p className="text-xs text-gray-500">{item.desc}</p>
+          <div className={`mt-8 ${demoInView ? 'animate-fade-up' : 'opacity-0'}`} style={{ animationDelay: '360ms', animationFillMode: 'forwards' }}>
+            <div className="relative rounded-2xl border border-white/[0.08] overflow-hidden" style={{ background: 'rgba(255,255,255,0.03)' }}>
+              <div className="flex items-center gap-4 px-5 py-4 flex-wrap">
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="text-base">🤫</span>
+                  <p className="text-sm font-bold text-white">Psst — this is just the surface.</p>
+                </div>
+                <div className="flex gap-2 flex-wrap flex-1">
+                  {['Multi-tool Workflows', 'Tool Guides', 'XP & Level System', 'Stack Recommendations', '+ more'].map((f, i) => (
+                    <span key={f} className={`text-xs px-2.5 py-1 rounded-full font-medium border ${i === 4 ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400' : 'bg-white/[0.06] border-white/[0.08] text-gray-400'}`}>{f}</span>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-600 shrink-0 italic">Some good stuff stays behind the curtain 🎭</p>
               </div>
-            ))}
+            </div>
           </div>
         </div>
       </section>
