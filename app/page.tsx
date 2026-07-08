@@ -165,30 +165,56 @@ const features = [
 
 /* ─── Stat card ─────────────────────────────────────────────────────── */
 /* ─── Stat card ──────────────────────────────────────────────────────── */
-function StatCard({ value, suffix, label, source, href, delay, floatDelay }: { value: number; suffix: string; label: string; source: string; href: string; delay: number; floatDelay: number }) {
+const STAT_THEMES = {
+  green: {
+    border: 'conic-gradient(from 0deg, transparent 0deg, #10b981 60deg, #34d399 90deg, #6ee7b7 150deg, transparent 240deg, #10b981 300deg, transparent 360deg)',
+    hoverBg: 'hover:bg-emerald-50',
+    hoverShadow: 'hover:shadow-emerald-100/60',
+    numberHover: 'group-hover:text-emerald-600',
+    sourceColor: 'text-emerald-600',
+    linkColor: 'text-emerald-600',
+  },
+  blue: {
+    border: 'conic-gradient(from 0deg, transparent 0deg, #3b82f6 60deg, #60a5fa 90deg, #93c5fd 150deg, transparent 240deg, #3b82f6 300deg, transparent 360deg)',
+    hoverBg: 'hover:bg-blue-50',
+    hoverShadow: 'hover:shadow-blue-100/60',
+    numberHover: 'group-hover:text-blue-600',
+    sourceColor: 'text-blue-600',
+    linkColor: 'text-blue-600',
+  },
+  amber: {
+    border: 'conic-gradient(from 0deg, transparent 0deg, #f59e0b 60deg, #fbbf24 90deg, #fcd34d 150deg, transparent 240deg, #f59e0b 300deg, transparent 360deg)',
+    hoverBg: 'hover:bg-amber-50',
+    hoverShadow: 'hover:shadow-amber-100/60',
+    numberHover: 'group-hover:text-amber-500',
+    sourceColor: 'text-amber-600',
+    linkColor: 'text-amber-600',
+  },
+}
+
+function StatCard({ value, suffix, label, source, href, delay, floatDelay, color }: { value: number; suffix: string; label: string; source: string; href: string; delay: number; floatDelay: number; color: keyof typeof STAT_THEMES }) {
   const { ref, inView } = useInView()
   const count = useCounter(value, 2000, inView)
+  const theme = STAT_THEMES[color]
   return (
-    /* float wrapper */
     <div style={inView ? { animation: `float 4s ease-in-out ${floatDelay}ms infinite` } : undefined}>
-      {/* animated border shell */}
       <div
         ref={ref as unknown as React.RefObject<HTMLDivElement>}
         style={{ animationDelay: `${delay}ms`, animationFillMode: 'forwards' }}
         className={`relative rounded-2xl p-px overflow-hidden ${inView ? 'animate-scale-in' : 'opacity-0'}`}
       >
-        <div className="animate-border-spin absolute" style={{ width: '200%', height: '200%', top: '-50%', left: '-50%', background: 'conic-gradient(from 0deg, transparent 0deg, #10b981 60deg, #34d399 90deg, #fbbf24 150deg, #f59e0b 180deg, transparent 240deg, #10b981 300deg, transparent 360deg)' }} />
+        <div className="animate-border-spin absolute" style={{ width: '200%', height: '200%', top: '-50%', left: '-50%', background: theme.border }} />
         <a
           href={href} target="_blank" rel="noopener noreferrer"
-          className="group relative block bg-white rounded-2xl p-8 hover:bg-emerald-50 hover:shadow-xl hover:shadow-emerald-100/60 transition-all duration-300"
+          className={`group relative block bg-white rounded-2xl p-8 ${theme.hoverBg} hover:shadow-xl ${theme.hoverShadow} transition-all duration-300`}
         >
-          <div className="text-[3.75rem] font-black tabular-nums leading-none mb-3 text-gray-950 group-hover:text-emerald-600 transition-colors duration-300">
+          <div className={`text-[3.75rem] font-black tabular-nums leading-none mb-3 text-gray-950 ${theme.numberHover} transition-colors duration-300`}>
             {count}{suffix}
           </div>
           <div className="text-sm text-gray-500 leading-relaxed mb-4">{label}</div>
           <div className="flex items-center justify-between">
-            <span className="text-xs text-amber-600 font-semibold">{source}</span>
-            <span className="text-xs text-emerald-600 font-medium opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center gap-1">Read source <ArrowRight className="w-3 h-3" /></span>
+            <span className={`text-xs font-semibold ${theme.sourceColor}`}>{source}</span>
+            <span className={`text-xs font-medium opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center gap-1 ${theme.linkColor}`}>Read source <ArrowRight className="w-3 h-3" /></span>
           </div>
         </a>
       </div>
@@ -729,7 +755,7 @@ export default function Home() {
             Companies buy the tools. They skip the training. Nobody connects the dots back to one thing: knowing how to prompt.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {stats.map((s, i) => <StatCard key={s.value} {...s} delay={(i + 1) * 120} floatDelay={i * 600} />)}
+            {stats.map((s, i) => <StatCard key={s.value} {...s} delay={(i + 1) * 120} floatDelay={i * 600} color={(['green', 'blue', 'amber'] as const)[i]} />)}
           </div>
         </div>
       </section>
@@ -747,24 +773,32 @@ export default function Home() {
             LessAI personalizes everything to you — your role, your stack, your company. Then it builds your skills daily and gives managers full visibility into how the team is leveling up.
           </p>
           <div className="grid gap-3">
-            {steps.map((item, i) => (
+            {steps.map((item, i) => {
+              const stepColors = [
+                { border: 'border-emerald-500/15', bg: 'bg-emerald-500/[0.06]', hoverBg: 'hover:bg-emerald-500/[0.12]', hoverBorder: 'hover:border-emerald-400/30', hoverShadow: 'hover:shadow-emerald-500/10', iconBorder: 'border-emerald-400/25', iconBg: 'bg-emerald-400/10', iconHover: 'group-hover:bg-emerald-400/20', iconColor: 'text-emerald-300', numColor: 'text-emerald-600', titleColor: 'text-emerald-200' },
+                { border: 'border-blue-500/15', bg: 'bg-blue-500/[0.06]', hoverBg: 'hover:bg-blue-500/[0.12]', hoverBorder: 'hover:border-blue-400/30', hoverShadow: 'hover:shadow-blue-500/10', iconBorder: 'border-blue-400/25', iconBg: 'bg-blue-400/10', iconHover: 'group-hover:bg-blue-400/20', iconColor: 'text-blue-300', numColor: 'text-blue-500', titleColor: 'text-blue-200' },
+                { border: 'border-amber-500/15', bg: 'bg-amber-500/[0.06]', hoverBg: 'hover:bg-amber-500/[0.12]', hoverBorder: 'hover:border-amber-400/30', hoverShadow: 'hover:shadow-amber-500/10', iconBorder: 'border-amber-400/25', iconBg: 'bg-amber-400/10', iconHover: 'group-hover:bg-amber-400/20', iconColor: 'text-amber-300', numColor: 'text-amber-500', titleColor: 'text-amber-200' },
+                { border: 'border-violet-500/15', bg: 'bg-violet-500/[0.06]', hoverBg: 'hover:bg-violet-500/[0.12]', hoverBorder: 'hover:border-violet-400/30', hoverShadow: 'hover:shadow-violet-500/10', iconBorder: 'border-violet-400/25', iconBg: 'bg-violet-400/10', iconHover: 'group-hover:bg-violet-400/20', iconColor: 'text-violet-300', numColor: 'text-violet-500', titleColor: 'text-violet-200' },
+              ][i]
+              return (
               <div key={i}
-                className={`group flex gap-5 p-6 rounded-2xl border border-emerald-500/15 bg-emerald-500/[0.06] hover:bg-emerald-500/[0.12] hover:border-emerald-400/30 hover:shadow-xl hover:shadow-emerald-500/10 transition-all duration-300 cursor-default ${stepsInView ? 'animate-slide-left' : 'opacity-0'}`}
+                className={`group flex gap-5 p-6 rounded-2xl border ${stepColors.border} ${stepColors.bg} ${stepColors.hoverBg} ${stepColors.hoverBorder} hover:shadow-xl ${stepColors.hoverShadow} transition-all duration-300 cursor-default ${stepsInView ? 'animate-slide-left' : 'opacity-0'}`}
                 style={{ animationDelay: `${(i + 1) * 100}ms`, animationFillMode: 'forwards' }}>
                 <div className="shrink-0">
-                  <div className="w-11 h-11 rounded-xl border border-emerald-400/25 bg-emerald-400/10 flex items-center justify-center group-hover:bg-emerald-400/20 transition-all duration-300">
-                    <item.icon className="w-5 h-5 text-emerald-300" />
+                  <div className={`w-11 h-11 rounded-xl border ${stepColors.iconBorder} ${stepColors.iconBg} flex items-center justify-center ${stepColors.iconHover} transition-all duration-300`}>
+                    <item.icon className={`w-5 h-5 ${stepColors.iconColor}`} />
                   </div>
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-1.5">
-                    <span className="text-xs font-bold text-emerald-600">0{i + 1}</span>
-                    <h3 className="font-bold text-emerald-200">{item.title}</h3>
+                    <span className={`text-xs font-bold ${stepColors.numColor}`}>0{i + 1}</span>
+                    <h3 className={`font-bold ${stepColors.titleColor}`}>{item.title}</h3>
                   </div>
                   <p className="text-gray-500 text-sm leading-relaxed">{item.desc}</p>
                 </div>
               </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       </section>
