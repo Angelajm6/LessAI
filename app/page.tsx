@@ -678,7 +678,7 @@ export default function Home() {
             <Link href="/pricing" className="hidden sm:block text-sm text-gray-500 hover:text-gray-900 transition-colors px-3 py-1.5 rounded-lg hover:bg-gray-50">Pricing</Link>
             <Link href="/login" className="text-sm text-gray-500 hover:text-gray-900 transition-colors px-3 py-1.5 rounded-lg hover:bg-gray-50">Sign in</Link>
             <Link href="/signup" className="ml-1 flex items-center gap-1.5 bg-gray-950 hover:bg-gray-800 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-all duration-200 hover:shadow-lg hover:shadow-gray-900/20 group">
-              Get started <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+              Start free trial <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
             </Link>
           </div>
         </div>
@@ -708,7 +708,7 @@ export default function Home() {
                 <Link href="/signup" className="group relative">
                   <span className="absolute -inset-0.5 bg-gradient-to-r from-emerald-400 to-teal-400 rounded-2xl blur opacity-0 group-hover:opacity-40 transition-opacity duration-300" />
                   <span className="relative flex items-center gap-2 bg-gray-950 hover:bg-gray-800 text-white font-bold px-7 py-3.5 rounded-2xl transition-all duration-200 hover:shadow-xl hover:shadow-gray-900/20 text-base">
-                    Start for free <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    Start free trial <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </span>
                 </Link>
                 <Link href="/pricing" className="text-sm text-gray-500 hover:text-gray-900 transition-colors px-4 py-3.5 border border-gray-200 rounded-2xl hover:border-gray-300 hover:bg-gray-50 font-medium">
@@ -716,7 +716,7 @@ export default function Home() {
                 </Link>
               </div>
               <div className="flex items-center gap-5 mt-8 animate-fade-up" style={{ animationDelay: '340ms', animationFillMode: 'forwards' }}>
-                {['Free to start · no card needed', 'Setup in under 3 minutes', 'Built for your exact role & tools'].map(t => (
+                {['7-day free trial · no charge until day 8', 'Setup in under 3 minutes', 'Built for your exact role & tools'].map(t => (
                   <div key={t} className="flex items-center gap-1.5 text-xs text-gray-400 font-medium">
                     <CheckCircle className="w-3.5 h-3.5 text-emerald-500" /> {t}
                   </div>
@@ -1049,7 +1049,7 @@ export default function Home() {
         <div className="line-grid-3d" />
         <div className="relative max-w-2xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 bg-emerald-400/10 border border-emerald-400/20 rounded-full px-4 py-1.5 text-xs font-semibold text-emerald-400 mb-8">
-            <Zap className="w-3 h-3" /> Free to start
+            <Zap className="w-3 h-3" /> 7-day free trial
           </div>
           <h2 className="text-4xl sm:text-5xl font-black mb-4 leading-tight text-white">
             You have the tools.<br />
@@ -1058,7 +1058,7 @@ export default function Home() {
               <span className="absolute bottom-1 left-0 w-full h-3 bg-amber-400/25 -z-0 -rotate-1 rounded-sm" />
             </span>
           </h2>
-          <p className="text-gray-400 mb-8 text-lg">Get your personalized prompt playbook in under 3 minutes. Free to start.</p>
+          <p className="text-gray-400 mb-8 text-lg">Get your personalized prompt playbook in under 3 minutes. Full access free for 7 days.</p>
           <div className="flex items-center justify-center gap-3 flex-wrap">
             <Link href="/signup" className="group relative">
               <span className="absolute -inset-0.5 bg-gradient-to-r from-amber-400 to-amber-300 rounded-2xl blur opacity-50 group-hover:opacity-80 transition-opacity duration-300" />
