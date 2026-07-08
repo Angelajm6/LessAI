@@ -716,7 +716,7 @@ export default function Home() {
                 </Link>
               </div>
               <div className="flex items-center gap-5 mt-8 animate-fade-up" style={{ animationDelay: '340ms', animationFillMode: 'forwards' }}>
-                {['Free to start', 'No AI experience needed', 'Built for your role & tools'].map(t => (
+                {['Free to start · no card needed', 'Setup in under 3 minutes', 'Built for your exact role & tools'].map(t => (
                   <div key={t} className="flex items-center gap-1.5 text-xs text-gray-400 font-medium">
                     <CheckCircle className="w-3.5 h-3.5 text-emerald-500" /> {t}
                   </div>
@@ -954,17 +954,48 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── WAITLIST ── */}
-      <section className="py-20 px-6 relative overflow-hidden bg-gray-950 border-t border-white/[0.04]">
-        <div className="line-grid-3d opacity-50" />
-        <div className="max-w-xl mx-auto text-center relative">
-          <div className="inline-flex items-center gap-2 bg-amber-400/10 border border-amber-400/20 rounded-full px-4 py-1.5 text-xs font-semibold text-amber-400 mb-6">
-            <Mail className="w-3 h-3" /> Not ready to sign up yet?
+      {/* ── SOCIAL PROOF ── */}
+      <section className="py-16 px-6 bg-gray-950 border-t border-white/[0.04]">
+        <div className="max-w-4xl mx-auto">
+          <p className="text-center text-xs font-semibold text-gray-600 uppercase tracking-widest mb-10">What people are saying</p>
+          <div className="grid md:grid-cols-3 gap-4">
+            {[
+              {
+                quote: "I've been using ChatGPT for a year and had no idea I was prompting it wrong. LessAI showed me exactly what to fix — my outputs improved overnight.",
+                name: 'Sophie M.',
+                role: 'Content Strategist',
+                initials: 'SM',
+                color: 'from-emerald-500 to-teal-400',
+              },
+              {
+                quote: "We rolled out 6 AI tools across the team and nobody knew how to use them properly. LessAI gave everyone a daily practice routine and gave me visibility into who's actually leveling up.",
+                name: 'James R.',
+                role: 'Head of Operations',
+                initials: 'JR',
+                color: 'from-amber-400 to-orange-400',
+              },
+              {
+                quote: "The AI Command Center is genuinely useful. I describe my task and it tells me exactly which tool to use and gives me a prompt built for my role. Saves me so much back-and-forth.",
+                name: 'Priya K.',
+                role: 'Marketing Manager',
+                initials: 'PK',
+                color: 'from-blue-400 to-indigo-400',
+              },
+            ].map(({ quote, name, role, initials, color }) => (
+              <div key={name} className="bg-white/[0.04] border border-white/[0.07] rounded-2xl p-6 flex flex-col gap-4">
+                <p className="text-sm text-gray-300 leading-relaxed flex-1">&ldquo;{quote}&rdquo;</p>
+                <div className="flex items-center gap-3">
+                  <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${color} flex items-center justify-center shrink-0`}>
+                    <span className="text-xs font-black text-white">{initials}</span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-white">{name}</p>
+                    <p className="text-xs text-gray-500">{role}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
-          <h2 className="text-3xl font-black text-white mb-3">Stay in the loop</h2>
-          <p className="text-gray-400 text-sm mb-8 leading-relaxed">Drop your email and we&apos;ll let you know when we launch new features, roles, and tool guides. No spam — just product updates worth reading.</p>
-          <WaitlistForm />
-          <p className="text-xs text-gray-600 mt-4">Or reach us directly at <a href="mailto:hello@lessai.io" className="text-emerald-400 hover:text-emerald-300 transition-colors">hello@lessai.io</a></p>
         </div>
       </section>
 
@@ -994,6 +1025,7 @@ export default function Home() {
               Sign in
             </Link>
           </div>
+          <p className="text-xs text-gray-600 mt-4">No credit card required · setup in under 3 minutes</p>
         </div>
       </section>
 
