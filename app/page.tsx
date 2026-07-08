@@ -954,50 +954,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── SOCIAL PROOF ── */}
-      <section className="py-16 px-6 bg-gray-950 border-t border-white/[0.04]">
-        <div className="max-w-4xl mx-auto">
-          <p className="text-center text-xs font-semibold text-gray-600 uppercase tracking-widest mb-10">What people are saying</p>
-          <div className="grid md:grid-cols-3 gap-4">
-            {[
-              {
-                quote: "I've been using ChatGPT for a year and had no idea I was prompting it wrong. LessAI showed me exactly what to fix — my outputs improved overnight.",
-                name: 'Sophie M.',
-                role: 'Content Strategist',
-                initials: 'SM',
-                color: 'from-emerald-500 to-teal-400',
-              },
-              {
-                quote: "We rolled out 6 AI tools across the team and nobody knew how to use them properly. LessAI gave everyone a daily practice routine and gave me visibility into who's actually leveling up.",
-                name: 'James R.',
-                role: 'Head of Operations',
-                initials: 'JR',
-                color: 'from-amber-400 to-orange-400',
-              },
-              {
-                quote: "The AI Command Center is genuinely useful. I describe my task and it tells me exactly which tool to use and gives me a prompt built for my role. Saves me so much back-and-forth.",
-                name: 'Priya K.',
-                role: 'Marketing Manager',
-                initials: 'PK',
-                color: 'from-blue-400 to-indigo-400',
-              },
-            ].map(({ quote, name, role, initials, color }) => (
-              <div key={name} className="bg-white/[0.04] border border-white/[0.07] rounded-2xl p-6 flex flex-col gap-4">
-                <p className="text-sm text-gray-300 leading-relaxed flex-1">&ldquo;{quote}&rdquo;</p>
-                <div className="flex items-center gap-3">
-                  <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${color} flex items-center justify-center shrink-0`}>
-                    <span className="text-xs font-black text-white">{initials}</span>
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-white">{name}</p>
-                    <p className="text-xs text-gray-500">{role}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* ── FINAL CTA ── */}
       <section className="relative py-20 px-6 bg-gray-950 isolate border-t border-white/[0.04]">
