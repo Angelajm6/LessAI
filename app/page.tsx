@@ -699,7 +699,7 @@ export default function Home() {
                 <span className="bg-gradient-to-r from-gray-900 via-emerald-700 to-teal-600 bg-clip-text text-transparent">One place to master them.</span>
               </h1>
               <p className="text-lg text-gray-500 mb-4 leading-relaxed animate-fade-up" style={{ animationDelay: '160ms', animationFillMode: 'forwards' }}>
-                Learning on your own, stuck with tools your company bought but never trained you on, or rolling AI out across a team — LessAI is the hub where you actually get good at this.
+                Your company bought the AI tools. Nobody trained you on them. LessAI fixes that — role-specific coaching, daily practice, and full team visibility in one place.
               </p>
               <p className="text-sm text-gray-400 mb-8 animate-fade-up" style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}>
                 Role-specific coaching · daily practice · AI Command Center · team skill tracking
@@ -1049,7 +1049,7 @@ export default function Home() {
         <div className="line-grid-3d" />
         <div className="relative max-w-2xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 bg-emerald-400/10 border border-emerald-400/20 rounded-full px-4 py-1.5 text-xs font-semibold text-emerald-400 mb-8">
-            <Zap className="w-3 h-3" /> 7-day free trial
+            <Zap className="w-3 h-3" /> Free to start
           </div>
           <h2 className="text-4xl sm:text-5xl font-black mb-4 leading-tight text-white">
             You have the tools.<br />
@@ -1108,7 +1108,7 @@ export default function Home() {
               <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Legal</p>
               <ul className="space-y-2">
                 {['Privacy Policy', 'Terms of Service'].map(l => (
-                  <li key={l}><span className="text-sm text-gray-600 cursor-default">{l}</span></li>
+                  <li key={l}><a href="mailto:hello@lessai.io" className="text-sm text-gray-500 hover:text-white transition-colors">{l}</a></li>
                 ))}
               </ul>
             </div>
