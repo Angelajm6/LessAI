@@ -9,11 +9,16 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase
+  const { data: rawProfile } = await supabase
     .from('profiles')
     .select('full_name, is_admin')
     .eq('id', user.id)
     .single()
+
+  const profile = rawProfile ? {
+    ...rawProfile,
+    full_name: rawProfile.full_name ?? (user.user_metadata?.full_name as string | undefined) ?? null,
+  } : rawProfile
 
   return (
     <div className="min-h-screen bg-gray-50">

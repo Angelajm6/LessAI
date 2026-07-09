@@ -146,7 +146,7 @@ function OnboardingFlow() {
   const searchParams = useSearchParams()
   const updateStackMode = searchParams.get('from') === 'stack'
   const demoMode = searchParams.get('demo') === 'true'
-  const [step, setStep] = useState(1)
+  const [step, setStep] = useState(updateStackMode ? 3 : 1)
   const [roles, setRoles] = useState<string[]>(() => demoMode ? ['Marketing'] : [])
   const [customRole, setCustomRole] = useState('')
   const [company, setCompany] = useState(() => demoMode ? 'Acme Corp' : '')

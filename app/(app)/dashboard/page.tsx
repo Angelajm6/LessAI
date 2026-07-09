@@ -8,11 +8,17 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase
+  const { data: rawProfile } = await supabase
     .from('profiles')
     .select('id, full_name, role, tools, tool_levels, company_name, company_summary, company_website, is_admin, onboarded, company_id')
     .eq('id', user.id)
     .single()
+
+  // Fall back to auth metadata if profile full_name is missing
+  const profile = rawProfile ? {
+    ...rawProfile,
+    full_name: rawProfile.full_name ?? (user.user_metadata?.full_name as string | undefined) ?? null,
+  } : rawProfile
 
   const { data: teamPromptsData } = profile?.company_id
     ? await supabase
