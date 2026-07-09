@@ -7,12 +7,13 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { ArrowRight, User, Building2, Mail, Lock, Eye, EyeOff } from 'lucide-react'
+import { ArrowRight, User, Building2, Mail, Lock, Eye, EyeOff, CheckCircle } from 'lucide-react'
 
 export default function SignupPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [emailSent, setEmailSent] = useState(false)
   const [focused, setFocused] = useState<string | null>(null)
   const [hovered, setHovered] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
@@ -55,7 +56,15 @@ export default function SignupPage() {
       return
     }
 
-    if (data.user) {
+    if (data.user && !data.session) {
+      // Email confirmation required — profile created after they click the link
+      setEmailSent(true)
+      setLoading(false)
+      return
+    }
+
+    if (data.user && data.session) {
+      // Email confirmation disabled — create profile immediately
       const { data: company } = await supabase
         .from('companies')
         .insert({ name: form.companyName, admin_id: data.user.id })
@@ -81,6 +90,30 @@ export default function SignupPage() {
     { id: 'email', label: 'Work email', placeholder: 'you@company.com', type: 'email', icon: Mail, key: 'email' as const },
     { id: 'password', label: 'Password', placeholder: 'Min. 8 characters', type: 'password', icon: Lock, key: 'password' as const },
   ]
+
+  if (emailSent) {
+    return (
+      <div className="relative bg-white rounded-2xl border border-gray-100 p-8 overflow-hidden text-center"
+        style={{ boxShadow: '0 8px 40px -8px rgba(0,0,0,0.5)' }}>
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 via-emerald-500 to-amber-400 rounded-t-2xl" />
+        <div className="flex items-center gap-2 mb-8 justify-center">
+          <img src="/logo.svg" alt="LessAI" width={32} height={32} className="shrink-0" />
+          <span className="font-bold text-gray-900 text-lg tracking-tight">LessAI</span>
+        </div>
+        <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-5">
+          <CheckCircle className="w-7 h-7 text-emerald-600" />
+        </div>
+        <h1 className="text-2xl font-black text-gray-900 mb-2">Check your email</h1>
+        <p className="text-gray-500 text-sm mb-1">We sent a confirmation link to</p>
+        <p className="font-semibold text-gray-900 text-sm mb-6">{form.email}</p>
+        <p className="text-xs text-gray-400 mb-6">Click the link in the email to activate your account. Check your spam folder if you don&apos;t see it within a minute.</p>
+        <button onClick={() => setEmailSent(false)}
+          className="text-sm text-emerald-600 hover:text-emerald-700 font-medium hover:underline underline-offset-2">
+          ← Use a different email
+        </button>
+      </div>
+    )
+  }
 
   return (
     <div
