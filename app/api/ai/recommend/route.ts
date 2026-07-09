@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { task, role, tools, toolLevels, company } = await req.json()
+  const { task, role, tools, toolLevels, company, companySummary, firstName } = await req.json()
 
   if (!task?.trim()) return NextResponse.json({ error: 'Task required' }, { status: 400 })
   if (!tools?.length) return NextResponse.json({ error: 'No tools in stack' }, { status: 400 })
@@ -18,7 +18,9 @@ export async function POST(req: NextRequest) {
       role ?? 'professional',
       tools,
       toolLevels ?? {},
-      company ?? null
+      company ?? null,
+      companySummary ?? null,
+      firstName ?? null,
     )
     return NextResponse.json(recommendation)
   } catch (err) {

@@ -44,6 +44,8 @@ interface Props {
     tools: string[] | null
     tool_levels: Record<string, string> | null
     company_name?: string | null
+    company_summary?: string | null
+    company_website?: string | null
   }
   stackMap: StackMap | null
   playbook: Playbook | null
@@ -96,7 +98,7 @@ const NAV_ITEMS: { key: Section; icon: React.ElementType; label: string }[] = [
   { key: 'guides', icon: BookOpen, label: 'Tool Guides' },
 ]
 
-function PlaybookGenerator({ profile, onDone }: { profile: Props['profile']; onDone: () => void }) {
+function PlaybookGenerator({ profile, firstName, onDone }: { profile: Props['profile']; firstName: string; onDone: () => void }) {
   const [status, setStatus] = useState<'idle' | 'generating' | 'done' | 'error'>('idle')
   const [errorMsg, setErrorMsg] = useState('')
 
@@ -111,6 +113,9 @@ function PlaybookGenerator({ profile, onDone }: { profile: Props['profile']; onD
           role: profile.role,
           tools: profile.tools ?? [],
           toolLevels: profile.tool_levels ?? {},
+          company: profile.company_name ?? null,
+          companySummary: profile.company_summary ?? null,
+          firstName,
         }),
       })
       if (res.ok) {
@@ -404,7 +409,7 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
         const res = await fetch('/api/ai/recommend', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ task: taskText, role: profile.role, tools, toolLevels, company: profile.company_name ?? null }),
+          body: JSON.stringify({ task: taskText, role: profile.role, tools, toolLevels, company: profile.company_name ?? null, companySummary: profile.company_summary ?? null, firstName }),
         })
         if (res.ok) setRecommendation(await res.json())
       } finally {
@@ -423,7 +428,7 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
       const res = await fetch('/api/ai/recommend', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ task, role: profile.role, tools, toolLevels, company: profile.company_name ?? null }),
+        body: JSON.stringify({ task, role: profile.role, tools, toolLevels, company: profile.company_name ?? null, companySummary: profile.company_summary ?? null, firstName }),
       })
       if (res.ok) {
         const data = await res.json()
@@ -453,14 +458,14 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
     const detectPromise = fetch('/api/ai/detect-tool', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: text, role: profile.role, tools }),
+      body: JSON.stringify({ message: text, role: profile.role, tools, company: profile.company_name ?? null, companySummary: profile.company_summary ?? null, firstName }),
     }).then(r => r.ok ? r.json() : null).catch(() => null)
 
     try {
       const res = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: newMessages, role: profile.role, tools, toolLevels, company: profile.company_name ?? null }),
+        body: JSON.stringify({ messages: newMessages, role: profile.role, tools, toolLevels, company: profile.company_name ?? null, companySummary: profile.company_summary ?? null, firstName }),
       })
       if (res.ok) {
         const { reply } = await res.json()
@@ -963,7 +968,7 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
             </div>
 
             {!playbook ? (
-              <PlaybookGenerator profile={profile} onDone={() => window.location.reload()} />
+              <PlaybookGenerator profile={profile} firstName={firstName} onDone={() => window.location.reload()} />
             ) : (
               <div className="flex flex-col sm:flex-row gap-5">
                 {/* Tool tabs */}

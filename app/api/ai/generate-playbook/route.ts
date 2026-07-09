@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { role, tools, toolLevels } = await req.json()
+  const { role, tools, toolLevels, company, companySummary, firstName } = await req.json()
 
   if (!tools || tools.length === 0) {
     return NextResponse.json({ error: 'No tools provided' }, { status: 400 })
@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
   const tool_playbooks: ToolPlaybook[] = []
   for (const tool of tools as string[]) {
     try {
-      const tp = await generatePlaybookForTool(role, tool, toolLevels?.[tool] ?? 'never')
+      const tp = await generatePlaybookForTool(role, tool, toolLevels?.[tool] ?? 'never', company ?? null, companySummary ?? null, firstName ?? null)
       tool_playbooks.push(tp)
     } catch (err) {
       console.error(`Playbook generation error for ${tool}:`, err)

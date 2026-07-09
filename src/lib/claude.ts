@@ -199,9 +199,14 @@ export async function generatePlaybookForTool(
   role: string,
   tool: string,
   level: string,
+  company?: string | null,
+  companySummary?: string | null,
+  firstName?: string | null,
 ): Promise<ToolPlaybook> {
+  const companyLine = company ? ` They work at ${company}${companySummary ? ` (${companySummary})` : ''}.` : ''
+  const nameLine = firstName ? ` Their name is ${firstName}.` : ''
   const text = await chat(
-    `You are an expert AI prompt coach. A ${role} uses ${tool} (skill level: ${level}).
+    `You are an expert AI prompt coach. A ${role} uses ${tool} (skill level: ${level}).${companyLine}${nameLine}
 
 Create 2 prompt frameworks that are genuinely useful for a ${role} using ${tool}.
 A framework is a reusable prompt template with [PLACEHOLDER] variables.
@@ -216,7 +221,7 @@ Return a JSON object with this EXACT structure (no extra text, no markdown):
       "use_case": "One sentence: when a ${role} should reach for this",
       "framework": "The full reusable prompt template. Use [CAPS_PLACEHOLDER] for variables. 3-5 sentences with context, task, constraints, and output format.",
       "before": "A weak, vague prompt a beginner might write (1-2 sentences)",
-      "after": "The same prompt using the framework — filled in with a realistic ${role} example",
+      "after": "The same prompt using the framework — filled in with a realistic ${role} example${company ? ` at ${company}` : ''}",
       "why_better": "One sentence: the specific technique that makes the after version better"
     }
   ]
@@ -224,7 +229,7 @@ Return a JSON object with this EXACT structure (no extra text, no markdown):
 
 Rules:
 - Exactly 2 frameworks
-- Role-specific for a ${role} using ${tool}, not generic
+- Role-specific for a ${role} using ${tool}, not generic${company ? ` at ${company}` : ''}
 - Make before/after contrast stark and educational
 - Return ONLY the JSON object`,
     2000
@@ -236,15 +241,18 @@ export async function generatePlaybook(
   role: string,
   tools: string[],
   toolLevels: Record<string, string>,
-  company?: string | null
+  company?: string | null,
+  companySummary?: string | null,
+  firstName?: string | null,
 ): Promise<Playbook> {
   const toolList = tools.map(t => `${t} (${toolLevels[t] ?? 'never'})`).join(', ')
-  const companyLine = company ? `They work at ${company}.` : ''
+  const companyLine = company ? `They work at ${company}${companySummary ? ` — ${companySummary}` : ''}.` : ''
+  const nameLine = firstName ? ` Their name is ${firstName}.` : ''
 
   const text = await chat(
-    `You are an expert AI prompt coach. A ${role} uses these AI tools: ${toolList}. ${companyLine}
+    `You are an expert AI prompt coach. A ${role} uses these AI tools: ${toolList}. ${companyLine}${nameLine}
 
-For each tool, create 3 prompt frameworks that are genuinely useful for a ${role}.
+For each tool, create 3 prompt frameworks that are genuinely useful for a ${role}${company ? ` at ${company}` : ''}.
 A framework is a reusable prompt template with [PLACEHOLDER] variables the user fills in.
 
 Return a JSON object with this EXACT structure (no extra text, no markdown):
@@ -302,14 +310,17 @@ export async function generateRecommendation(
   role: string,
   tools: string[],
   toolLevels: Record<string, string>,
-  company?: string | null
+  company?: string | null,
+  companySummary?: string | null,
+  firstName?: string | null,
 ): Promise<Recommendation> {
   const toolList = tools.map(t => `${t} (${toolLevels[t] ?? 'never used'})`).join(', ')
-  const companyLine = company ? ` They work at ${company}.` : ''
+  const companyLine = company ? ` They work at ${company}${companySummary ? ` (${companySummary})` : ''}.` : ''
+  const nameLine = firstName ? ` Their name is ${firstName}.` : ''
 
   const text = await chat(
     `You are an expert AI tool advisor. A ${role} wants to accomplish: "${task}"
-Their AI tools: ${toolList}.${companyLine}
+Their AI tools: ${toolList}.${companyLine}${nameLine}
 
 Be extremely opinionated. Pick the single best tool from their stack for this task.
 

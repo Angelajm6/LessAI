@@ -161,10 +161,17 @@ function OnboardingFlow() {
   const [prefillLoading, setPrefillLoading] = useState(updateStackMode)
 
   useEffect(() => {
-    if (!updateStackMode) return
     const supabase = createClient()
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) { setPrefillLoading(false); return }
+
+      if (!updateStackMode) {
+        // Fresh signup — prefill company name from account creation metadata
+        const meta = user.user_metadata ?? {}
+        if (meta.company_name) setCompany(meta.company_name as string)
+        return
+      }
+
       supabase.from('profiles').select('role, company_name, company_website, tools, tool_levels').eq('id', user.id).single()
         .then(({ data }) => {
           if (data) {
@@ -245,6 +252,7 @@ function OnboardingFlow() {
       await supabase.from('profiles').upsert({
         id: user.id,
         email: user.email ?? '',
+        full_name: user.user_metadata?.full_name ?? null,
         role: selectedRole,
         company_name: company.trim() || null,
         company_website: website.trim() || null,

@@ -9,27 +9,29 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { messages, role, tools, toolLevels, company } = await req.json()
+  const { messages, role, tools, toolLevels, company, companySummary, firstName } = await req.json()
 
   const toolContext = (tools as string[]).map((t: string) =>
-    `- ${t} (skill level: ${(toolLevels as Record<string, string>)[t] ?? 'unknown'})`
+    `- ${t} (skill level: ${(toolLevels as Record<string, string>)?.[t] ?? 'unknown'})`
   ).join('\n')
 
   const systemPrompt = `You are an AI tool coach embedded in LessAI, an app that helps employees master their company's AI stack.
 
 The person you're talking to:
+- Name: ${firstName ?? 'the user'}
 - Role: ${role}
 ${company ? `- Company: ${company}` : ''}
+${companySummary ? `- About their company: ${companySummary}` : ''}
 - AI tools they have access to:
 ${toolContext}
 
 Your job:
 - Answer questions about their specific tools (features, use cases, how-tos, comparisons)
-- Give advice that's targeted to their role — not generic AI tips
+- Give advice that's targeted to their role and company context — not generic AI tips
 - When comparing tools, use their actual stack — don't suggest tools they don't have
 - If they ask "which tool should I use for X?", give a direct recommendation from their stack with a one-line reason
 - Keep answers concise and actionable. No fluff. Max 3-4 short paragraphs.
-- If you give an example prompt or action, make it specific to a ${role}'s real work
+- If you give an example prompt or action, make it specific to a ${role}'s real work${company ? ` at ${company}` : ''}
 
 You are NOT a general-purpose assistant. Stay focused on helping them get more out of their AI tools.`
 
