@@ -79,6 +79,7 @@ export default function SettingsClient({ profile, companyName, userEmail }: Prop
   const [passwordError, setPasswordError] = useState('')
   const [deleteConfirm, setDeleteConfirm] = useState('')
   const [deleting, setDeleting] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
 
   const finalRole = role === 'Other' ? customRole.trim() : role
   const originalRole = profile?.role ?? ''
@@ -186,8 +187,7 @@ export default function SettingsClient({ profile, companyName, userEmail }: Prop
     setTimeout(() => setPasswordSaved(false), 2500)
   }
 
-  async function handleDeleteAccount() {
-    if (deleteConfirm !== 'DELETE') return
+  async function confirmDeleteAccount() {
     setDeleting(true)
     await fetch('/api/account/delete', { method: 'POST' })
     const supabase = createClient()
@@ -417,10 +417,10 @@ export default function SettingsClient({ profile, companyName, userEmail }: Prop
             onChange={e => setDeleteConfirm(e.target.value)}
             className="border-gray-200 focus:border-red-400 focus:ring-red-400"
           />
-          <Button onClick={handleDeleteAccount} disabled={deleteConfirm !== 'DELETE' || deleting}
+          <Button onClick={() => setShowDeleteModal(true)} disabled={deleteConfirm !== 'DELETE'}
             variant="outline"
             className="w-full border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 gap-1.5">
-            {deleting ? 'Deleting…' : 'Delete my account'}
+            Delete my account
           </Button>
         </div>
       </section>
@@ -460,6 +460,40 @@ export default function SettingsClient({ profile, companyName, userEmail }: Prop
           ) : saving ? 'Saving…' : significantChange ? 'Save without regenerating' : 'Save changes'}
         </Button>
       </div>
+
+      {/* Delete account confirmation modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+          <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
+            <div className="p-6">
+              <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center mb-4">
+                <AlertTriangle className="w-5 h-5 text-red-500" />
+              </div>
+              <h2 className="text-lg font-bold text-gray-900 mb-1">Are you absolutely sure?</h2>
+              <p className="text-sm text-gray-500">
+                This will permanently delete your account, all your progress, saved prompts, and AI-generated plans. <strong className="text-gray-700">This cannot be undone.</strong>
+              </p>
+            </div>
+            <div className="px-6 pb-6 flex gap-3">
+              <Button
+                variant="outline"
+                className="flex-1 border-gray-200 text-gray-700 hover:bg-gray-50"
+                onClick={() => setShowDeleteModal(false)}
+                disabled={deleting}
+              >
+                Cancel
+              </Button>
+              <Button
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                onClick={confirmDeleteAccount}
+                disabled={deleting}
+              >
+                {deleting ? 'Deleting…' : 'Yes, delete my account'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
