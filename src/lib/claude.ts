@@ -98,14 +98,14 @@ export async function generateStackMap(
   const toolList = tools.map(t => `${t} (${toolLevels[t] ?? 'never'})`).join(', ')
   const companyLine = company ? `They work at ${company}.` : ''
   const summaryLine = companySummary ? `Company context: ${companySummary}` : ''
+  const context = `A ${role} has these AI tools: ${toolList}. ${companyLine} ${summaryLine}`
 
-  const text = await chat(
-    `You are an AI adoption coach. A ${role} has these AI tools: ${toolList}. ${companyLine} ${summaryLine}
-
-Use the company context to make every task, example, and use case specific to their actual business.
+  // Split into two parallel calls to stay within Vercel Edge's 25s limit
+  const [cardsText, tracksText] = await Promise.all([
+    chat(
+      `You are an AI adoption coach. ${context}
 
 Return a JSON object with this EXACT structure (no extra text, no markdown):
-
 {
   "summary": "2 sentences about their stack strengths and biggest gap",
   "workflow_tip": "1 sentence on chaining 2-3 of their tools for a common ${role} task",
@@ -118,7 +118,18 @@ Return a JSON object with this EXACT structure (no extra text, no markdown):
       "vs_others": "1 sentence vs most similar tool in their stack",
       "killer_use_case": "One specific 10-min task for a ${role} that would impress their manager"
     }
-  ],
+  ]
+}
+
+Include ALL ${tools.length} tools in tool_cards: ${tools.join(', ')}. Return ONLY the JSON object.`,
+      2048,
+      FAST_MODEL
+    ),
+    chat(
+      `You are an AI adoption coach. ${context}
+
+Return a JSON object with this EXACT structure (no extra text, no markdown):
+{
   "tool_tracks": [
     {
       "tool": "tool name",
@@ -135,13 +146,15 @@ Return a JSON object with this EXACT structure (no extra text, no markdown):
   ]
 }
 
-Include ALL ${tools.length} tools in both tool_cards and tool_tracks: ${tools.join(', ')}.
-daily_tasks: exactly 5 per tool. Return ONLY the JSON object.`,
-    4096,
-    FAST_MODEL
-  )
+Include ALL ${tools.length} tools in tool_tracks: ${tools.join(', ')}. Exactly 5 daily_tasks per tool. Return ONLY the JSON object.`,
+      2048,
+      FAST_MODEL
+    ),
+  ])
 
-  return JSON.parse(text)
+  const cards = JSON.parse(cardsText)
+  const tracks = JSON.parse(tracksText)
+  return { ...cards, ...tracks }
 }
 
 export async function generateAIPath(
