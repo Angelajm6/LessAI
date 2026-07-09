@@ -145,13 +145,14 @@ function OnboardingFlow() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const updateStackMode = searchParams.get('from') === 'stack'
+  const demoMode = searchParams.get('demo') === 'true'
   const [step, setStep] = useState(1)
-  const [roles, setRoles] = useState<string[]>([])
+  const [roles, setRoles] = useState<string[]>(() => demoMode ? ['Marketing'] : [])
   const [customRole, setCustomRole] = useState('')
-  const [company, setCompany] = useState('')
-  const [selectedTools, setSelectedTools] = useState<string[]>([])
+  const [company, setCompany] = useState(() => demoMode ? 'Acme Corp' : '')
+  const [selectedTools, setSelectedTools] = useState<string[]>(() => demoMode ? ['ChatGPT', 'Notion AI', 'Canva AI'] : [])
   const [customTool, setCustomTool] = useState('')
-  const [toolLevels, setToolLevels] = useState<Record<string, string>>({})
+  const [toolLevels, setToolLevels] = useState<Record<string, string>>(demoMode ? { ChatGPT: 'learning', 'Notion AI': 'never', 'Canva AI': 'never' } : {})
   const [website, setWebsite] = useState('')
   const [scraping, setScraping] = useState(false)
   const [companySummary, setCompanySummary] = useState<string | null>(null)
@@ -161,6 +162,7 @@ function OnboardingFlow() {
   const [prefillLoading, setPrefillLoading] = useState(updateStackMode)
 
   useEffect(() => {
+    if (demoMode) return
     const supabase = createClient()
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) { setPrefillLoading(false); return }
@@ -370,6 +372,14 @@ function OnboardingFlow() {
       </div>
 
       <div className="max-w-xl mx-auto">
+
+        {/* Demo mode banner */}
+        {demoMode && (
+          <div className="mb-6 flex items-center gap-2.5 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+            <span className="text-lg">👋</span>
+            <p className="text-sm text-amber-800"><strong>Demo mode</strong> — fields are pre-filled so you can click straight through and see how LessAI builds your personalised AI stack.</p>
+          </div>
+        )}
 
         {/* Progress stepper */}
         <div className="mb-8">

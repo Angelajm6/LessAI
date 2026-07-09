@@ -25,8 +25,7 @@ export default function LoginPage() {
     try {
       const res = await fetch('/api/demo-login', { method: 'POST' })
       if (!res.ok) { setError('Demo account unavailable — please try again shortly.'); setDemoLoading(false); return }
-      router.refresh()
-      router.push('/dashboard')
+      router.push('/onboarding?demo=true')
     } catch {
       setError('Network error — check your connection.')
       setDemoLoading(false)
