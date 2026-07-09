@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 export const runtime = 'edge'
 export const maxDuration = 60
 import { createClient } from '@/lib/supabase/server'
-import { generateStackMap, generatePlaybook } from '@/lib/claude'
+import { generateStackMap } from '@/lib/claude'
 import { sendWelcomeEmail } from '@/lib/email'
 
 export async function POST(req: NextRequest) {
@@ -23,36 +23,27 @@ export async function POST(req: NextRequest) {
   }
 
   let stackMap
-  let playbook
   try {
-    ;[stackMap, playbook] = await Promise.all([
-      generateStackMap(role, tools, toolLevels ?? {}, company ?? null, companySummary ?? null),
-      generatePlaybook(role, tools, toolLevels ?? {}, company ?? null),
-    ])
+    stackMap = await generateStackMap(role, tools, toolLevels ?? {}, company ?? null, companySummary ?? null)
   } catch (err) {
     console.error('Generation error:', err)
     return NextResponse.json({ error: err instanceof Error ? err.message : 'AI generation failed' }, { status: 500 })
   }
 
-  // Replace any existing data for this user
-  await Promise.all([
-    supabase.from('ai_paths').delete().eq('user_id', user.id),
-    supabase.from('playbooks').delete().eq('user_id', user.id),
-  ])
+  // Replace any existing stack map for this user
+  await supabase.from('ai_paths').delete().eq('user_id', user.id)
 
-  const [{ data, error }, { error: playbookError }] = await Promise.all([
-    supabase.from('ai_paths').insert({ user_id: user.id, use_cases: stackMap }).select().single(),
-    supabase.from('playbooks').insert({ user_id: user.id, data: playbook }),
-  ])
+  const { data, error } = await supabase
+    .from('ai_paths')
+    .insert({ user_id: user.id, use_cases: stackMap })
+    .select()
+    .single()
 
   if (error) {
     console.error('DB insert error:', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
-  if (playbookError) {
-    console.error('Playbook insert error:', playbookError)
-    // Non-fatal — stack map succeeded, continue
-  }
+  // Playbook is generated lazily when the user first opens the Playbook tab
 
   // Mark onboarding complete server-side (reliable — avoids client-side session race)
   await supabase.from('profiles').update({ onboarded: true }).eq('id', user.id)
