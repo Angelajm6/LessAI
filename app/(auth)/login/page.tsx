@@ -38,30 +38,33 @@ export default function LoginPage() {
     setLoading(true)
     setError('')
 
-    const supabase = createClient()
-    const { error: signInError } = await supabase.auth.signInWithPassword(form)
+    try {
+      const supabase = createClient()
+      const { error: signInError } = await supabase.auth.signInWithPassword(form)
 
-    if (signInError) {
-      setError(signInError.message)
+      if (signInError) {
+        setError(signInError.message)
+        setLoading(false)
+        return
+      }
+
+      const { data: { user } } = await supabase.auth.getUser()
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('is_admin, onboarded')
+        .eq('id', user?.id ?? '')
+        .single()
+
+      if (profile?.is_admin) {
+        router.push('/admin')
+      } else if (!profile?.onboarded) {
+        router.push('/onboarding')
+      } else {
+        router.push('/dashboard')
+      }
+    } catch {
+      setError('Something went wrong. Please try again.')
       setLoading(false)
-      return
-    }
-
-    const { data: { user } } = await supabase.auth.getUser()
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('is_admin, onboarded')
-      .eq('id', user?.id ?? '')
-      .single()
-
-    router.refresh()
-
-    if (profile?.is_admin) {
-      router.push('/admin')
-    } else if (!profile?.onboarded) {
-      router.push('/onboarding')
-    } else {
-      router.push('/dashboard')
     }
   }
 
