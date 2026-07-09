@@ -254,7 +254,7 @@ function OnboardingFlow() {
       await supabase.from('profiles').upsert({
         id: user.id,
         email: user.email ?? '',
-        full_name: user.user_metadata?.full_name ?? null,
+        full_name: user.user_metadata?.full_name ?? (demoMode ? 'Alex Rivera' : null),
         role: selectedRole,
         company_name: company.trim() || null,
         company_website: website.trim() || null,
