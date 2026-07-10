@@ -1,0 +1,277 @@
+<h2 class="sr-only">LessAI hackathon evaluation: project scores, top 3 hackathon matches, and action items per event.</h2>
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); color: var(--color-text-primary); }
+.section { margin-bottom: 2rem; }
+.section-label { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-text-tertiary); margin-bottom: 0.75rem; }
+.card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; }
+.metric-card { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 0.875rem 1rem; }
+.grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+.grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.score-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.score-label { font-size: 13px; color: var(--color-text-secondary); min-width: 140px; }
+.score-bar-bg { flex: 1; height: 6px; background: var(--color-background-secondary); border-radius: 99px; overflow: hidden; }
+.score-bar { height: 100%; border-radius: 99px; }
+.score-val { font-size: 13px; font-weight: 500; min-width: 32px; text-align: right; }
+.hackathon-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); overflow: hidden; margin-bottom: 1rem; }
+.hackathon-header { padding: 1rem 1.25rem 0.875rem; border-bottom: 0.5px solid var(--color-border-tertiary); display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.hackathon-body { padding: 1rem 1.25rem; }
+.fit-badge { font-size: 12px; font-weight: 500; padding: 4px 10px; border-radius: var(--border-radius-md); white-space: nowrap; }
+.fit-high { background: #EAF3DE; color: #3B6D11; }
+.fit-mid { background: #E6F1FB; color: #185FA5; }
+.pill { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 500; padding: 3px 8px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-tertiary); color: var(--color-text-secondary); margin: 2px; }
+.action-item { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 8px; }
+.action-num { width: 20px; height: 20px; border-radius: 50%; background: var(--color-background-secondary); font-size: 11px; font-weight: 500; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--color-text-secondary); margin-top: 1px; }
+.action-text { font-size: 13px; color: var(--color-text-secondary); line-height: 1.5; }
+.action-text strong { color: var(--color-text-primary); font-weight: 500; }
+.criteria-chip { font-size: 11px; padding: 2px 7px; border-radius: var(--border-radius-md); background: var(--color-background-info); color: var(--color-text-info); display: inline-block; margin: 2px; }
+.divider { height: 0.5px; background: var(--color-border-tertiary); margin: 1rem 0; }
+.tag-row { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.overall-score { font-size: 40px; font-weight: 500; color: var(--color-text-primary); line-height: 1; }
+.overall-label { font-size: 13px; color: var(--color-text-secondary); margin-top: 4px; }
+.rank-badge { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; flex-shrink: 0; }
+.rank-1 { background: #FAEEDA; color: #633806; }
+.rank-2 { background: #D3D1C7; color: #2C2C2A; }
+.rank-3 { background: #F5C4B3; color: #4A1B0C; }
+</style>
+
+<div style="padding: 1.5rem 0 0.5rem;">
+
+  <div class="section">
+    <p class="section-label">Project evaluation — LessAI</p>
+    <div class="card">
+      <div style="display: flex; align-items: flex-start; gap: 1.5rem; flex-wrap: wrap;">
+        <div style="flex-shrink: 0;">
+          <div class="overall-score">71<span style="font-size: 20px; color: var(--color-text-tertiary)">/100</span></div>
+          <div class="overall-label">Overall readiness</div>
+          <div style="margin-top: 12px; font-size: 12px; color: var(--color-text-secondary); max-width: 140px; line-height: 1.5;">Strong product, needs pitch sharpening</div>
+        </div>
+        <div style="flex: 1; min-width: 240px;">
+          <div class="score-row">
+            <span class="score-label"><i class="ti ti-bulb" aria-hidden="true" style="font-size:14px; vertical-align:-1px; margin-right:5px;"></i>Innovation</span>
+            <div class="score-bar-bg"><div class="score-bar" style="width: 70%; background: #3B6D11;"></div></div>
+            <span class="score-val" style="color: #3B6D11;">7/10</span>
+          </div>
+          <div class="score-row">
+            <span class="score-label"><i class="ti ti-cpu" aria-hidden="true" style="font-size:14px; vertical-align:-1px; margin-right:5px;"></i>Technical complexity</span>
+            <div class="score-bar-bg"><div class="score-bar" style="width: 75%; background: #185FA5;"></div></div>
+            <span class="score-val" style="color: #185FA5;">7.5/10</span>
+          </div>
+          <div class="score-row">
+            <span class="score-label"><i class="ti ti-trending-up" aria-hidden="true" style="font-size:14px; vertical-align:-1px; margin-right:5px;"></i>Market potential</span>
+            <div class="score-bar-bg"><div class="score-bar" style="width: 80%; background: #854F0B;"></div></div>
+            <span class="score-val" style="color: #854F0B;">8/10</span>
+          </div>
+          <div class="score-row">
+            <span class="score-label"><i class="ti ti-presentation" aria-hidden="true" style="font-size:14px; vertical-align:-1px; margin-right:5px;"></i>Presentation quality</span>
+            <div class="score-bar-bg"><div class="score-bar" style="width: 60%; background: #993C1D;"></div></div>
+            <span class="score-val" style="color: #993C1D;">6/10</span>
+          </div>
+          <div class="score-row">
+            <span class="score-label"><i class="ti ti-heart" aria-hidden="true" style="font-size:14px; vertical-align:-1px; margin-right:5px;"></i>Social impact</span>
+            <div class="score-bar-bg"><div class="score-bar" style="width: 70%; background: #534AB7;"></div></div>
+            <span class="score-val" style="color: #534AB7;">7/10</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="grid-4">
+        <div class="metric-card">
+          <div style="font-size: 11px; color: var(--color-text-tertiary); margin-bottom: 4px;">Biggest strength</div>
+          <div style="font-size: 13px; font-weight: 500;">Working live product</div>
+        </div>
+        <div class="metric-card">
+          <div style="font-size: 11px; color: var(--color-text-tertiary); margin-bottom: 4px;">Biggest gap</div>
+          <div style="font-size: 13px; font-weight: 500;">No demo video / deck</div>
+        </div>
+        <div class="metric-card">
+          <div style="font-size: 11px; color: var(--color-text-tertiary); margin-bottom: 4px;">TAM signal</div>
+          <div style="font-size: 13px; font-weight: 500;">$4.5B AI training market</div>
+        </div>
+        <div class="metric-card">
+          <div style="font-size: 11px; color: var(--color-text-tertiary); margin-bottom: 4px;">Differentiator</div>
+          <div style="font-size: 13px; font-weight: 500;">Role + company context</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <p class="section-label">Top 3 hackathon matches — July to December 2026</p>
+
+    <div class="hackathon-card">
+      <div class="hackathon-header">
+        <div style="display: flex; align-items: flex-start; gap: 10px;">
+          <div class="rank-badge rank-1">1</div>
+          <div>
+            <div style="font-size: 15px; font-weight: 500; margin-bottom: 3px;">AI Genesis 2026 — lablab.ai</div>
+            <div style="font-size: 12px; color: var(--color-text-secondary);">Oct 26 – Nov 3, 2026 &nbsp;·&nbsp; Hybrid (online + Dubai finale)</div>
+            <div class="tag-row">
+              <span class="pill"><i class="ti ti-world" aria-hidden="true"></i>Global</span>
+              <span class="pill"><i class="ti ti-users" aria-hidden="true"></i>3,000+ builders</span>
+              <span class="pill"><i class="ti ti-building" aria-hidden="true"></i>Enterprise AI focus</span>
+            </div>
+          </div>
+        </div>
+        <div style="text-align: right; flex-shrink: 0;">
+          <span class="fit-badge fit-high">86% fit</span>
+        </div>
+      </div>
+      <div class="hackathon-body">
+        <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px;">
+          <span class="criteria-chip">Real-world impact</span>
+          <span class="criteria-chip">AI integration depth</span>
+          <span class="criteria-chip">Business value</span>
+          <span class="criteria-chip">Uniqueness</span>
+        </div>
+        <p style="font-size: 13px; color: var(--color-text-secondary); line-height: 1.6; margin-bottom: 12px;">
+          Judges explicitly score on <strong style="color: var(--color-text-primary);">practical business value</strong> and <strong style="color: var(--color-text-primary);">AI integration depth</strong> — both are LessAI's core identity. The global AI builder audience is your ideal early adopter. Live demo at the Dubai finale is a major credibility moment. Prior winners have included B2B SaaS productivity tools.
+        </p>
+        <div class="divider"></div>
+        <div style="font-size: 12px; font-weight: 500; color: var(--color-text-secondary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.06em;">Action items</div>
+        <div class="action-item">
+          <div class="action-num">1</div>
+          <div class="action-text"><strong>Choose a partner tech challenge.</strong> AI Genesis requires building with a sponsor's API/stack. Map OpenRouter → Anthropic Claude track; this unlocks the Claude partner prize pool on top of the main prize.</div>
+        </div>
+        <div class="action-item">
+          <div class="action-num">2</div>
+          <div class="action-text"><strong>Frame the impact numerically.</strong> Judges want to see "X% productivity lift" or "saves Y hours/week." Run a quick 5-user test before the hackathon, collect time-on-task data.</div>
+        </div>
+        <div class="action-item">
+          <div class="action-num">3</div>
+          <div class="action-text"><strong>Build a 90-second live demo path.</strong> Show: blank slate → onboarding → AI generates role-specific tasks → Prompt Lab scores a real prompt → progress streak. No slide deck needed — this alone wins.</div>
+        </div>
+        <div class="action-item">
+          <div class="action-num">4</div>
+          <div class="action-text"><strong>Add an enterprise angle.</strong> Admin dashboard + team leaderboard is your team-tier story. Quantify: "Managers can see which team members haven't practiced ChatGPT this week." That's a retention/ROI hook.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hackathon-card">
+      <div class="hackathon-header">
+        <div style="display: flex; align-items: flex-start; gap: 10px;">
+          <div class="rank-badge rank-2">2</div>
+          <div>
+            <div style="font-size: 15px; font-weight: 500; margin-bottom: 3px;">Future of Work Hackathon — Devpost</div>
+            <div style="font-size: 12px; color: var(--color-text-secondary);">Rolling submissions &nbsp;·&nbsp; Virtual</div>
+            <div class="tag-row">
+              <span class="pill"><i class="ti ti-device-laptop" aria-hidden="true"></i>Virtual</span>
+              <span class="pill"><i class="ti ti-school" aria-hidden="true"></i>Workforce skills</span>
+              <span class="pill"><i class="ti ti-heart" aria-hidden="true"></i>Social impact track</span>
+            </div>
+          </div>
+        </div>
+        <div style="text-align: right; flex-shrink: 0;">
+          <span class="fit-badge fit-high">82% fit</span>
+        </div>
+      </div>
+      <div class="hackathon-body">
+        <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px;">
+          <span class="criteria-chip">Worker empowerment</span>
+          <span class="criteria-chip">Skill discovery</span>
+          <span class="criteria-chip">Practical problem solving</span>
+        </div>
+        <p style="font-size: 13px; color: var(--color-text-secondary); line-height: 1.6; margin-bottom: 12px;">
+          The stated goal is <strong style="color: var(--color-text-primary);">"empower workers to discover, learn and solve practical industry challenges"</strong> — LessAI is literally the answer to this brief. The social impact track rewards tools that address workforce skill gaps, which AI literacy clearly does. Low competition vs. the big open AI events.
+        </p>
+        <div class="divider"></div>
+        <div style="font-size: 12px; font-weight: 500; color: var(--color-text-secondary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.06em;">Action items</div>
+        <div class="action-item">
+          <div class="action-num">1</div>
+          <div class="action-text"><strong>Lead with the equity angle.</strong> "AI skill gaps disproportionately affect non-technical workers who already use ChatGPT but never learned to prompt it well — LessAI closes that gap in 2 minutes/day." This is the social impact thesis.</div>
+        </div>
+        <div class="action-item">
+          <div class="action-num">2</div>
+          <div class="action-text"><strong>Add a free-forever tier story.</strong> If LessAI has a genuinely free tier for individual workers (not just a trial), this framing directly answers the inclusion/access criterion judges will score.</div>
+        </div>
+        <div class="action-item">
+          <div class="action-num">3</div>
+          <div class="action-text"><strong>Prepare a 5-min presentation + 3-min Q&A.</strong> This hackathon uses a live pitch format. Judges are from academia and investment — emphasize data (user cohort, completion rates, prompt score improvement %) over tech.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hackathon-card">
+      <div class="hackathon-header">
+        <div style="display: flex; align-items: flex-start; gap: 10px;">
+          <div class="rank-badge rank-3">3</div>
+          <div>
+            <div style="font-size: 15px; font-weight: 500; margin-bottom: 3px;">Automation Innovation Hackathon 2026 — Devpost</div>
+            <div style="font-size: 12px; color: var(--color-text-secondary);">Dates TBA &nbsp;·&nbsp; Virtual</div>
+            <div class="tag-row">
+              <span class="pill"><i class="ti ti-device-laptop" aria-hidden="true"></i>Virtual</span>
+              <span class="pill"><i class="ti ti-settings-automation" aria-hidden="true"></i>Workflow automation</span>
+              <span class="pill"><i class="ti ti-briefcase" aria-hidden="true"></i>Business solutions</span>
+            </div>
+          </div>
+        </div>
+        <div style="text-align: right; flex-shrink: 0;">
+          <span class="fit-badge fit-mid">74% fit</span>
+        </div>
+      </div>
+      <div class="hackathon-body">
+        <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px;">
+          <span class="criteria-chip">Automation depth</span>
+          <span class="criteria-chip">Real-world application</span>
+          <span class="criteria-chip">Business ROI</span>
+        </div>
+        <p style="font-size: 13px; color: var(--color-text-secondary); line-height: 1.6; margin-bottom: 12px;">
+          Theme is "Automate to Innovate: Build Solutions That Work." LessAI automates the most manual part of AI adoption — figuring out what to learn and how to practice. The weekly digest cron, streak automation, and AI-generated task stack are all genuine automation stories. Slightly lower fit because judges may expect pure workflow tools (Zapier-style), not edtech.
+        </p>
+        <div class="divider"></div>
+        <div style="font-size: 12px; font-weight: 500; color: var(--color-text-secondary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.06em;">Action items</div>
+        <div class="action-item">
+          <div class="action-num">1</div>
+          <div class="action-text"><strong>Re-frame as "AI adoption automation."</strong> Don't pitch LessAI as an education tool here — pitch it as "the automated AI onboarding layer your company never had." Position the AI path generation + weekly digest as a zero-touch automation pipeline.</div>
+        </div>
+        <div class="action-item">
+          <div class="action-num">2</div>
+          <div class="action-text"><strong>Show the admin automation stack.</strong> Invite flow → auto-onboarding → auto-generated stack → weekly digest → streak reminders. That's a 5-step no-touch automation chain that runs without HR involvement.</div>
+        </div>
+        <div class="action-item">
+          <div class="action-num">3</div>
+          <div class="action-text"><strong>Add one integration hook before submitting.</strong> A Slack notification when a teammate completes their daily task, or a Zapier webhook output, would make this feel like a true automation platform rather than a standalone app.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <p class="section-label">Universal gaps to close before any submission</p>
+    <div class="card">
+      <div class="grid-2">
+        <div>
+          <div style="font-size: 13px; font-weight: 500; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;"><i class="ti ti-video" aria-hidden="true" style="font-size:15px;"></i>Must-haves</div>
+          <div class="action-item">
+            <div class="action-num">1</div>
+            <div class="action-text"><strong>60-second demo video.</strong> Record the full flow: onboard → tasks → Prompt Lab → score improvement. Judges watch videos first — this is your first impression.</div>
+          </div>
+          <div class="action-item">
+            <div class="action-num">2</div>
+            <div class="action-text"><strong>One hard metric.</strong> "Users who complete the Prompt Lab see an average +X point quality improvement." Pull this from real usage data.</div>
+          </div>
+          <div class="action-item">
+            <div class="action-num">3</div>
+            <div class="action-text"><strong>Live demo URL.</strong> lessai.io must be publicly accessible with a test account judges can use without signing up.</div>
+          </div>
+        </div>
+        <div>
+          <div style="font-size: 13px; font-weight: 500; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;"><i class="ti ti-arrow-up" aria-hidden="true" style="font-size:15px;"></i>Nice-to-haves</div>
+          <div class="action-item">
+            <div class="action-num">4</div>
+            <div class="action-text"><strong>Stripe billing page.</strong> Any hackathon with a "market potential" criterion will score higher if you can show a live payment flow — even a mock checkout page signals commercial viability.</div>
+          </div>
+          <div class="action-item">
+            <div class="action-num">5</div>
+            <div class="action-text"><strong>2-3 beta users with quotes.</strong> A real testimonial from a non-technical worker ("I went from avoiding ChatGPT to using it daily") beats any slide. A CSM, HR manager, or sales rep quote is ideal.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
