@@ -57,6 +57,7 @@ interface Props {
   teamPrompts?: { id: string; title: string; content: string; tool: string | null; pinned: boolean; created_at: string }[]
   teamLeaderboard?: { id: string; full_name: string | null; xp: number; streak: number }[]
   labHistory?: LabHistoryItem[]
+  initialSavedWorkflowIds?: string[]
 }
 
 const XP_LEVELS = [
@@ -159,7 +160,7 @@ function PlaybookGenerator({ profile, firstName, onDone }: { profile: Props['pro
   )
 }
 
-export default function DashboardClient({ profile, stackMap, playbook, completedTasks: initialCompleted, savedPrompts: initialSaved, promptFolders: initialFolders, initialXp = 0, initialStreak = 0, teamPrompts = [], teamLeaderboard = [], labHistory: initialLabHistory = [] }: Props) {
+export default function DashboardClient({ profile, stackMap, playbook, completedTasks: initialCompleted, savedPrompts: initialSaved, promptFolders: initialFolders, initialXp = 0, initialStreak = 0, teamPrompts = [], teamLeaderboard = [], labHistory: initialLabHistory = [], initialSavedWorkflowIds = [] }: Props) {
   const searchParams = useSearchParams()
   const [section, setSection] = useState<Section>(() => {
     const s = searchParams.get('section')
@@ -222,7 +223,7 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
   const [workflowCategory, setWorkflowCategory] = useState<Workflow['category'] | 'all'>('all')
   const [myStackOnly, setMyStackOnly] = useState(() => searchParams.get('from') === 'onboarding')
   const [activeWorkflow, setActiveWorkflow] = useState<Workflow | null>(null)
-  const [savedWorkflowIds, setSavedWorkflowIds] = useState<Set<string>>(new Set())
+  const [savedWorkflowIds, setSavedWorkflowIds] = useState<Set<string>>(new Set(initialSavedWorkflowIds))
   const [copiedStep, setCopiedStep] = useState<string | null>(null)
 
   const firstName = profile.full_name?.split(' ')[0] ?? 'there'
@@ -1584,6 +1585,33 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                 </div>
               )}
             </div>
+
+            {/* Saved Workflows */}
+            {savedWorkflowIds.size > 0 && (
+              <div className="mt-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <Layers className="w-4 h-4 text-emerald-600" />
+                  <h3 className="text-sm font-bold text-gray-900">Saved Workflows</h3>
+                  <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-bold">{savedWorkflowIds.size}</span>
+                </div>
+                <div className="space-y-2">
+                  {WORKFLOWS.filter(w => savedWorkflowIds.has(w.id)).map(w => (
+                    <div key={w.id} className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm flex items-center justify-between gap-3 hover:border-emerald-200 hover:shadow-md transition-all duration-200">
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-gray-900 truncate">{w.title}</p>
+                        <p className="text-xs text-gray-500 truncate mt-0.5">{w.description}</p>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button onClick={() => { setSection('workflows'); setActiveWorkflow(w) }}
+                          className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl hover:bg-emerald-100 transition-colors flex items-center gap-1">
+                          Open <ArrowRight className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
           </div>
         )}
@@ -2264,13 +2292,22 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
             return true
           })
 
-          function toggleSave(id: string) {
+          async function toggleSave(id: string) {
+            const isSaved = savedWorkflowIds.has(id)
             setSavedWorkflowIds(prev => {
               const next = new Set(prev)
-              if (next.has(id)) next.delete(id)
+              if (isSaved) next.delete(id)
               else next.add(id)
               return next
             })
+            const sb = createClient()
+            const { data: { user } } = await sb.auth.getUser()
+            if (!user) return
+            if (isSaved) {
+              await sb.from('saved_workflows').delete().eq('user_id', user.id).eq('workflow_id', id)
+            } else {
+              await sb.from('saved_workflows').insert({ user_id: user.id, workflow_id: id })
+            }
           }
 
           async function copyPrompt(prompt: string, key: string) {

@@ -71,6 +71,11 @@ export default async function DashboardPage() {
     .limit(1)
     .single()
 
+  const { data: savedWorkflowsData } = await supabase
+    .from('saved_workflows')
+    .select('workflow_id')
+    .eq('user_id', user.id)
+
   const { data: labHistoryData } = await supabase
     .from('prompt_lab_history')
     .select('id, original, improved, tool, scores_before, scores_after, summary, created_at')
@@ -111,6 +116,7 @@ export default async function DashboardPage() {
         teamPrompts={teamPromptsData ?? []}
         teamLeaderboard={teamLeaderboard}
         labHistory={labHistoryData as never}
+        initialSavedWorkflowIds={(savedWorkflowsData ?? []).map(r => r.workflow_id)}
       />
     </Suspense>
   )
