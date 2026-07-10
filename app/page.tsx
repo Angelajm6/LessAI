@@ -677,7 +677,7 @@ export default function Home() {
           <div className="flex items-center gap-1">
             <Link href="/pricing" className="hidden sm:block text-sm text-gray-500 hover:text-gray-900 transition-colors px-3 py-1.5 rounded-lg hover:bg-gray-50">Pricing</Link>
             <Link href="/login" className="text-sm text-gray-500 hover:text-gray-900 transition-colors px-3 py-1.5 rounded-lg hover:bg-gray-50">Sign in</Link>
-            <Link href="/signup" className="ml-1 flex items-center gap-1.5 bg-gray-950 hover:bg-gray-800 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-all duration-200 hover:shadow-lg hover:shadow-gray-900/20 group">
+            <Link href="/pricing" className="ml-1 flex items-center gap-1.5 bg-gray-950 hover:bg-gray-800 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-all duration-200 hover:shadow-lg hover:shadow-gray-900/20 group">
               Start free trial <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
             </Link>
           </div>
@@ -705,7 +705,7 @@ export default function Home() {
                 Role-specific coaching · daily practice · AI Command Center · team skill tracking
               </p>
               <div className="flex items-center gap-3 flex-wrap animate-fade-up" style={{ animationDelay: '260ms', animationFillMode: 'forwards' }}>
-                <Link href="/signup" className="group relative">
+                <Link href="/pricing" className="group relative">
                   <span className="absolute -inset-0.5 bg-gradient-to-r from-emerald-400 to-teal-400 rounded-2xl blur opacity-0 group-hover:opacity-40 transition-opacity duration-300" />
                   <span className="relative flex items-center gap-2 bg-gray-950 hover:bg-gray-800 text-white font-bold px-7 py-3.5 rounded-2xl transition-all duration-200 hover:shadow-xl hover:shadow-gray-900/20 text-base">
                     Start free trial <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -785,7 +785,7 @@ export default function Home() {
             ))}
           </div>
           <div className="text-center mt-10">
-            <Link href="/signup" className="inline-flex items-center gap-2 bg-gray-950 hover:bg-gray-800 text-white font-semibold px-7 py-3.5 rounded-2xl transition-all duration-200 text-sm hover:shadow-xl hover:shadow-gray-900/20">
+            <Link href="/pricing" className="inline-flex items-center gap-2 bg-gray-950 hover:bg-gray-800 text-white font-semibold px-7 py-3.5 rounded-2xl transition-all duration-200 text-sm hover:shadow-xl hover:shadow-gray-900/20">
               Start free — works for all three <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
@@ -944,7 +944,7 @@ export default function Home() {
                 </div>
               ))}
               <div className="pt-2">
-                <Link href="/signup" className="group inline-flex items-center gap-2 bg-gray-950 hover:bg-gray-800 text-white font-bold px-6 py-3 rounded-xl transition-all duration-200 text-sm hover:shadow-xl hover:shadow-gray-900/20">
+                <Link href="/pricing" className="group inline-flex items-center gap-2 bg-gray-950 hover:bg-gray-800 text-white font-bold px-6 py-3 rounded-xl transition-all duration-200 text-sm hover:shadow-xl hover:shadow-gray-900/20">
                   Set up your team <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                 </Link>
               </div>
@@ -1034,7 +1034,7 @@ export default function Home() {
                   <p className="font-bold text-base mb-1.5 text-white">The pitch to your leadership team:</p>
                   <p className="text-gray-400 text-sm max-w-lg leading-relaxed">&ldquo;We gave everyone AI tools. Now we&apos;re giving them the training to use them well. LessAI shows skill gaps, tracks improvement, and proves our AI investment is paying off — with real data.&rdquo;</p>
                 </div>
-                <Link href="/signup" className="group shrink-0 flex items-center gap-2 bg-amber-400 hover:bg-amber-300 text-gray-950 font-bold px-5 py-2.5 rounded-xl transition-all duration-200 hover:shadow-lg hover:shadow-amber-400/30 text-sm">
+                <Link href="/pricing" className="group shrink-0 flex items-center gap-2 bg-amber-400 hover:bg-amber-300 text-gray-950 font-bold px-5 py-2.5 rounded-xl transition-all duration-200 hover:shadow-lg hover:shadow-amber-400/30 text-sm">
                   Get the admin dashboard <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                 </Link>
               </div>
@@ -1060,7 +1060,7 @@ export default function Home() {
           </h2>
           <p className="text-gray-400 mb-8 text-lg">Get your personalized prompt playbook in under 3 minutes. Full access free for 7 days.</p>
           <div className="flex items-center justify-center gap-3 flex-wrap">
-            <Link href="/signup" className="group relative">
+            <Link href="/pricing" className="group relative">
               <span className="absolute -inset-0.5 bg-gradient-to-r from-amber-400 to-amber-300 rounded-2xl blur opacity-50 group-hover:opacity-80 transition-opacity duration-300" />
               <span className="relative flex items-center gap-2 bg-amber-400 hover:bg-amber-300 text-gray-950 font-bold px-8 py-4 rounded-2xl transition-all duration-200 text-base">
                 Get my prompt playbook <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
