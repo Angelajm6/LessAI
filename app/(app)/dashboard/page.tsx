@@ -76,6 +76,11 @@ export default async function DashboardPage() {
     .select('workflow_id')
     .eq('user_id', user.id)
 
+  const { data: completedWorkflowsData } = await supabase
+    .from('completed_workflows')
+    .select('workflow_id')
+    .eq('user_id', user.id)
+
   const { data: labHistoryData } = await supabase
     .from('prompt_lab_history')
     .select('id, original, improved, tool, scores_before, scores_after, summary, created_at')
@@ -117,6 +122,7 @@ export default async function DashboardPage() {
         teamLeaderboard={teamLeaderboard}
         labHistory={labHistoryData as never}
         initialSavedWorkflowIds={(savedWorkflowsData ?? []).map(r => r.workflow_id)}
+        initialCompletedWorkflowIds={(completedWorkflowsData ?? []).map(r => r.workflow_id)}
         subscriptionStatus={rawProfile?.subscription_status ?? null}
         trialEnd={rawProfile?.trial_end ?? null}
         plan={rawProfile?.plan ?? null}

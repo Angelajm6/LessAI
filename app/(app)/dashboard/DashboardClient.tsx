@@ -58,6 +58,7 @@ interface Props {
   teamLeaderboard?: { id: string; full_name: string | null; xp: number; streak: number }[]
   labHistory?: LabHistoryItem[]
   initialSavedWorkflowIds?: string[]
+  initialCompletedWorkflowIds?: string[]
   subscriptionStatus?: string | null
   trialEnd?: string | null
   plan?: string | null
@@ -163,7 +164,7 @@ function PlaybookGenerator({ profile, firstName, onDone }: { profile: Props['pro
   )
 }
 
-export default function DashboardClient({ profile, stackMap, playbook, completedTasks: initialCompleted, savedPrompts: initialSaved, promptFolders: initialFolders, initialXp = 0, initialStreak = 0, teamPrompts = [], teamLeaderboard = [], labHistory: initialLabHistory = [], initialSavedWorkflowIds = [], subscriptionStatus = null, trialEnd = null, plan = null }: Props) {
+export default function DashboardClient({ profile, stackMap, playbook, completedTasks: initialCompleted, savedPrompts: initialSaved, promptFolders: initialFolders, initialXp = 0, initialStreak = 0, teamPrompts = [], teamLeaderboard = [], labHistory: initialLabHistory = [], initialSavedWorkflowIds = [], initialCompletedWorkflowIds = [], subscriptionStatus = null, trialEnd = null, plan = null }: Props) {
   const searchParams = useSearchParams()
   const [section, setSection] = useState<Section>(() => {
     const s = searchParams.get('section')
@@ -227,7 +228,9 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
   const [myStackOnly, setMyStackOnly] = useState(() => searchParams.get('from') === 'onboarding')
   const [activeWorkflow, setActiveWorkflow] = useState<Workflow | null>(null)
   const [savedWorkflowIds, setSavedWorkflowIds] = useState<Set<string>>(new Set(initialSavedWorkflowIds))
+  const [completedWorkflowIds, setCompletedWorkflowIds] = useState<Set<string>>(new Set(initialCompletedWorkflowIds))
   const [savedTab, setSavedTab] = useState<'prompts' | 'workflows'>('prompts')
+  const [labSearch, setLabSearch] = useState('')
   const [copiedStep, setCopiedStep] = useState<string | null>(null)
 
   const firstName = profile.full_name?.split(' ')[0] ?? 'there'
@@ -754,6 +757,46 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                   <p className="text-xs sm:text-sm text-gray-400 mt-0.5">{profile.role} · {tools.length} tools in your stack</p>
                 </div>
               </div>
+
+              {/* Onboarding checklist */}
+              {(() => {
+                const steps = [
+                  { label: 'Complete your profile', done: !!(profile.role && tools.length > 0), action: () => window.location.href = '/settings' },
+                  { label: 'Complete your first daily task', done: completed.length > 0, action: () => setSection('tasks') },
+                  { label: 'Save a prompt', done: saved.length > 0, action: () => setSection('tasks') },
+                  { label: 'Try the Prompt Studio', done: labHistory.length > 0, action: () => setSection('studio') },
+                  { label: 'Save a workflow', done: savedWorkflowIds.size > 0, action: () => setSection('workflows') },
+                ]
+                const doneCount = steps.filter(s => s.done).length
+                if (doneCount === steps.length) return null
+                return (
+                  <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-base">🚀</span>
+                        <h3 className="text-sm font-bold text-gray-900">Get started</h3>
+                      </div>
+                      <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-full px-2.5 py-0.5">{doneCount}/{steps.length} done</span>
+                    </div>
+                    <div className="w-full bg-gray-100 rounded-full h-1.5 mb-3 overflow-hidden">
+                      <div className="h-1.5 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-500"
+                        style={{ width: `${(doneCount / steps.length) * 100}%` }} />
+                    </div>
+                    <div className="space-y-2">
+                      {steps.map((step, i) => (
+                        <button key={i} onClick={step.done ? undefined : step.action} disabled={step.done}
+                          className={`w-full flex items-center gap-3 text-left px-3 py-2 rounded-xl transition-colors ${step.done ? 'opacity-60 cursor-default' : 'hover:bg-gray-50 cursor-pointer'}`}>
+                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${step.done ? 'bg-emerald-500 border-emerald-500' : 'border-gray-300'}`}>
+                            {step.done && <CheckCircle className="w-3.5 h-3.5 text-white fill-white" />}
+                          </div>
+                          <span className={`text-sm ${step.done ? 'line-through text-gray-400' : 'text-gray-700 font-medium'}`}>{step.label}</span>
+                          {!step.done && <ArrowRight className="w-3.5 h-3.5 text-gray-300 ml-auto shrink-0" />}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )
+              })()}
 
               {/* Streak nudge */}
               {showNudge && (
@@ -2248,8 +2291,25 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                   </div>
 
                   {/* History list */}
+                  {labHistory.length > 3 && (
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={labSearch}
+                        onChange={e => setLabSearch(e.target.value)}
+                        placeholder="Search your prompt history…"
+                        className="w-full text-sm bg-white border border-gray-200 rounded-xl px-4 py-2.5 pl-9 focus:outline-none focus:border-emerald-400 transition-colors"
+                      />
+                      <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                    </div>
+                  )}
                   <div className="space-y-2">
-                    {labHistory.map((item) => {
+                    {labHistory.filter(item =>
+                      !labSearch.trim() ||
+                      item.original.toLowerCase().includes(labSearch.toLowerCase()) ||
+                      item.improved.toLowerCase().includes(labSearch.toLowerCase()) ||
+                      (item.tool ?? '').toLowerCase().includes(labSearch.toLowerCase())
+                    ).map((item) => {
                       const isExpanded = labExpandedId === item.id
                       const after = avgScore(item)
                       const before = avgBefore(item)
@@ -2372,6 +2432,24 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
               await sb.from('saved_workflows').delete().eq('user_id', user.id).eq('workflow_id', id)
             } else {
               await sb.from('saved_workflows').insert({ user_id: user.id, workflow_id: id })
+            }
+          }
+
+          async function toggleComplete(id: string) {
+            const isDone = completedWorkflowIds.has(id)
+            setCompletedWorkflowIds(prev => {
+              const next = new Set(prev)
+              if (isDone) next.delete(id)
+              else next.add(id)
+              return next
+            })
+            const sb = createClient()
+            const { data: { user } } = await sb.auth.getUser()
+            if (!user) return
+            if (isDone) {
+              await sb.from('completed_workflows').delete().eq('user_id', user.id).eq('workflow_id', id)
+            } else {
+              await sb.from('completed_workflows').insert({ user_id: user.id, workflow_id: id })
             }
           }
 
@@ -2511,10 +2589,21 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                     <p className="text-sm font-semibold text-gray-800">Ready to run this workflow?</p>
                     <p className="text-xs text-gray-500 mt-0.5">Copy each prompt, paste it into the right tool, then pass the output to the next step.</p>
                   </div>
-                  <button onClick={() => { setSection('studio'); setStudioMode('command') }}
-                    className="shrink-0 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl px-4 py-2.5 text-sm flex items-center gap-2 transition-colors">
-                    <Play className="w-3.5 h-3.5" /> Open Prompt Studio
-                  </button>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <button onClick={() => toggleComplete(activeWorkflow.id)}
+                      className={`shrink-0 flex items-center gap-2 font-bold rounded-xl px-4 py-2.5 text-sm transition-colors border ${
+                        completedWorkflowIds.has(activeWorkflow.id)
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                          : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-100'
+                      }`}>
+                      <CheckCircle className={`w-3.5 h-3.5 ${completedWorkflowIds.has(activeWorkflow.id) ? 'fill-emerald-500 text-emerald-500' : ''}`} />
+                      {completedWorkflowIds.has(activeWorkflow.id) ? 'Completed' : 'Mark as done'}
+                    </button>
+                    <button onClick={() => { setSection('studio'); setStudioMode('command') }}
+                      className="shrink-0 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl px-4 py-2.5 text-sm flex items-center gap-2 transition-colors">
+                      <Play className="w-3.5 h-3.5" /> Open Prompt Studio
+                    </button>
+                  </div>
                 </div>
               </div>
             )
@@ -2581,10 +2670,11 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                     const partial = !compatible && workflow.tools.some(t => tools.includes(t))
                     const missingTools = workflow.tools.filter(t => !tools.includes(t))
                     const isSaved = savedWorkflowIds.has(workflow.id)
+                    const isDone = completedWorkflowIds.has(workflow.id)
 
                     return (
                       <div key={workflow.id}
-                        className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:border-emerald-200 hover:shadow-md transition-all duration-200 flex flex-col">
+                        className={`bg-white border rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col ${isDone ? 'border-emerald-200 bg-emerald-50/30' : 'border-gray-100 hover:border-emerald-200'}`}>
                         {/* Card header */}
                         <div className="flex items-start justify-between gap-3 mb-3">
                           <div className="flex items-center gap-2 flex-wrap">
@@ -2594,6 +2684,7 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                             <span className="text-xs text-gray-400 flex items-center gap-1">
                               <Clock className="w-3 h-3" /> {workflow.time_estimate}
                             </span>
+                            {isDone && <span className="text-xs font-bold text-emerald-600 flex items-center gap-1"><CheckCircle className="w-3 h-3 fill-emerald-500 text-emerald-500" /> Done</span>}
                           </div>
                           <button onClick={e => { e.stopPropagation(); toggleSave(workflow.id) }}
                             className={`shrink-0 transition-colors ${isSaved ? 'text-emerald-600' : 'text-gray-300 hover:text-gray-500'}`}>
