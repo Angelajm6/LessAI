@@ -1089,7 +1089,7 @@ export default function Home() {
             <div>
               <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Product</p>
               <ul className="space-y-2">
-                {[{ label: 'Home', href: '/' }, { label: 'Pricing', href: '/pricing' }, { label: 'Sign up', href: '/signup' }, { label: 'Sign in', href: '/login' }].map(l => (
+                {[{ label: 'Home', href: '/' }, { label: 'Pricing', href: '/pricing' }, { label: 'Sign up', href: '/pricing' }, { label: 'Sign in', href: '/login' }].map(l => (
                   <li key={l.label}><Link href={l.href} className="text-sm text-gray-500 hover:text-white transition-colors">{l.label}</Link></li>
                 ))}
               </ul>
