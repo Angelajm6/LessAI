@@ -122,7 +122,7 @@ Return a JSON object with this EXACT structure (no extra text, no markdown):
 }
 
 Include ALL ${tools.length} tools in tool_cards: ${tools.join(', ')}. Return ONLY the JSON object.`,
-      2048,
+      4096,
       FAST_MODEL
     ),
     chat(
@@ -147,14 +147,23 @@ Return a JSON object with this EXACT structure (no extra text, no markdown):
 }
 
 Include ALL ${tools.length} tools in tool_tracks: ${tools.join(', ')}. Exactly 5 daily_tasks per tool. Return ONLY the JSON object.`,
-      2048,
+      4096,
       FAST_MODEL
     ),
   ])
 
-  const cards = JSON.parse(cardsText)
-  const tracks = JSON.parse(tracksText)
-  return { ...cards, ...tracks }
+  let cards: object, tracks: object
+  try {
+    cards = JSON.parse(cardsText)
+  } catch {
+    throw new Error('Failed to parse tool cards — please try again.')
+  }
+  try {
+    tracks = JSON.parse(tracksText)
+  } catch {
+    throw new Error('Failed to parse daily tasks — please try again.')
+  }
+  return { ...cards, ...tracks } as StackMap
 }
 
 export async function generateAIPath(
