@@ -224,6 +224,7 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
   const [myStackOnly, setMyStackOnly] = useState(() => searchParams.get('from') === 'onboarding')
   const [activeWorkflow, setActiveWorkflow] = useState<Workflow | null>(null)
   const [savedWorkflowIds, setSavedWorkflowIds] = useState<Set<string>>(new Set(initialSavedWorkflowIds))
+  const [savedTab, setSavedTab] = useState<'prompts' | 'workflows'>('prompts')
   const [copiedStep, setCopiedStep] = useState<string | null>(null)
 
   const firstName = profile.full_name?.split(' ')[0] ?? 'there'
@@ -1342,6 +1343,21 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
         {/* Saved Prompts */}
         {section === 'saved' && (
           <div className="space-y-5">
+          {/* Sub-tab switcher */}
+          <div className="flex gap-1 bg-gray-100 p-1 rounded-xl w-fit">
+            <button onClick={() => setSavedTab('prompts')}
+              className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-1.5 ${savedTab === 'prompts' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+              <Bookmark className="w-3.5 h-3.5" /> Prompts
+              {saved.length > 0 && <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${savedTab === 'prompts' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-200 text-gray-500'}`}>{saved.length}</span>}
+            </button>
+            <button onClick={() => setSavedTab('workflows')}
+              className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-1.5 ${savedTab === 'workflows' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+              <Layers className="w-3.5 h-3.5" /> Workflows
+              {savedWorkflowIds.size > 0 && <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${savedTab === 'workflows' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-200 text-gray-500'}`}>{savedWorkflowIds.size}</span>}
+            </button>
+          </div>
+
+          {savedTab === 'prompts' && <>
           {/* Team Library */}
           {teamPrompts.length > 0 && (
             <div>
@@ -1586,33 +1602,50 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
               )}
             </div>
 
-            {/* Saved Workflows */}
-            {savedWorkflowIds.size > 0 && (
-              <div className="mt-6">
-                <div className="flex items-center gap-2 mb-3">
-                  <Layers className="w-4 h-4 text-emerald-600" />
-                  <h3 className="text-sm font-bold text-gray-900">Saved Workflows</h3>
-                  <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-bold">{savedWorkflowIds.size}</span>
-                </div>
-                <div className="space-y-2">
-                  {WORKFLOWS.filter(w => savedWorkflowIds.has(w.id)).map(w => (
-                    <div key={w.id} className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm flex items-center justify-between gap-3 hover:border-emerald-200 hover:shadow-md transition-all duration-200">
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold text-gray-900 truncate">{w.title}</p>
-                        <p className="text-xs text-gray-500 truncate mt-0.5">{w.description}</p>
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <button onClick={() => { setSection('workflows'); setActiveWorkflow(w) }}
-                          className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl hover:bg-emerald-100 transition-colors flex items-center gap-1">
-                          Open <ArrowRight className="w-3 h-3" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
+          </>}
+
+          {savedTab === 'workflows' && (
+            <div className="space-y-3">
+              {savedWorkflowIds.size === 0 ? (
+                <div className="text-center py-16 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+                  <Layers className="w-8 h-8 text-gray-300 mx-auto mb-3" />
+                  <p className="text-sm font-medium text-gray-500 mb-1">No saved workflows yet</p>
+                  <p className="text-xs text-gray-400 mb-4 max-w-xs mx-auto">Save workflows from the Workflows tab to access them quickly here.</p>
+                  <Button size="sm" variant="outline" onClick={() => setSection('workflows')}
+                    className="gap-1.5 text-emerald-700 border-emerald-200 hover:bg-emerald-50">
+                    <ArrowRight className="w-3.5 h-3.5" /> Browse Workflows
+                  </Button>
+                </div>
+              ) : (
+                WORKFLOWS.filter(w => savedWorkflowIds.has(w.id)).map(w => (
+                  <div key={w.id} className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm flex items-center justify-between gap-3 hover:border-emerald-200 hover:shadow-md transition-all duration-200">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-gray-900 truncate">{w.title}</p>
+                      <p className="text-xs text-gray-500 truncate mt-0.5">{w.description}</p>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button onClick={() => { setSection('workflows'); setActiveWorkflow(w) }}
+                        className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl hover:bg-emerald-100 transition-colors flex items-center gap-1.5">
+                        Open <ArrowRight className="w-3 h-3" />
+                      </button>
+                      <button
+                        onClick={async () => {
+                          setSavedWorkflowIds(prev => { const next = new Set(prev); next.delete(w.id); return next })
+                          const sb = createClient()
+                          const { data: { user } } = await sb.auth.getUser()
+                          if (user) await sb.from('saved_workflows').delete().eq('user_id', user.id).eq('workflow_id', w.id)
+                        }}
+                        className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                        title="Remove from saved">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
           </div>
         )}
 
