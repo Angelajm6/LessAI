@@ -1045,7 +1045,7 @@ export default function Home() {
 
 
       {/* ── FINAL CTA ── */}
-      <section className="relative py-20 px-6 bg-gray-950 isolate border-t border-white/[0.04]">
+      <section className="relative py-20 px-6 bg-gray-950 isolate border-t border-white/[0.04] overflow-hidden">
         <div className="line-grid-3d" />
         <div className="relative max-w-2xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 bg-emerald-400/10 border border-emerald-400/20 rounded-full px-4 py-1.5 text-xs font-semibold text-emerald-400 mb-8">
