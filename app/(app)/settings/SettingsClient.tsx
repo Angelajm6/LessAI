@@ -80,6 +80,7 @@ export default function SettingsClient({ profile, companyName, userEmail }: Prop
   const [deleteConfirm, setDeleteConfirm] = useState('')
   const [deleting, setDeleting] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [portalLoading, setPortalLoading] = useState(false)
 
   const finalRole = role === 'Other' ? customRole.trim() : role
   const originalRole = profile?.role ?? ''
@@ -399,6 +400,30 @@ export default function SettingsClient({ profile, companyName, userEmail }: Prop
             {passwordSaved ? <><CheckCircle className="w-4 h-4" /> Password updated!</> : passwordSaving ? 'Updating…' : 'Update password'}
           </Button>
         </div>
+      </section>
+
+      {/* Billing */}
+      <section className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="w-7 h-7 bg-emerald-50 rounded-lg flex items-center justify-center">
+            <CheckCircle className="w-4 h-4 text-emerald-500" />
+          </div>
+          <h2 className="font-bold text-gray-900">Billing</h2>
+        </div>
+        <p className="text-sm text-gray-500 mb-4">Manage your subscription, update your payment method, or cancel your plan.</p>
+        <Button
+          onClick={async () => {
+            setPortalLoading(true)
+            const res = await fetch('/api/stripe/portal', { method: 'POST' })
+            const data = await res.json()
+            if (data.url) window.location.href = data.url
+            else setPortalLoading(false)
+          }}
+          disabled={portalLoading}
+          className="bg-gray-900 hover:bg-gray-800 text-white gap-2"
+        >
+          {portalLoading ? 'Loading…' : 'Manage billing →'}
+        </Button>
       </section>
 
       {/* Delete account */}

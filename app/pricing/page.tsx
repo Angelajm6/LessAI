@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { CheckCircle, X, ArrowRight, Zap, Users, Building2, MessageSquare, Sparkles, Mail, Shield } from 'lucide-react'
+import { CheckCircle, X, ArrowRight, Zap, Users, Building2, MessageSquare, Sparkles, Mail, Shield, Loader2 } from 'lucide-react'
 
 function LogoMark({ size = 28 }: { size?: number }) {
   return (
@@ -75,6 +75,26 @@ const FAQS = [
 
 export default function PricingPage() {
   const [annual, setAnnual] = useState(false)
+  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)
+
+  async function handleCheckout(plan: 'pro' | 'teams') {
+    setCheckoutLoading(plan)
+    try {
+      const res = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan }),
+      })
+      const data = await res.json()
+      if (data.url) {
+        window.location.href = data.url
+      } else if (res.status === 401) {
+        window.location.href = `/signup?plan=${plan}`
+      }
+    } catch {
+      setCheckoutLoading(null)
+    }
+  }
 
   return (
     <div className="bg-white text-gray-900">
@@ -155,9 +175,10 @@ export default function PricingPage() {
                   </li>
                 ))}
               </ul>
-              <Link href="/signup" className="block text-center bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm py-3 rounded-xl transition-colors shadow-sm">
-                Start 7-day free trial
-              </Link>
+              <button onClick={() => handleCheckout('pro')} disabled={!!checkoutLoading}
+                className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-60 text-white font-semibold text-sm py-3 rounded-xl transition-colors shadow-sm">
+                {checkoutLoading === 'pro' ? <><Loader2 className="w-4 h-4 animate-spin" /> Redirecting…</> : 'Start 7-day free trial'}
+              </button>
               <p className="text-xs text-center text-gray-400 mt-2">No charge until day 8</p>
             </div>
 
@@ -191,12 +212,13 @@ export default function PricingPage() {
                     </li>
                   ))}
                 </ul>
-                <Link href="/signup" className="relative group block">
-                  <span className="absolute -inset-0.5 bg-gradient-to-r from-emerald-500 to-amber-400 rounded-xl blur opacity-40 group-hover:opacity-70 transition-opacity" />
-                  <span className="relative flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm py-3 rounded-xl transition-colors">
-                    Start team trial <ArrowRight className="w-4 h-4" />
-                  </span>
-                </Link>
+                <div className="relative group block">
+                  <span className="absolute -inset-0.5 bg-gradient-to-r from-emerald-500 to-amber-400 rounded-xl blur opacity-40 group-hover:opacity-70 transition-opacity pointer-events-none" />
+                  <button onClick={() => handleCheckout('teams')} disabled={!!checkoutLoading}
+                    className="relative w-full flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-60 text-white font-bold text-sm py-3 rounded-xl transition-colors">
+                    {checkoutLoading === 'teams' ? <><Loader2 className="w-4 h-4 animate-spin" /> Redirecting…</> : <>Start team trial <ArrowRight className="w-4 h-4" /></>}
+                  </button>
+                </div>
                 <p className="text-xs text-center text-gray-600 mt-2">No charge until day 8</p>
               </div>
             </div>
@@ -366,12 +388,13 @@ export default function PricingPage() {
               <p className="text-gray-300 max-w-2xl mx-auto mb-6 leading-relaxed">
                 The problem isn&apos;t access — it&apos;s skill. Your team opens ChatGPT, types a vague prompt, gets a mediocre answer, and concludes &ldquo;AI isn&apos;t that useful.&rdquo; LessAI closes that gap — and gives you a live dashboard showing exactly who&apos;s improving.
               </p>
-              <Link href="/signup" className="relative group inline-flex">
-                <span className="absolute -inset-0.5 bg-gradient-to-r from-amber-400 to-amber-300 rounded-xl blur opacity-50 group-hover:opacity-80 transition-opacity" />
-                <span className="relative flex items-center gap-2 bg-amber-400 hover:bg-amber-300 text-gray-900 font-bold px-6 py-3 rounded-xl transition-colors">
-                  Start your team trial <ArrowRight className="w-4 h-4" />
-                </span>
-              </Link>
+              <div className="relative group inline-flex">
+                <span className="absolute -inset-0.5 bg-gradient-to-r from-amber-400 to-amber-300 rounded-xl blur opacity-50 group-hover:opacity-80 transition-opacity pointer-events-none" />
+                <button onClick={() => handleCheckout('teams')} disabled={!!checkoutLoading}
+                  className="relative flex items-center gap-2 bg-amber-400 hover:bg-amber-300 disabled:opacity-60 text-gray-900 font-bold px-6 py-3 rounded-xl transition-colors">
+                  {checkoutLoading === 'teams' ? <><Loader2 className="w-4 h-4 animate-spin" /> Redirecting…</> : <>Start your team trial <ArrowRight className="w-4 h-4" /></>}
+                </button>
+              </div>
             </div>
           </div>
 
@@ -407,12 +430,13 @@ export default function PricingPage() {
                 Full access from day one. We collect your card at signup and charge on day 8 — cancel any time before that and you pay nothing.
               </p>
               <div className="flex items-center justify-center gap-3 flex-wrap">
-                <Link href="/signup" className="relative group">
-                  <span className="absolute -inset-0.5 bg-gradient-to-r from-emerald-400 to-amber-400 rounded-xl blur opacity-50 group-hover:opacity-80 transition-opacity" />
-                  <span className="relative flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-white font-bold px-6 py-3 rounded-xl transition-colors">
-                    Start free trial <ArrowRight className="w-4 h-4" />
-                  </span>
-                </Link>
+                <div className="relative group">
+                  <span className="absolute -inset-0.5 bg-gradient-to-r from-emerald-400 to-amber-400 rounded-xl blur opacity-50 group-hover:opacity-80 transition-opacity pointer-events-none" />
+                  <button onClick={() => handleCheckout('pro')} disabled={!!checkoutLoading}
+                    className="relative flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 disabled:opacity-60 text-white font-bold px-6 py-3 rounded-xl transition-colors">
+                    {checkoutLoading === 'pro' ? <><Loader2 className="w-4 h-4 animate-spin" /> Redirecting…</> : <>Start free trial <ArrowRight className="w-4 h-4" /></>}
+                  </button>
+                </div>
                 <a href="mailto:hello@lessai.io" className="flex items-center gap-2 border border-white/10 text-gray-300 font-semibold px-6 py-3 rounded-xl hover:bg-white/5 hover:border-white/20 transition-colors text-sm">
                   Talk to sales
                 </a>
