@@ -27,11 +27,18 @@ export async function POST(req: NextRequest) {
       const plan = session.metadata?.plan
       if (!userId) break
 
+      let trialEnd: string | null = null
+      if (session.subscription) {
+        const sub = await stripe.subscriptions.retrieve(session.subscription as string)
+        if (sub.trial_end) trialEnd = new Date(sub.trial_end * 1000).toISOString()
+      }
+
       await supabase.from('profiles').update({
         stripe_customer_id: session.customer as string,
         subscription_id: session.subscription as string,
         subscription_status: 'trialing',
         plan: plan ?? 'pro',
+        trial_end: trialEnd,
       }).eq('id', userId)
       break
     }

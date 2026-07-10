@@ -10,7 +10,7 @@ export default async function DashboardPage() {
 
   const { data: rawProfile } = await supabase
     .from('profiles')
-    .select('id, full_name, role, tools, tool_levels, company_name, company_summary, company_website, is_admin, onboarded, company_id')
+    .select('id, full_name, role, tools, tool_levels, company_name, company_summary, company_website, is_admin, onboarded, company_id, subscription_status, trial_end, plan')
     .eq('id', user.id)
     .single()
 
@@ -117,6 +117,9 @@ export default async function DashboardPage() {
         teamLeaderboard={teamLeaderboard}
         labHistory={labHistoryData as never}
         initialSavedWorkflowIds={(savedWorkflowsData ?? []).map(r => r.workflow_id)}
+        subscriptionStatus={rawProfile?.subscription_status ?? null}
+        trialEnd={rawProfile?.trial_end ?? null}
+        plan={rawProfile?.plan ?? null}
       />
     </Suspense>
   )

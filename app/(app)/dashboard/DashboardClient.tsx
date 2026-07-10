@@ -58,6 +58,9 @@ interface Props {
   teamLeaderboard?: { id: string; full_name: string | null; xp: number; streak: number }[]
   labHistory?: LabHistoryItem[]
   initialSavedWorkflowIds?: string[]
+  subscriptionStatus?: string | null
+  trialEnd?: string | null
+  plan?: string | null
 }
 
 const XP_LEVELS = [
@@ -160,7 +163,7 @@ function PlaybookGenerator({ profile, firstName, onDone }: { profile: Props['pro
   )
 }
 
-export default function DashboardClient({ profile, stackMap, playbook, completedTasks: initialCompleted, savedPrompts: initialSaved, promptFolders: initialFolders, initialXp = 0, initialStreak = 0, teamPrompts = [], teamLeaderboard = [], labHistory: initialLabHistory = [], initialSavedWorkflowIds = [] }: Props) {
+export default function DashboardClient({ profile, stackMap, playbook, completedTasks: initialCompleted, savedPrompts: initialSaved, promptFolders: initialFolders, initialXp = 0, initialStreak = 0, teamPrompts = [], teamLeaderboard = [], labHistory: initialLabHistory = [], initialSavedWorkflowIds = [], subscriptionStatus = null, trialEnd = null, plan = null }: Props) {
   const searchParams = useSearchParams()
   const [section, setSection] = useState<Section>(() => {
     const s = searchParams.get('section')
@@ -653,6 +656,35 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
 
       {/* Main */}
       <main className="flex-1 min-w-0 pb-20 sm:pb-0">
+
+        {/* Trial countdown banner */}
+        {(() => {
+          if (subscriptionStatus !== 'trialing' || !trialEnd) return null
+          const daysLeft = Math.ceil((new Date(trialEnd).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+          if (daysLeft < 0) return null
+          const urgent = daysLeft <= 2
+          return (
+            <div className={`mb-5 rounded-2xl px-5 py-4 flex items-center justify-between gap-4 ${urgent ? 'bg-amber-50 border border-amber-200' : 'bg-emerald-50 border border-emerald-200'}`}>
+              <div className="flex items-center gap-3 min-w-0">
+                <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${urgent ? 'bg-amber-100' : 'bg-emerald-100'}`}>
+                  <span className="text-base">{urgent ? '⏰' : '🎉'}</span>
+                </div>
+                <div className="min-w-0">
+                  <p className={`text-sm font-bold ${urgent ? 'text-amber-900' : 'text-emerald-900'}`}>
+                    {daysLeft === 0 ? 'Your trial ends today' : `${daysLeft} day${daysLeft === 1 ? '' : 's'} left in your free trial`}
+                  </p>
+                  <p className={`text-xs mt-0.5 ${urgent ? 'text-amber-700' : 'text-emerald-700'}`}>
+                    {urgent ? 'Upgrade now to keep your progress, prompts, and workflows.' : `You're on the ${plan === 'teams' ? 'Teams' : 'Pro'} plan trial. No charge until day 8.`}
+                  </p>
+                </div>
+              </div>
+              <a href="/pricing"
+                className={`shrink-0 text-xs font-bold px-4 py-2 rounded-xl transition-colors ${urgent ? 'bg-amber-500 hover:bg-amber-400 text-white' : 'bg-emerald-600 hover:bg-emerald-700 text-white'}`}>
+                Upgrade now
+              </a>
+            </div>
+          )
+        })()}
 
         {/* Stack summary banner — gradient with 3D grid */}
         {stackMap && section === 'tasks' && (
