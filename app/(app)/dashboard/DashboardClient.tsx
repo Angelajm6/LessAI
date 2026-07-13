@@ -14,11 +14,10 @@ import {
   MessageSquare, FolderPlus, Folder, FolderOpen, Plus, X, Pencil,
   FileText, ChevronUp, Home, TrendingUp, Star, Settings, FlaskConical,
   RefreshCw, TrendingDown, BarChart2, Flame, Trophy, Target, Calendar, Brain,
-  Layers, ChevronLeft, Play
+  ChevronLeft, Play
 } from 'lucide-react'
 import Link from 'next/link'
 import type { StackMap, ToolCard, ToolTrack, DailyTask, Playbook, ToolPlaybook, PromptFramework, Recommendation, PromptImprovement } from '@/lib/claude'
-import { WORKFLOWS, CATEGORY_LABELS, CATEGORY_COLORS, type Workflow } from '@/lib/workflows'
 
 interface CompletedTask { tool: string; day: number; completed_at?: string }
 interface ToolTipData { wrong_tool: string; better_tool: string; reason: string }
@@ -57,8 +56,6 @@ interface Props {
   teamPrompts?: { id: string; title: string; content: string; tool: string | null; pinned: boolean; created_at: string }[]
   teamLeaderboard?: { id: string; full_name: string | null; xp: number; streak: number }[]
   labHistory?: LabHistoryItem[]
-  initialSavedWorkflowIds?: string[]
-  initialCompletedWorkflowIds?: string[]
   subscriptionStatus?: string | null
   trialEnd?: string | null
   plan?: string | null
@@ -92,14 +89,13 @@ const LEVEL_COLORS: Record<string, string> = {
   comfortable: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
 }
 
-type Section = 'dashboard' | 'studio' | 'tasks' | 'playbook' | 'guides' | 'saved' | 'workflows'
+type Section = 'dashboard' | 'studio' | 'tasks' | 'playbook' | 'guides' | 'saved'
 
 const NAV_ITEMS: { key: Section; icon: React.ElementType; label: string }[] = [
   { key: 'dashboard', icon: Home, label: 'Dashboard' },
   { key: 'studio', icon: Sparkles, label: 'Prompt Studio' },
   { key: 'tasks', icon: LayoutDashboard, label: 'Daily Tasks' },
   { key: 'saved', icon: Bookmark, label: 'Saved Prompts' },
-  { key: 'workflows', icon: Layers, label: 'Workflows' },
   { key: 'guides', icon: BookOpen, label: 'Tool Guides' },
 ]
 
@@ -164,11 +160,11 @@ function PlaybookGenerator({ profile, firstName, onDone }: { profile: Props['pro
   )
 }
 
-export default function DashboardClient({ profile, stackMap, playbook, completedTasks: initialCompleted, savedPrompts: initialSaved, promptFolders: initialFolders, initialXp = 0, initialStreak = 0, teamPrompts = [], teamLeaderboard = [], labHistory: initialLabHistory = [], initialSavedWorkflowIds = [], initialCompletedWorkflowIds = [], subscriptionStatus = null, trialEnd = null, plan = null }: Props) {
+export default function DashboardClient({ profile, stackMap, playbook, completedTasks: initialCompleted, savedPrompts: initialSaved, promptFolders: initialFolders, initialXp = 0, initialStreak = 0, teamPrompts = [], teamLeaderboard = [], labHistory: initialLabHistory = [], subscriptionStatus = null, trialEnd = null, plan = null }: Props) {
   const searchParams = useSearchParams()
   const [section, setSection] = useState<Section>(() => {
     const s = searchParams.get('section')
-    return (s === 'workflows' || s === 'studio' || s === 'tasks' || s === 'playbook' || s === 'guides' || s === 'saved') ? s : 'dashboard'
+    return (s === 'studio' || s === 'tasks' || s === 'playbook' || s === 'guides' || s === 'saved') ? s : 'dashboard'
   })
   const [completed, setCompleted] = useState<CompletedTask[]>(initialCompleted)
   const [expanded, setExpanded] = useState<string | null>(null)
@@ -223,13 +219,7 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
   const [labHistory, setLabHistory] = useState<LabHistoryItem[]>(initialLabHistory)
   const [labExpandedId, setLabExpandedId] = useState<string | null>(null)
   const [studioMode, setStudioMode] = useState<'command' | 'lab'>('command')
-  // Workflows state
-  const [workflowCategory, setWorkflowCategory] = useState<Workflow['category'] | 'all'>('all')
-  const [myStackOnly, setMyStackOnly] = useState(() => searchParams.get('from') === 'onboarding')
-  const [activeWorkflow, setActiveWorkflow] = useState<Workflow | null>(null)
-  const [savedWorkflowIds, setSavedWorkflowIds] = useState<Set<string>>(new Set(initialSavedWorkflowIds))
-  const [completedWorkflowIds, setCompletedWorkflowIds] = useState<Set<string>>(new Set(initialCompletedWorkflowIds))
-  const [savedTab, setSavedTab] = useState<'prompts' | 'workflows'>('prompts')
+
   const [labSearch, setLabSearch] = useState('')
   const [copiedStep, setCopiedStep] = useState<string | null>(null)
 
@@ -677,7 +667,7 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                     {daysLeft === 0 ? 'Your trial ends today' : `${daysLeft} day${daysLeft === 1 ? '' : 's'} left in your free trial`}
                   </p>
                   <p className={`text-xs mt-0.5 ${urgent ? 'text-amber-700' : 'text-emerald-700'}`}>
-                    {urgent ? 'Upgrade now to keep your progress, prompts, and workflows.' : `You're on the ${plan === 'teams' ? 'Teams' : 'Pro'} plan trial. No charge until day 8.`}
+                    {urgent ? 'Upgrade now to keep your progress, prompts, and daily tasks.' : `You're on the ${plan === 'teams' ? 'Teams' : 'Pro'} plan trial. No charge until day 8.`}
                   </p>
                 </div>
               </div>
@@ -700,10 +690,7 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                 <span className="text-xs font-bold uppercase tracking-widest text-emerald-100">AI Stack Map</span>
               </div>
               <p className="text-white/90 text-sm leading-relaxed mb-3">{stackMap.summary}</p>
-              <div className="bg-white/15 rounded-xl p-3 border border-white/20 backdrop-blur-sm">
-                <p className="text-xs font-semibold text-amber-200 mb-0.5">Workflow tip</p>
-                <p className="text-white/90 text-sm">{stackMap.workflow_tip}</p>
-              </div>
+
             </div>
           </div>
         )}
@@ -765,7 +752,6 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                   { label: 'Complete your first daily task', done: completed.length > 0, action: () => setSection('tasks') },
                   { label: 'Save a prompt', done: saved.length > 0, action: () => setSection('tasks') },
                   { label: 'Try the Prompt Studio', done: labHistory.length > 0, action: () => setSection('studio') },
-                  { label: 'Save a workflow', done: savedWorkflowIds.size > 0, action: () => setSection('workflows') },
                 ]
                 const doneCount = steps.filter(s => s.done).length
                 if (doneCount === steps.length) return null
@@ -1298,21 +1284,7 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
         {/* Saved Prompts */}
         {section === 'saved' && (
           <div className="space-y-5">
-          {/* Sub-tab switcher */}
-          <div className="flex gap-1 bg-gray-100 p-1 rounded-xl w-fit">
-            <button onClick={() => setSavedTab('prompts')}
-              className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-1.5 ${savedTab === 'prompts' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
-              <Bookmark className="w-3.5 h-3.5" /> Prompts
-              {saved.length > 0 && <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${savedTab === 'prompts' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-200 text-gray-500'}`}>{saved.length}</span>}
-            </button>
-            <button onClick={() => setSavedTab('workflows')}
-              className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-1.5 ${savedTab === 'workflows' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
-              <Layers className="w-3.5 h-3.5" /> Workflows
-              {savedWorkflowIds.size > 0 && <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${savedTab === 'workflows' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-200 text-gray-500'}`}>{savedWorkflowIds.size}</span>}
-            </button>
-          </div>
-
-          {savedTab === 'prompts' && <>
+          {<>
           {/* Team Library */}
           {teamPrompts.length > 0 && (
             <div>
@@ -1559,48 +1531,6 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
 
           </div>
           </>}
-
-          {savedTab === 'workflows' && (
-            <div className="space-y-3">
-              {savedWorkflowIds.size === 0 ? (
-                <div className="text-center py-16 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-                  <Layers className="w-8 h-8 text-gray-300 mx-auto mb-3" />
-                  <p className="text-sm font-medium text-gray-500 mb-1">No saved workflows yet</p>
-                  <p className="text-xs text-gray-400 mb-4 max-w-xs mx-auto">Save workflows from the Workflows tab to access them quickly here.</p>
-                  <Button size="sm" variant="outline" onClick={() => setSection('workflows')}
-                    className="gap-1.5 text-emerald-700 border-emerald-200 hover:bg-emerald-50">
-                    <ArrowRight className="w-3.5 h-3.5" /> Browse Workflows
-                  </Button>
-                </div>
-              ) : (
-                WORKFLOWS.filter(w => savedWorkflowIds.has(w.id)).map(w => (
-                  <div key={w.id} className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm flex items-center justify-between gap-3 hover:border-emerald-200 hover:shadow-md transition-all duration-200">
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-gray-900 truncate">{w.title}</p>
-                      <p className="text-xs text-gray-500 truncate mt-0.5">{w.description}</p>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <button onClick={() => { setSection('workflows'); setActiveWorkflow(w) }}
-                        className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl hover:bg-emerald-100 transition-colors flex items-center gap-1.5">
-                        Open <ArrowRight className="w-3 h-3" />
-                      </button>
-                      <button
-                        onClick={async () => {
-                          setSavedWorkflowIds(prev => { const next = new Set(prev); next.delete(w.id); return next })
-                          const sb = createClient()
-                          const { data: { user } } = await sb.auth.getUser()
-                          if (user) await sb.from('saved_workflows').delete().eq('user_id', user.id).eq('workflow_id', w.id)
-                        }}
-                        className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
-                        title="Remove from saved">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          )}
           </div>
         )}
 
@@ -2288,351 +2218,6 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
             </>}
           </div>
         )}
-
-        {/* ── Workflows ── */}
-        {section === 'workflows' && (() => {
-          const filteredWorkflows = WORKFLOWS.filter(w => {
-            if (workflowCategory !== 'all' && w.category !== workflowCategory) return false
-            if (myStackOnly && !w.tools.every(t => tools.includes(t))) return false
-            return true
-          })
-
-          async function toggleSave(id: string) {
-            const isSaved = savedWorkflowIds.has(id)
-            setSavedWorkflowIds(prev => {
-              const next = new Set(prev)
-              if (isSaved) next.delete(id)
-              else next.add(id)
-              return next
-            })
-            const sb = createClient()
-            const { data: { user } } = await sb.auth.getUser()
-            if (!user) return
-            if (isSaved) {
-              await sb.from('saved_workflows').delete().eq('user_id', user.id).eq('workflow_id', id)
-            } else {
-              await sb.from('saved_workflows').insert({ user_id: user.id, workflow_id: id })
-            }
-          }
-
-          async function toggleComplete(id: string) {
-            const isDone = completedWorkflowIds.has(id)
-            setCompletedWorkflowIds(prev => {
-              const next = new Set(prev)
-              if (isDone) next.delete(id)
-              else next.add(id)
-              return next
-            })
-            const sb = createClient()
-            const { data: { user } } = await sb.auth.getUser()
-            if (!user) return
-            if (isDone) {
-              await sb.from('completed_workflows').delete().eq('user_id', user.id).eq('workflow_id', id)
-            } else {
-              await sb.from('completed_workflows').insert({ user_id: user.id, workflow_id: id })
-            }
-          }
-
-          async function copyPrompt(prompt: string, key: string) {
-            await navigator.clipboard.writeText(prompt)
-            setCopiedStep(key)
-            setTimeout(() => setCopiedStep(null), 2000)
-          }
-
-          const TOOL_COLORS: Record<string, string> = {
-            'ChatGPT': 'bg-green-100 text-green-800',
-            'Claude': 'bg-amber-100 text-amber-800',
-            'Notion AI': 'bg-gray-900 text-white',
-            'Grammarly': 'bg-green-600 text-white',
-            'Gemini': 'bg-blue-100 text-blue-800',
-            'Perplexity': 'bg-purple-100 text-purple-800',
-            'Midjourney': 'bg-pink-100 text-pink-800',
-          }
-          function toolColor(tool: string) { return TOOL_COLORS[tool] ?? 'bg-gray-100 text-gray-700' }
-
-          if (activeWorkflow) {
-            const isFullyCompatible = activeWorkflow.tools.every(t => tools.includes(t))
-            return (
-              <div className="space-y-5">
-                {/* Back + header */}
-                <button onClick={() => setActiveWorkflow(null)}
-                  className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 transition-colors">
-                  <ChevronLeft className="w-4 h-4" /> All workflows
-                </button>
-
-                <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
-                  <div className="flex items-start justify-between gap-4 flex-wrap">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 mb-2 flex-wrap">
-                        <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${CATEGORY_COLORS[activeWorkflow.category]}`}>
-                          {CATEGORY_LABELS[activeWorkflow.category]}
-                        </span>
-                        <span className="text-xs text-gray-400 flex items-center gap-1">
-                          <Clock className="w-3.5 h-3.5" /> {activeWorkflow.time_estimate}
-                        </span>
-                        <span className="text-xs text-gray-400">· {activeWorkflow.steps.length} steps</span>
-                        {!isFullyCompatible && (
-                          <span className="text-xs text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
-                            You&apos;re missing some tools
-                          </span>
-                        )}
-                      </div>
-                      <h2 className="text-lg font-black text-gray-900">{activeWorkflow.title}</h2>
-                      <p className="text-sm text-gray-500 mt-1">{activeWorkflow.description}</p>
-                    </div>
-                    <button onClick={() => toggleSave(activeWorkflow.id)}
-                      className={`shrink-0 flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl border transition-all ${
-                        savedWorkflowIds.has(activeWorkflow.id)
-                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                          : 'text-gray-500 border-gray-200 hover:bg-gray-50'
-                      }`}>
-                      <Bookmark className="w-3.5 h-3.5" />
-                      {savedWorkflowIds.has(activeWorkflow.id) ? 'Saved' : 'Save'}
-                    </button>
-                  </div>
-
-                  {/* Tool chain overview */}
-                  <div className="flex items-center gap-2 flex-wrap mt-4 pt-4 border-t border-gray-100">
-                    {activeWorkflow.tools.map((tool, i) => (
-                      <div key={i} className="flex items-center gap-2">
-                        <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${toolColor(tool)} ${!tools.includes(tool) ? 'opacity-40' : ''}`}>
-                          {tool}
-                        </span>
-                        {i < activeWorkflow.tools.length - 1 && <ArrowRight className="w-3.5 h-3.5 text-gray-300 shrink-0" />}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Steps */}
-                <div className="space-y-3">
-                  {activeWorkflow.steps.map((step, i) => {
-                    const stepKey = `${activeWorkflow.id}-${i}`
-                    const hasTool = tools.includes(step.tool)
-                    return (
-                      <div key={i} className={`bg-white border rounded-2xl overflow-hidden shadow-sm transition-all ${!hasTool ? 'opacity-60' : 'border-gray-100'}`}>
-                        {/* Step header */}
-                        <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-50">
-                          <div className="w-7 h-7 rounded-full bg-gray-950 text-white text-xs font-black flex items-center justify-center shrink-0">
-                            {i + 1}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${toolColor(step.tool)}`}>{step.tool}</span>
-                              <span className="text-sm font-semibold text-gray-900">{step.action}</span>
-                            </div>
-                          </div>
-                          {!hasTool && (
-                            <span className="text-xs text-gray-400 shrink-0">Not in your stack</span>
-                          )}
-                        </div>
-
-                        {/* Prompt */}
-                        <div className="px-5 py-4">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">Prompt</span>
-                            <button onClick={() => copyPrompt(step.prompt, stepKey)}
-                              className={`text-xs flex items-center gap-1 px-2.5 py-1.5 rounded-lg border transition-all ${
-                                copiedStep === stepKey
-                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                  : 'text-gray-500 border-gray-200 hover:bg-gray-50'
-                              }`}>
-                              <Copy className="w-3 h-3" /> {copiedStep === stepKey ? 'Copied!' : 'Copy prompt'}
-                            </button>
-                          </div>
-                          <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                            <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap font-mono text-xs">{step.prompt}</p>
-                          </div>
-                          <div className="flex items-start gap-2 mt-3">
-                            <CheckCircle className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
-                            <p className="text-xs text-gray-500"><span className="font-semibold text-gray-700">Output:</span> {step.output}</p>
-                          </div>
-                        </div>
-
-                        {/* Step connector */}
-                        {i < activeWorkflow.steps.length - 1 && (
-                          <div className="flex justify-center pb-1">
-                            <div className="flex flex-col items-center gap-0.5">
-                              <div className="w-px h-2 bg-gray-200" />
-                              <ArrowRight className="w-3.5 h-3.5 text-gray-300 rotate-90" />
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
-
-                {/* CTA */}
-                <div className="bg-gray-50 rounded-2xl p-4 flex items-center justify-between gap-4 flex-wrap">
-                  <div>
-                    <p className="text-sm font-semibold text-gray-800">Ready to run this workflow?</p>
-                    <p className="text-xs text-gray-500 mt-0.5">Copy each prompt, paste it into the right tool, then pass the output to the next step.</p>
-                  </div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <button onClick={() => toggleComplete(activeWorkflow.id)}
-                      className={`shrink-0 flex items-center gap-2 font-bold rounded-xl px-4 py-2.5 text-sm transition-colors border ${
-                        completedWorkflowIds.has(activeWorkflow.id)
-                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
-                          : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-100'
-                      }`}>
-                      <CheckCircle className={`w-3.5 h-3.5 ${completedWorkflowIds.has(activeWorkflow.id) ? 'fill-emerald-500 text-emerald-500' : ''}`} />
-                      {completedWorkflowIds.has(activeWorkflow.id) ? 'Completed' : 'Mark as done'}
-                    </button>
-                    <button onClick={() => { setSection('studio'); setStudioMode('command') }}
-                      className="shrink-0 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl px-4 py-2.5 text-sm flex items-center gap-2 transition-colors">
-                      <Play className="w-3.5 h-3.5" /> Open Prompt Studio
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )
-          }
-
-          return (
-            <div className="space-y-5">
-              {/* Header */}
-              <div className="relative overflow-hidden rounded-2xl px-5 py-6 bg-gray-950">
-                <div className="line-grid-3d absolute inset-0" />
-                <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
-                <div className="absolute bottom-0 left-12 w-32 h-32 bg-amber-400/10 rounded-full blur-2xl pointer-events-none" />
-                <div className="relative z-10">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Layers className="w-4 h-4 text-emerald-400" />
-                    <span className="text-xs font-bold text-emerald-400 uppercase tracking-widest">Multi-Tool Workflows</span>
-                  </div>
-                  <h2 className="text-lg font-black text-white mb-1">Chain your AI tools together</h2>
-                  <p className="text-xs text-gray-400 max-w-md">
-                    Step-by-step playbooks that combine your stack to get real work done — the kind of intelligence no single AI tool can give you.
-                  </p>
-                  <div className="flex items-center gap-4 mt-4 text-xs text-gray-500">
-                    <span className="flex items-center gap-1"><CheckCircle className="w-3.5 h-3.5 text-emerald-500" /> {WORKFLOWS.length} workflows</span>
-                    <span className="flex items-center gap-1"><Zap className="w-3.5 h-3.5 text-amber-400" /> Ready-to-use prompts</span>
-                    <span className="flex items-center gap-1"><Layers className="w-3.5 h-3.5 text-blue-400" /> Role-specific</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Filters */}
-              <div className="flex items-center gap-3 flex-wrap">
-                <div className="flex gap-1 bg-gray-100 p-1 rounded-xl flex-wrap">
-                  {(['all', 'content', 'research', 'outreach', 'analysis', 'strategy', 'operations'] as const).map(cat => (
-                    <button key={cat} onClick={() => setWorkflowCategory(cat)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all capitalize ${
-                        workflowCategory === cat ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
-                      }`}>
-                      {cat === 'all' ? 'All' : CATEGORY_LABELS[cat as Workflow['category']]}
-                    </button>
-                  ))}
-                </div>
-                <button onClick={() => setMyStackOnly(v => !v)}
-                  className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl border transition-all ${
-                    myStackOnly
-                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                      : 'text-gray-500 border-gray-200 hover:bg-gray-50'
-                  }`}>
-                  <CheckCircle className={`w-3.5 h-3.5 ${myStackOnly ? 'text-emerald-600' : 'text-gray-400'}`} />
-                  My stack only
-                </button>
-              </div>
-
-              {/* Workflow grid */}
-              {filteredWorkflows.length === 0 ? (
-                <div className="text-center py-12">
-                  <div className="text-3xl mb-3">🔍</div>
-                  <p className="text-sm font-semibold text-gray-600 mb-1">No workflows match your filters</p>
-                  <p className="text-xs text-gray-400">Try turning off "My stack only" or changing the category</p>
-                </div>
-              ) : (
-                <div className="grid gap-4 sm:grid-cols-2">
-                  {filteredWorkflows.map(workflow => {
-                    const compatible = workflow.tools.every(t => tools.includes(t))
-                    const partial = !compatible && workflow.tools.some(t => tools.includes(t))
-                    const missingTools = workflow.tools.filter(t => !tools.includes(t))
-                    const isSaved = savedWorkflowIds.has(workflow.id)
-                    const isDone = completedWorkflowIds.has(workflow.id)
-
-                    return (
-                      <div key={workflow.id}
-                        className={`bg-white border rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col ${isDone ? 'border-emerald-200 bg-emerald-50/30' : 'border-gray-100 hover:border-emerald-200'}`}>
-                        {/* Card header */}
-                        <div className="flex items-start justify-between gap-3 mb-3">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${CATEGORY_COLORS[workflow.category]}`}>
-                              {CATEGORY_LABELS[workflow.category]}
-                            </span>
-                            <span className="text-xs text-gray-400 flex items-center gap-1">
-                              <Clock className="w-3 h-3" /> {workflow.time_estimate}
-                            </span>
-                            {isDone && <span className="text-xs font-bold text-emerald-600 flex items-center gap-1"><CheckCircle className="w-3 h-3 fill-emerald-500 text-emerald-500" /> Done</span>}
-                          </div>
-                          <button onClick={e => { e.stopPropagation(); toggleSave(workflow.id) }}
-                            className={`shrink-0 transition-colors ${isSaved ? 'text-emerald-600' : 'text-gray-300 hover:text-gray-500'}`}>
-                            <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-emerald-600' : ''}`} />
-                          </button>
-                        </div>
-
-                        <h3 className="text-sm font-black text-gray-900 mb-1.5">{workflow.title}</h3>
-                        <p className="text-xs text-gray-500 leading-relaxed mb-4 flex-1">{workflow.description}</p>
-
-                        {/* Tool chain */}
-                        <div className="flex items-center gap-1.5 flex-wrap mb-4">
-                          {workflow.tools.map((tool, i) => (
-                            <div key={i} className="flex items-center gap-1.5">
-                              <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${toolColor(tool)} ${!tools.includes(tool) ? 'opacity-40' : ''}`}>
-                                {tool}
-                              </span>
-                              {i < workflow.tools.length - 1 && <ArrowRight className="w-3 h-3 text-gray-300 shrink-0" />}
-                            </div>
-                          ))}
-                        </div>
-
-                        {/* Compatibility badge */}
-                        {compatible ? (
-                          <div className="flex items-center gap-1.5 mb-3">
-                            <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
-                            <span className="text-xs font-semibold text-emerald-600">All tools in your stack</span>
-                          </div>
-                        ) : partial ? (
-                          <div className="flex items-center gap-1.5 mb-3">
-                            <span className="text-xs text-amber-600">Missing: {missingTools.join(', ')}</span>
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-1.5 mb-3">
-                            <span className="text-xs text-gray-400">Requires tools outside your stack</span>
-                          </div>
-                        )}
-
-                        <button onClick={() => setActiveWorkflow(workflow)}
-                          className="w-full bg-gray-950 hover:bg-gray-800 text-white text-xs font-bold rounded-xl py-2.5 flex items-center justify-center gap-2 transition-colors">
-                          <Play className="w-3.5 h-3.5" /> View workflow
-                        </button>
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
-
-              {/* Saved workflows section */}
-              {savedWorkflowIds.size > 0 && workflowCategory === 'all' && !myStackOnly && (
-                <div className="pt-2">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Bookmark className="w-4 h-4 text-emerald-600 fill-emerald-600" />
-                    <span className="text-sm font-bold text-gray-900">Saved</span>
-                  </div>
-                  <div className="flex gap-2 flex-wrap">
-                    {WORKFLOWS.filter(w => savedWorkflowIds.has(w.id)).map(w => (
-                      <button key={w.id} onClick={() => setActiveWorkflow(w)}
-                        className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl hover:bg-emerald-100 transition-colors flex items-center gap-1.5">
-                        {w.title} <ArrowRight className="w-3 h-3" />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )
-        })()}
 
         {/* ── Progress (removed — content folded into Dashboard) ── */}
         {false && (() => {
