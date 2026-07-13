@@ -76,7 +76,7 @@ export interface ToolTrack {
   tool: string
   skill_level: string       // never / learning / comfortable
   why_this_role: string     // Why this tool specifically matters for their role
-  daily_tasks: DailyTask[]  // 5 daily tasks (Mon-Fri)
+  daily_tasks: DailyTask[]  // 3 daily tasks
 }
 
 export interface StackMap {
@@ -139,14 +139,13 @@ Return a JSON object with this EXACT structure (no extra text, no markdown):
         {"day": 1, "title": "short name", "task": "Specific 10-min task with exact steps. Name the feature, give example input, state expected output.", "time_minutes": 10},
         {"day": 2, "title": "short name", "task": "...", "time_minutes": 10},
         {"day": 3, "title": "short name", "task": "...", "time_minutes": 10},
-        {"day": 4, "title": "short name", "task": "...", "time_minutes": 10},
-        {"day": 5, "title": "short name", "task": "...", "time_minutes": 10}
+        {"day": 3, "title": "short name", "task": "...", "time_minutes": 10}
       ]
     }
   ]
 }
 
-Include ALL ${tools.length} tools in tool_tracks: ${tools.join(', ')}. Exactly 5 daily_tasks per tool. Return ONLY the JSON object.`,
+Include ALL ${tools.length} tools in tool_tracks: ${tools.join(', ')}. Exactly 3 daily_tasks per tool. Return ONLY the JSON object.`,
       4096,
       FAST_MODEL
     ),
