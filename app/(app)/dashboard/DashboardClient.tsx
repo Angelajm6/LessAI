@@ -223,10 +223,23 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
   const [labSearch, setLabSearch] = useState('')
   const [copiedStep, setCopiedStep] = useState<string | null>(null)
 
+  // Day-based task scheduling
+  const [selectedWeekday, setSelectedWeekday] = useState<number>(() => {
+    const d = new Date().getDay() // 0=Sun…6=Sat
+    if (d === 0) return 0 // Sun → show Mon
+    if (d === 6) return 4 // Sat → show Fri
+    return d - 1 // Mon=1→0 … Fri=5→4
+  })
+  const [dayToolOverrides, setDayToolOverrides] = useState<Record<number, string>>({})
+  const [showSwap, setShowSwap] = useState(false)
+
   const firstName = profile.full_name?.split(' ')[0] ?? 'there'
   const tools = profile.tools ?? []
   const toolLevels = profile.tool_levels ?? {}
   const playbookTools = playbook?.tool_playbooks ?? []
+
+  const todayWeekday = (() => { const d = new Date().getDay(); return d === 0 ? 0 : d === 6 ? 4 : d - 1 })()
+  function getToolForDay(d: number) { return dayToolOverrides[d] ?? tools[d % tools.length] }
 
   useEffect(() => { chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [chatMessages])
   useEffect(() => {
@@ -722,10 +735,11 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
           const weekTools = Array.from(weekToolsSet)
           const xpThisWeek = thisWeekDone.length * 10
 
-          const todayTasks = stackMap?.tool_tracks.map(track => {
-            const nextTask = track.daily_tasks.find(t => !completed.some(c => c.tool === track.tool && c.day === t.day))
-            return nextTask ? { track, task: nextTask } : null
-          }).filter(Boolean) ?? []
+          // Today's task: show the next uncompleted task for today's assigned tool
+          const todayToolName = getToolForDay(todayWeekday)
+          const todayTrack = stackMap?.tool_tracks.find(t => t.tool === todayToolName) ?? stackMap?.tool_tracks[0]
+          const todayNextTask = todayTrack?.daily_tasks.find(t => !completed.some(c => c.tool === todayTrack.tool && c.day === t.day))
+          const todayTasks = (todayTrack && todayNextTask) ? [{ track: todayTrack, task: todayNextTask }] : []
 
           const recentCompleted = [...completed]
             .filter(c => c.completed_at)
@@ -832,14 +846,14 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                       All tasks <ArrowRight className="w-3 h-3" />
                     </button>
                   </div>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    {todayTasks.slice(0, 4).map(item => {
+                  <div>
+                    {todayTasks.map(item => {
                       if (!item) return null
                       const { track, task } = item
                       const isDone = isCompleted(track.tool, task.day)
                       const key = `${track.tool}-${task.day}`
                       return (
-                        <div key={key} className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:border-emerald-200 hover:shadow-md transition-all duration-200 group">
+                        <div key={key} className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:border-emerald-200 hover:shadow-md transition-all duration-200">
                           <div className="flex items-start gap-3">
                             <button onClick={() => markTaskDone(track.tool, task.day)} disabled={isDone || marking === key}
                               className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
@@ -850,7 +864,6 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-1.5 mb-1">
                                 <span className="text-xs font-bold text-emerald-600">{track.tool}</span>
-                                <span className="text-xs text-gray-400">· Day {task.day}</span>
                               </div>
                               <p className="text-sm font-semibold text-gray-900 mb-1">{task.title}</p>
                               <p className="text-xs text-gray-500 leading-relaxed line-clamp-2">{task.task}</p>
@@ -1053,8 +1066,8 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
 
         {/* Daily Tasks */}
         {section === 'tasks' && (
-          <><div className="space-y-3">
-            <div className="flex items-center justify-between mb-4">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold text-gray-900">Daily Tasks</h2>
               {playbookTools.length > 0 && (
                 <button onClick={() => setSection('playbook')}
@@ -1063,6 +1076,7 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                 </button>
               )}
             </div>
+
             {!stackMap ? (
               <div className="flex flex-col items-center justify-center py-14 px-6 text-center">
                 <div className="w-16 h-16 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center mb-5">
@@ -1089,116 +1103,167 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                 </Button>
                 <p className="text-xs text-gray-400 mt-3">Takes about 2 minutes</p>
               </div>
-            ) : stackMap.tool_tracks.map((track: ToolTrack) => {
-              const done = completed.filter(c => c.tool === track.tool).length
-              const isOpen = expanded === track.tool
+            ) : (() => {
+              const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
+              const currentToolName = getToolForDay(selectedWeekday)
+              const currentTrack = stackMap.tool_tracks.find((t: ToolTrack) => t.tool === currentToolName)
+                ?? stackMap.tool_tracks[selectedWeekday % stackMap.tool_tracks.length]
+              const nextTask = currentTrack?.daily_tasks.find((t: DailyTask) => !isCompleted(currentTrack.tool, t.day))
               return (
-                <div key={track.tool}
-                  className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm hover:border-emerald-200 hover:shadow-md transition-all duration-200 group">
-                  <button onClick={() => setExpanded(isOpen ? null : track.tool)} className="w-full text-left px-5 py-4 flex items-center gap-4">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                        <span className="font-semibold text-gray-900">{track.tool}</span>
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${LEVEL_COLORS[toolLevels[track.tool] ?? 'never']}`}>
-                          {(toolLevels[track.tool] ?? 'never') === 'never' ? 'New to you' : toolLevels[track.tool]}
-                        </span>
+                <>
+                  {/* Mon–Fri strip */}
+                  <div className="grid grid-cols-5 gap-1.5">
+                    {DAYS.map((day, d) => {
+                      const toolForDay = getToolForDay(d)
+                      const track = stackMap.tool_tracks.find((t: ToolTrack) => t.tool === toolForDay)
+                      const allDone = track ? track.daily_tasks.every((t: DailyTask) => isCompleted(toolForDay, t.day)) : false
+                      const isSelected = d === selectedWeekday
+                      const isToday = d === todayWeekday
+                      return (
+                        <button key={day} onClick={() => { setSelectedWeekday(d); setShowSwap(false) }}
+                          className={`flex flex-col items-center gap-1.5 py-2.5 rounded-xl border text-xs font-semibold transition-all ${
+                            isSelected
+                              ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
+                              : allDone
+                              ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
+                              : 'bg-white text-gray-500 border-gray-100 hover:border-gray-200'
+                          }`}>
+                          {day}
+                          {allDone && !isSelected
+                            ? <CheckCircle className="w-2.5 h-2.5 text-emerald-500" />
+                            : <div className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white/60' : isToday ? 'bg-emerald-400' : 'bg-gray-200'}`} />}
+                        </button>
+                      )
+                    })}
+                  </div>
+
+                  {/* Day card */}
+                  <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
+                    {/* Tool header */}
+                    <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-bold text-gray-900">{currentTrack?.tool}</span>
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${LEVEL_COLORS[toolLevels[currentTrack?.tool ?? ''] ?? 'never']}`}>
+                            {(toolLevels[currentTrack?.tool ?? ''] ?? 'never') === 'never' ? 'New to you' : toolLevels[currentTrack?.tool ?? '']}
+                          </span>
+                          {selectedWeekday === todayWeekday && (
+                            <span className="text-xs bg-emerald-50 text-emerald-600 border border-emerald-100 px-2 py-0.5 rounded-full font-semibold">Today</span>
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-500 mt-0.5 truncate">{currentTrack?.why_this_role}</p>
                       </div>
-                      <p className="text-xs text-gray-500 line-clamp-1">{track.why_this_role}</p>
+                      <button onClick={() => setShowSwap(s => !s)}
+                        className={`flex items-center gap-1.5 text-xs border px-3 py-1.5 rounded-lg transition-all ml-3 shrink-0 ${
+                          showSwap ? 'bg-gray-100 text-gray-600 border-gray-200' : 'text-gray-400 hover:text-emerald-600 border-gray-200 hover:border-emerald-200'
+                        }`}>
+                        <RefreshCw className="w-3 h-3" /> Swap
+                      </button>
                     </div>
-                    <div className="flex items-center gap-3 shrink-0">
-                      <div className="text-right">
-                        <div className="text-xs text-gray-400">{done}/{track.daily_tasks.length}</div>
-                        <div className="w-16 h-1.5 bg-gray-100 rounded-full mt-1 overflow-hidden">
-                          <div className="h-1.5 rounded-full transition-all duration-500"
-                            style={{ width: `${(done / track.daily_tasks.length) * 100}%`, background: 'linear-gradient(90deg, #10b981, #f59e0b)' }} />
+
+                    {/* Swap panel */}
+                    {showSwap && (
+                      <div className="border-b border-gray-100 px-5 py-3 bg-gray-50">
+                        <p className="text-xs font-semibold text-gray-500 mb-2">Pick a different tool for {DAYS[selectedWeekday]}</p>
+                        <div className="flex flex-wrap gap-2">
+                          {tools.filter(t => t !== currentToolName).map(t => (
+                            <button key={t}
+                              onClick={() => { setDayToolOverrides(prev => ({ ...prev, [selectedWeekday]: t })); setShowSwap(false) }}
+                              className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 bg-white hover:border-emerald-300 hover:text-emerald-600 transition-all">
+                              {t}
+                            </button>
+                          ))}
                         </div>
                       </div>
-                      {isOpen
-                        ? <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-emerald-500 transition-colors" />
-                        : <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-emerald-500 transition-colors" />}
-                    </div>
-                  </button>
-                  {isOpen && (() => {
-                    const toolPlaybook = playbookTools.find((tp: ToolPlaybook) => tp.tool === track.tool)
-                    return (
-                      <div className="border-t border-gray-50 divide-y divide-gray-50">
-                        {track.daily_tasks.map((task: DailyTask) => {
-                          const isDone = isCompleted(track.tool, task.day)
-                          const key = `${track.tool}-${task.day}`
-                          const alreadySaved = isPromptSaved(task.task)
-                          const framework = toolPlaybook?.frameworks[(task.day - 1) % (toolPlaybook.frameworks.length || 1)]
-                          return (
-                            <div key={task.day}
-                              className={`px-5 py-4 transition-colors ${isDone ? 'bg-emerald-50/60' : 'hover:bg-gray-50/60'}`}>
-                              <div className="flex items-start gap-3">
-                                <button onClick={() => markTaskDone(track.tool, task.day)} disabled={isDone || marking === key}
-                                  className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
-                                    isDone
-                                      ? 'bg-emerald-500 border-emerald-500 shadow-sm shadow-emerald-200'
-                                      : 'border-gray-300 hover:border-emerald-400'
-                                  }`}>
-                                  {isDone && <CheckCircle className="w-3.5 h-3.5 text-white fill-white" />}
-                                </button>
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-2 mb-1 flex-wrap">
-                                    <span className={`text-sm font-semibold ${isDone ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
-                                      Day {task.day} — {task.title}
-                                    </span>
-                                    <span className="flex items-center gap-0.5 text-xs text-gray-400">
-                                      <Clock className="w-3 h-3" /> {task.time_minutes}m
-                                    </span>
-                                  </div>
-                                  <p className={`text-sm leading-relaxed mb-3 ${isDone ? 'text-gray-400' : 'text-gray-600'}`}>{task.task}</p>
+                    )}
 
-                                  {/* Framework inline */}
-                                  {framework && !isDone && (
-                                    <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 mb-3">
-                                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Prompt framework to use</p>
-                                      <p className="text-xs font-medium text-gray-800 mb-1.5">{framework.title}</p>
-                                      <p className="text-xs text-gray-500 font-mono leading-relaxed line-clamp-3">{framework.framework}</p>
-                                      {framework.why_better && (
-                                        <p className="text-xs text-emerald-600 mt-2 font-medium">💡 {framework.why_better}</p>
-                                      )}
-                                    </div>
-                                  )}
+                    {/* Task or done state */}
+                    {nextTask ? (() => {
+                      const isDone = isCompleted(currentTrack.tool, nextTask.day)
+                      const taskKey = `${currentTrack.tool}-${nextTask.day}`
+                      const alreadySaved = isPromptSaved(nextTask.task)
+                      const toolPlaybook = playbookTools.find((tp: ToolPlaybook) => tp.tool === currentTrack.tool)
+                      const framework = toolPlaybook?.frameworks[(nextTask.day - 1) % (toolPlaybook.frameworks.length || 1)]
+                      return (
+                        <div className="px-5 py-5">
+                          <div className="flex items-start gap-3">
+                            <button onClick={() => markTaskDone(currentTrack.tool, nextTask.day)} disabled={isDone || marking === taskKey}
+                              className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
+                                isDone ? 'bg-emerald-500 border-emerald-500 shadow-sm shadow-emerald-200' : 'border-gray-300 hover:border-emerald-400'
+                              }`}>
+                              {isDone && <CheckCircle className="w-3.5 h-3.5 text-white fill-white" />}
+                            </button>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                                <span className={`text-sm font-semibold ${isDone ? 'text-gray-400 line-through' : 'text-gray-900'}`}>{nextTask.title}</span>
+                                <span className="flex items-center gap-0.5 text-xs text-gray-400"><Clock className="w-3 h-3" /> {nextTask.time_minutes}m</span>
+                              </div>
+                              <p className={`text-sm leading-relaxed mb-4 ${isDone ? 'text-gray-400' : 'text-gray-600'}`}>{nextTask.task}</p>
 
-                                  {/* Actions */}
-                                  {!isDone && (
-                                    <div className="flex items-center gap-2">
-                                      <button
-                                        onClick={() => launchTask(task.task)}
-                                        className="flex items-center gap-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg transition-colors">
-                                        <Zap className="w-3 h-3" /> Do this task →
-                                      </button>
-                                      <button
-                                        onClick={() => savePrompt(task.task, `${track.tool} — Day ${task.day}: ${task.title}`, track.tool)}
-                                        disabled={alreadySaved || savingPrompt === task.task}
-                                        className={`flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border transition-all ${
-                                          alreadySaved ? 'text-emerald-600 border-emerald-200 bg-emerald-50' : 'text-gray-400 border-gray-200 hover:text-amber-600 hover:border-amber-200 hover:bg-amber-50'
-                                        }`}>
-                                        {alreadySaved ? <><BookmarkCheck className="w-3 h-3" /> Saved</> : <><Bookmark className="w-3 h-3" /> Save</>}
-                                      </button>
-                                    </div>
+                              {framework && !isDone && (
+                                <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 mb-4">
+                                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Prompt framework to use</p>
+                                  <p className="text-xs font-medium text-gray-800 mb-1.5">{framework.title}</p>
+                                  <p className="text-xs text-gray-500 font-mono leading-relaxed line-clamp-3">{framework.framework}</p>
+                                  {framework.why_better && (
+                                    <p className="text-xs text-emerald-600 mt-2 font-medium">💡 {framework.why_better}</p>
                                   )}
                                 </div>
-                              </div>
+                              )}
+
+                              {!isDone && (
+                                <div className="flex items-center gap-2">
+                                  <button onClick={() => launchTask(nextTask.task)}
+                                    className="flex items-center gap-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg transition-colors">
+                                    <Zap className="w-3 h-3" /> Do this task →
+                                  </button>
+                                  <button onClick={() => savePrompt(nextTask.task, `${currentTrack.tool} — ${nextTask.title}`, currentTrack.tool)}
+                                    disabled={alreadySaved || savingPrompt === nextTask.task}
+                                    className={`flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border transition-all ${
+                                      alreadySaved ? 'text-emerald-600 border-emerald-200 bg-emerald-50' : 'text-gray-400 border-gray-200 hover:text-amber-600 hover:border-amber-200 hover:bg-amber-50'
+                                    }`}>
+                                    {alreadySaved ? <><BookmarkCheck className="w-3 h-3" /> Saved</> : <><Bookmark className="w-3 h-3" /> Save</>}
+                                  </button>
+                                </div>
+                              )}
                             </div>
-                          )
-                        })}
+                          </div>
+
+                          {/* Progress dots */}
+                          <div className="mt-4 pt-4 border-t border-gray-50 flex items-center justify-between text-xs text-gray-400">
+                            <span>Task {nextTask.day} of {currentTrack.daily_tasks.length}</span>
+                            <div className="flex gap-1.5">
+                              {currentTrack.daily_tasks.map((t: DailyTask) => (
+                                <div key={t.day} className={`w-2 h-2 rounded-full transition-colors ${
+                                  isCompleted(currentTrack.tool, t.day) ? 'bg-emerald-400' : t.day === nextTask.day ? 'bg-gray-400' : 'bg-gray-200'
+                                }`} />
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })() : (
+                      <div className="px-5 py-8 text-center">
+                        <div className="w-12 h-12 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                          <CheckCircle className="w-6 h-6 text-emerald-500" />
+                        </div>
+                        <p className="text-sm font-bold text-gray-900 mb-1">All done for {currentTrack?.tool}! 🎉</p>
+                        <p className="text-xs text-gray-400 max-w-xs mx-auto">Pick another day to keep going, or update your stack for fresh tasks.</p>
                       </div>
-                    )
-                  })()}
-                </div>
+                    )}
+                  </div>
+
+                  <div className="text-center pt-2">
+                    <p className="text-xs text-gray-400 mb-2">Added new tools to your stack?</p>
+                    <Button variant="outline" size="sm" className="text-emerald-700 border-emerald-200 hover:bg-emerald-50 gap-1.5"
+                      onClick={() => window.location.href = '/onboarding?from=stack'}>
+                      <ArrowRight className="w-3.5 h-3.5" /> Update my stack
+                    </Button>
+                  </div>
+                </>
               )
-            })}
+            })()}
           </div>
-          <div className="text-center pt-6 mt-2 border-t border-gray-100">
-            <p className="text-xs text-gray-400 mb-2">Added new tools to your stack?</p>
-            <Button variant="outline" size="sm" className="text-emerald-700 border-emerald-200 hover:bg-emerald-50 gap-1.5"
-              onClick={() => window.location.href = '/onboarding?from=stack'}>
-              <ArrowRight className="w-3.5 h-3.5" /> Update my stack
-            </Button>
-          </div></>
         )}
 
         {/* Tool Guides — dark section with 3D grid */}
