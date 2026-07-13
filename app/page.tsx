@@ -140,14 +140,14 @@ const logos = ['Claude', 'ChatGPT', 'Gemini', 'Copilot', 'Notion AI', 'Perplexit
 const steps = [
   { icon: Target, title: 'Tell us your role, tools, and company', desc: 'You\'re a Content Marketer with ChatGPT, Notion AI, and Grammarly. We scrape your company website to understand your niche — every task and prompt is built around your actual business.' },
   { icon: BookOpen, title: 'Get your personalized prompt playbook', desc: 'Role-specific prompt frameworks for every tool in your stack — what context to include, how to structure your ask, and the exact phrasing that gets great outputs for your job.' },
-  { icon: Zap, title: 'Practice daily, track your progress', desc: 'One 10-min task per tool per day. Earn XP, build streaks, and watch your skill heatmap fill up. Use Prompt Lab to paste any prompt and instantly see how to make it sharper.' },
+  { icon: Zap, title: 'Practice daily, track your progress', desc: '3 daily tasks per tool, matched to your skill level. Earn XP, build streaks, and watch your skill heatmap fill up. Use Prompt Lab to paste any prompt and instantly see how to make it sharper.' },
   { icon: BarChart3, title: 'Manager sees who\'s leveling up', desc: 'The admin dashboard shows XP, streaks, and task completion by person and tool. See skill gaps, spot who needs coaching, and prove AI ROI with real data — not surveys.' },
 ]
 
 const features = [
   { icon: MessageSquare, title: 'Role-based prompt coaching', description: 'How a PM prompts Claude for a PRD is nothing like how a marketer prompts for a campaign. LessAI gives you the exact frameworks for your job — not generic advice.' },
   { icon: FlaskConical, title: 'Prompt Lab', description: 'Paste any prompt — get an AI-rewritten version scored on Specificity, Context, and Output Clarity before and after. See exactly what changed and why.', highlight: true },
-  { icon: Zap, title: 'Daily 10-minute tasks', description: 'One task per tool per day, matched to your skill level. Earn XP, build a streak, and watch your heatmap fill up. 10 minutes of real practice beats any workshop.' },
+  { icon: Zap, title: 'Daily practice tasks', description: '3 tasks per tool per day, matched to your skill level. Earn XP, build a streak, and watch your heatmap fill up. Consistent daily practice beats any workshop.' },
   { icon: Globe, title: 'Company website context', description: 'We scrape your company URL to understand your industry and product. Every task, prompt, and use case references your actual business — not a made-up example.' },
   { icon: Brain, title: 'Tool comparison guides', description: 'Claude, ChatGPT, Gemini, and Copilot are not interchangeable. LessAI teaches exactly when to use which — so you use the right tool for each job.' },
   { icon: Flame, title: 'Progress tracking', description: 'XP, streaks, a 30-day activity heatmap, per-tool breakdowns, and milestone badges. Plus a weekly email digest every Monday with your next suggested task.' },
@@ -754,7 +754,7 @@ export default function Home() {
               {
                 n: '01', label: 'Individuals', sub: 'Learning on your own',
                 color: 'emerald',
-                items: ['Role-specific prompt frameworks for your exact job', 'Prompt Lab: paste any prompt, get a sharper version instantly', 'Daily 10-min practice tasks that build real habits', 'AI Command Center: right tool + ready-to-paste prompt'],
+                items: ['Role-specific prompt frameworks for your exact job', 'Prompt Lab: paste any prompt, get a sharper version instantly', 'Daily practice tasks — 3 per tool — that build real AI habits', 'AI Command Center: right tool + ready-to-paste prompt'],
               },
               {
                 n: '02', label: 'Employees', sub: 'Have tools, got no training',
@@ -860,7 +860,7 @@ export default function Home() {
             Your complete AI hub — explore it live
           </h2>
           <p className={`text-center text-gray-500 mb-12 max-w-2xl mx-auto text-sm ${demoInView ? 'animate-fade-up' : 'opacity-0'}`} style={{ animationDelay: '180ms', animationFillMode: 'forwards' }}>
-            Click through the tabs — this is the real product. <strong className="text-gray-300">Dashboard</strong> shows your progress and daily tasks. <strong className="text-gray-300">Prompt Studio</strong> is your AI Command Center and Prompt Lab in one. <strong className="text-gray-300">Daily Tasks</strong> is your 10-min practice queue. <strong className="text-gray-300">Saved Prompts</strong> is your personal library.
+            Click through the tabs — this is the real product. <strong className="text-gray-300">Dashboard</strong> shows your progress and daily tasks. <strong className="text-gray-300">Prompt Studio</strong> is your AI Command Center and Prompt Lab in one. <strong className="text-gray-300">Daily Tasks</strong> is your practice queue. <strong className="text-gray-300">Saved Prompts</strong> is your personal library. <strong className="text-gray-300">Tool Guides</strong> teach you when and how to use each AI tool for your exact role.
           </p>
           <div className={`${demoInView ? 'animate-fade-up' : 'opacity-0'}`} style={{ animationDelay: '260ms', animationFillMode: 'forwards' }}>
             <ProductDemo />
@@ -873,7 +873,7 @@ export default function Home() {
                   <p className="text-sm font-bold text-white">Psst — this is just the surface.</p>
                 </div>
                 <div className="flex gap-2 flex-wrap flex-1">
-                  {['Multi-tool Workflows', 'Tool Guides', 'XP & Level System', 'Stack Recommendations', '+ more'].map((f, i) => (
+                  {['Tool Guides', 'XP & Level System', 'Stack Recommendations', 'Weekly Digest', '+ more'].map((f, i) => (
                     <span key={f} className={`text-xs px-2.5 py-1 rounded-full font-medium border ${i === 4 ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400' : 'bg-white/[0.06] border-white/[0.08] text-gray-400'}`}>{f}</span>
                   ))}
                 </div>
