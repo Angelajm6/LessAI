@@ -798,7 +798,7 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                 )
               })()}
 
-              {/* Streak nudge */}
+              {/* Streak nudge — only after they've started */}
               {showNudge && (
                 <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3">
                   <span className="text-xl shrink-0">🔥</span>
@@ -806,7 +806,6 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                     <p className="text-sm font-semibold text-amber-800">
                       {hasStreak ? `Keep your ${streakState}-day streak alive!` : "No task yet today — let's go!"}
                     </p>
-                    <p className="text-xs text-amber-600 mt-0.5">Complete one task below to stay on track.</p>
                   </div>
                   <button onClick={() => setSection('tasks')}
                     className="shrink-0 text-xs font-bold text-amber-700 bg-amber-100 hover:bg-amber-200 rounded-xl px-3 py-1.5 transition-colors">
@@ -815,88 +814,27 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                 </div>
               )}
 
-              {/* Stats row */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {[
-                  { icon: <Zap className="w-4 h-4 text-amber-500" />, value: xpState, label: 'Total XP', bg: 'bg-amber-50', border: 'border-amber-100' },
-                  { icon: <Flame className="w-4 h-4 text-orange-500" />, value: `${streakState}d`, label: 'Streak', bg: 'bg-orange-50', border: 'border-orange-100' },
-                  { icon: <Target className="w-4 h-4 text-blue-500" />, value: thisWeekDone.length, label: 'This week', bg: 'bg-blue-50', border: 'border-blue-100' },
-                  { icon: <CheckCircle className="w-4 h-4 text-emerald-500" />, value: `${totalDone}/${totalTasks}`, label: 'Tasks done', bg: 'bg-emerald-50', border: 'border-emerald-100' },
-                ].map(stat => (
-                  <div key={stat.label} className={`${stat.bg} border ${stat.border} rounded-2xl p-4`}>
-                    <div className="flex items-center gap-1.5 mb-1">{stat.icon}</div>
-                    <p className="text-xl font-black text-gray-900">{stat.value}</p>
-                    <p className="text-xs text-gray-500 mt-0.5">{stat.label}</p>
+              {/* Compact stats — only after they've done something */}
+              {totalDone > 0 && (
+                <div className="flex items-center gap-3 bg-white border border-gray-100 rounded-2xl px-4 py-3 shadow-sm">
+                  <div className="flex items-center gap-1.5 flex-1">
+                    <Flame className="w-4 h-4 text-orange-500 shrink-0" />
+                    <span className="text-sm font-bold text-gray-900">{streakState}d streak</span>
                   </div>
-                ))}
-              </div>
-
-              {/* Level progress */}
-              <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <Trophy className="w-4 h-4 text-amber-500" />
-                    <span className="text-sm font-bold text-gray-900">
-                      Level: <span className={getXpLevel(xpState).color}>{getXpLevel(xpState).name}</span>
-                    </span>
+                  <div className="w-px h-4 bg-gray-200" />
+                  <div className="flex items-center gap-1.5 flex-1">
+                    <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <span className="text-sm font-bold text-gray-900">{totalDone}/{totalTasks} tasks</span>
                   </div>
-                  <span className="text-xs text-gray-400">{xpState} XP</span>
-                </div>
-                <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
-                  <div className="h-2 rounded-full transition-all duration-700"
-                    style={{ width: `${getXpPct(xpState)}%`, background: 'linear-gradient(90deg, #10b981, #14b8a6)' }} />
-                </div>
-                {getNextXpLevel(xpState) && (
-                  <p className="text-xs text-gray-400 mt-1.5">
-                    {getNextXpLevel(xpState)!.min - xpState} XP to <span className="font-semibold">{getNextXpLevel(xpState)!.name}</span>
-                  </p>
-                )}
-              </div>
-
-              {/* This week */}
-              {thisWeekDone.length > 0 && (
-                <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <Target className="w-4 h-4 text-blue-500" />
-                      <h3 className="text-sm font-bold text-gray-900">This week</h3>
-                    </div>
-                    <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-full px-2.5 py-0.5">
-                      +{xpThisWeek} XP
-                    </span>
+                  <div className="w-px h-4 bg-gray-200" />
+                  <div className="flex items-center gap-1.5 flex-1">
+                    <Trophy className="w-4 h-4 text-amber-500 shrink-0" />
+                    <span className={`text-sm font-bold ${getXpLevel(xpState).color}`}>{getXpLevel(xpState).name}</span>
                   </div>
-                  {/* Day dots */}
-                  <div className="flex items-end gap-1.5 mb-3">
-                    {weekDayActivity.map((d, i) => (
-                      <div key={i} className="flex flex-col items-center gap-1 flex-1">
-                        <div className={`w-full rounded-md transition-all ${
-                          d.count > 0
-                            ? 'bg-emerald-500 h-6'
-                            : d.isToday
-                            ? 'bg-gray-200 h-6 border-2 border-dashed border-gray-300'
-                            : d.isPast
-                            ? 'bg-gray-100 h-4'
-                            : 'bg-gray-100 h-4'
-                        }`} />
-                        <span className={`text-[10px] font-medium ${d.isToday ? 'text-gray-700' : 'text-gray-400'}`}>{d.label}</span>
-                      </div>
-                    ))}
-                  </div>
-                  {/* Tools practiced */}
-                  {weekTools.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5">
-                      {weekTools.map(tool => (
-                        <span key={tool} className="text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-full px-2.5 py-0.5">
-                          {tool}
-                        </span>
-                      ))}
-                      <span className="text-xs text-gray-400 self-center">practiced this week</span>
-                    </div>
-                  )}
                 </div>
               )}
 
-              {/* Continue where you left off */}
+              {/* Today's tasks */}
               {todayTasks.length > 0 && (
                 <div>
                   <div className="flex items-center justify-between mb-3">
@@ -948,64 +886,6 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                 </div>
               )}
 
-              {/* Prompt Studio CTA — shown if they haven't used it yet */}
-              {labHistory.length === 0 && (
-                <div className="relative overflow-hidden rounded-2xl bg-gray-950 p-5">
-                  <div className="line-grid-3d absolute inset-0" />
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none" />
-                  <div className="relative z-10 flex items-center justify-between gap-4 flex-wrap">
-                    <div>
-                      <p className="text-xs font-bold text-emerald-400 uppercase tracking-widest mb-1">Prompt Studio</p>
-                      <p className="text-white font-bold text-base mb-1">Improve any prompt or find the right AI tool</p>
-                      <p className="text-xs text-gray-400">Paste a weak prompt → get it scored and rewritten. Or describe a task → get the best tool for it.</p>
-                    </div>
-                    <button onClick={() => setSection('studio')}
-                      className="shrink-0 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-bold rounded-xl px-4 py-2.5 text-sm transition-all flex items-center gap-2">
-                      <Sparkles className="w-4 h-4" /> Try it now
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Recent activity */}
-              {recentCompleted.length > 0 && (
-                <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <Star className="w-4 h-4 text-gray-400" />
-                    <h3 className="text-sm font-bold text-gray-900">Recent completions</h3>
-                  </div>
-                  <div className="space-y-2">
-                    {recentCompleted.map((c, i) => {
-                      const task = stackMap?.tool_tracks
-                        .find(t => t.tool === c.tool)
-                        ?.daily_tasks.find(t => t.day === c.day)
-                      return (
-                        <div key={i} className="flex items-center gap-3 bg-white border border-gray-100 rounded-xl px-4 py-3 shadow-sm">
-                          <div className="w-7 h-7 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
-                            <CheckCircle className="w-4 h-4 text-emerald-600" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900 truncate">{task?.title ?? `Day ${c.day}`}</p>
-                            <p className="text-xs text-emerald-600 font-medium">{c.tool}</p>
-                          </div>
-                          {c.completed_at && (
-                            <span className="text-xs text-gray-400 shrink-0">
-                              {(() => {
-                                const diff = Date.now() - new Date(c.completed_at!).getTime()
-                                const mins = Math.floor(diff / 60000)
-                                if (mins < 60) return mins <= 1 ? 'just now' : `${mins}m ago`
-                                const hrs = Math.floor(mins / 60)
-                                if (hrs < 24) return `${hrs}h ago`
-                                return `${Math.floor(hrs / 24)}d ago`
-                              })()}
-                            </span>
-                          )}
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              )}
 
               {/* Empty state */}
               {!stackMap && completed.length === 0 && (
