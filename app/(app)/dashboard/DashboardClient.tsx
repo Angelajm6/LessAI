@@ -375,20 +375,17 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (user) {
-      const { error } = await supabase.from('prompt_folders').insert({ user_id: user.id, name: newFolderName.trim() })
+      const { data: newFolder, error } = await supabase
+        .from('prompt_folders')
+        .insert({ user_id: user.id, name: newFolderName.trim() })
+        .select('id, name, created_at')
+        .single()
       if (error) {
         console.error('createFolder error:', error)
         alert(`Folder error: ${error.message}`)
-      } else {
-        const { data: updatedFolders } = await supabase
-          .from('prompt_folders')
-          .select('id, name, created_at')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: true })
-        if (updatedFolders) {
-          setFolders(updatedFolders)
-          setActiveFolder(updatedFolders[updatedFolders.length - 1].id)
-        }
+      } else if (newFolder) {
+        setFolders(prev => [...prev, newFolder as PromptFolder])
+        setActiveFolder((newFolder as PromptFolder).id)
       }
     }
     setNewFolderName('')
