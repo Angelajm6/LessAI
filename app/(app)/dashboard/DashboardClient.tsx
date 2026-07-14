@@ -1620,15 +1620,19 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
             </div>
 
             {/* Mode toggle */}
-            <div className="flex gap-1 bg-gray-100 p-1 rounded-xl w-fit">
+            <div className="flex gap-1 bg-gray-100 p-1 rounded-xl">
               <button onClick={() => setStudioMode('command')}
-                className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-1.5 ${studioMode === 'command' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
-                <Zap className="w-3.5 h-3.5" /> AI Command Center
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all flex flex-col items-start gap-0.5 ${studioMode === 'command' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+                <span className="flex items-center gap-1.5"><Zap className="w-3.5 h-3.5" /> AI Command Center</span>
+                <span className={`text-xs font-normal ${studioMode === 'command' ? 'text-gray-400' : 'text-gray-400/60'}`}>Start a prompt from scratch</span>
               </button>
               <button onClick={() => setStudioMode('lab')}
-                className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-1.5 ${studioMode === 'lab' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
-                <FlaskConical className="w-3.5 h-3.5" /> Prompt Lab
-                {labHistory.length > 0 && <span className="text-xs bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full font-bold">{labHistory.length}</span>}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all flex flex-col items-start gap-0.5 ${studioMode === 'lab' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+                <span className="flex items-center gap-1.5">
+                  <FlaskConical className="w-3.5 h-3.5" /> Prompt Lab
+                  {labHistory.length > 0 && <span className="text-xs bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full font-bold">{labHistory.length}</span>}
+                </span>
+                <span className={`text-xs font-normal ${studioMode === 'lab' ? 'text-gray-400' : 'text-gray-400/60'}`}>Fix a prompt you already have</span>
               </button>
             </div>
 
@@ -1950,39 +1954,22 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                   </div>
                 </div>
 
-                {/* Tool recommendation */}
-                {labResult.recommended_tool && (
-                  <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
-                    <p className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-1.5">
-                      <Brain className="w-4 h-4 text-emerald-500" /> Best tool for this prompt
-                    </p>
-                    <div className="flex items-start gap-3 bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-3">
-                      <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center shrink-0">
-                        <span className="text-white font-black text-xs">{labResult.recommended_tool.charAt(0)}</span>
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold text-emerald-800">{labResult.recommended_tool}</p>
-                        <p className="text-xs text-emerald-700 mt-1 leading-relaxed">{labResult.why_this_tool}</p>
-                      </div>
-                    </div>
-                    {labResult.why_not_others && labResult.why_not_others.length > 0 && (
-                      <div className="space-y-2">
-                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">Why not the others</p>
-                        {labResult.why_not_others.map((w, i) => (
-                          <div key={i} className="flex items-start gap-2.5 bg-gray-50 rounded-lg px-3 py-2">
-                            <div className="w-5 h-5 bg-gray-200 rounded flex items-center justify-center shrink-0 mt-0.5">
-                              <span className="text-gray-500 font-black text-xs">{w.tool.charAt(0)}</span>
-                            </div>
-                            <div>
-                              <span className="text-xs font-semibold text-gray-600">{w.tool} — </span>
-                              <span className="text-xs text-gray-500">{w.reason}</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                {/* What changed — promoted above before/after */}
+                <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                  <p className="text-sm font-bold text-gray-800 mb-1">What we changed</p>
+                  <p className="text-xs text-gray-400 mb-3">Each fix explains exactly why your original prompt was underperforming.</p>
+                  <div className="space-y-3">
+                    {labResult.changes.map((c, i) => {
+                      const chipColors = ['bg-blue-100 text-blue-700', 'bg-purple-100 text-purple-700', 'bg-amber-100 text-amber-700', 'bg-emerald-100 text-emerald-700', 'bg-pink-100 text-pink-700']
+                      return (
+                        <div key={i} className="flex gap-3 items-start">
+                          <span className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0 mt-0.5 ${chipColors[i % chipColors.length]}`}>{c.label}</span>
+                          <p className="text-xs text-gray-500 leading-relaxed">{c.description}</p>
+                        </div>
+                      )
+                    })}
                   </div>
-                )}
+                </div>
 
                 {/* Before / After */}
                 <div className="grid sm:grid-cols-2 gap-3">
@@ -1999,22 +1986,6 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                       <p className="text-xs font-bold text-emerald-600 uppercase tracking-wide">After</p>
                     </div>
                     <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">{labResult.improved}</p>
-                  </div>
-                </div>
-
-                {/* What changed */}
-                <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
-                  <p className="text-sm font-bold text-gray-800 mb-3">What we changed</p>
-                  <div className="space-y-3">
-                    {labResult.changes.map((c, i) => {
-                      const chipColors = ['bg-blue-100 text-blue-700', 'bg-purple-100 text-purple-700', 'bg-amber-100 text-amber-700', 'bg-emerald-100 text-emerald-700', 'bg-pink-100 text-pink-700']
-                      return (
-                        <div key={i} className="flex gap-3 items-start">
-                          <span className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0 mt-0.5 ${chipColors[i % chipColors.length]}`}>{c.label}</span>
-                          <p className="text-xs text-gray-500 leading-relaxed">{c.description}</p>
-                        </div>
-                      )
-                    })}
                   </div>
                 </div>
 
@@ -2043,7 +2014,7 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                       if (!user) { setLabError('Not signed in'); return }
                       const { data, error } = await supabase
                         .from('saved_prompts')
-                        .insert({ user_id: user.id, content: labResult.improved, label: `✨ ${label}`, tool: labResult.recommended_tool || null, folder_id: null })
+                        .insert({ user_id: user.id, content: labResult.improved, label: `✨ ${label}`, tool: null, folder_id: null })
                         .select('id, content, label, tool, folder_id, created_at')
                         .single()
                       if (error) { setLabError(`Save failed: ${error.message}`); return }
