@@ -149,11 +149,11 @@ const features = [
   { icon: FlaskConical, title: 'Prompt Lab', description: 'Paste any prompt — get an AI-rewritten version scored on Specificity, Context, and Output Clarity before and after. See exactly what changed and why.', highlight: true },
   { icon: Zap, title: 'Daily practice tasks', description: '3 tasks per tool per day, matched to your skill level. Earn XP, build a streak, and watch your heatmap fill up. Consistent daily practice beats any workshop.' },
   { icon: Globe, title: 'Company website context', description: 'We scrape your company URL to understand your industry and product. Every task, prompt, and use case references your actual business — not a made-up example.' },
-  { icon: Brain, title: 'Tool comparison guides', description: 'Claude, ChatGPT, Gemini, and Copilot are not interchangeable. LessAI teaches exactly when to use which — so you use the right tool for each job.' },
+  { icon: Brain, title: 'Tool comparison guides', description: 'Claude, ChatGPT, Gemini, and Copilot are not interchangeable. LessAI shows you: use Claude for analysis, ChatGPT for drafting, Perplexity for research — for your specific role and tasks.' },
   { icon: Flame, title: 'Progress tracking', description: 'XP, streaks, a 30-day activity heatmap, per-tool breakdowns, and milestone badges. Plus a weekly email digest every Monday with your next suggested task.' },
   { icon: BookOpen, title: 'Saved prompts + folders', description: 'Save any prompt to your personal library, organize by folder, and access it anywhere. Every prompt from the Lab or Command Center is one click away.' },
   { icon: BarChart3, title: 'Team skill dashboard', description: 'Managers see XP, streaks, and completion by person and tool. Spot skill gaps, identify who needs coaching, and prove AI ROI with real adoption data.' },
-  { icon: Sparkles, title: 'AI Command Center', description: 'Describe any work task in plain English — get the right tool, exactly why it wins, and a ready-to-paste prompt built around your role and stack. No more guessing.' },
+  { icon: Sparkles, title: 'AI Command Center', description: 'Type "build a Q2 pipeline forecast" — get Claude recommended, the reason it wins over ChatGPT for this, and a ready-to-paste prompt built for your role. No more guessing which tool to open.' },
 ]
 
 /* ─── Stat card ─────────────────────────────────────────────────────── */
@@ -220,9 +220,9 @@ function PromptPreview() {
   const [activeTab, setActiveTab] = useState<'before' | 'after' | 'tasks'>('before')
   const [checked, setChecked] = useState<number[]>([])
   const tasks = [
-    { tool: 'ChatGPT', title: 'Write a cold outreach email with role context', time: 10 },
-    { tool: 'Claude', title: 'Summarize a doc and extract action items', time: 10 },
-    { tool: 'Notion AI', title: 'Turn bullet notes into a structured brief', time: 10 },
+    { title: 'Write a cold outreach email with full role context', time: 10 },
+    { title: 'Generate 5 subject line variations for your best campaign email', time: 10 },
+    { title: 'Draft a 3-email follow-up sequence for warm leads', time: 10 },
   ]
   return (
     <div className="relative">
@@ -274,13 +274,17 @@ function PromptPreview() {
           )}
           {activeTab === 'tasks' && (
             <div className="space-y-2">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Monday · ChatGPT</span>
+                <span className="text-[10px] bg-emerald-50 text-emerald-600 border border-emerald-100 px-1.5 rounded-full font-semibold">Explorer</span>
+              </div>
               {tasks.map((t, i) => (
                 <div key={i} className={`flex items-center gap-3 p-3 rounded-xl border transition-all duration-200 ${checked.includes(i) ? 'bg-emerald-50 border-emerald-200' : 'bg-gray-50 border-gray-100 hover:border-gray-200'}`}>
                   <button onClick={() => setChecked(prev => prev.includes(i) ? prev.filter(x => x !== i) : [...prev, i])}
                     className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${checked.includes(i) ? 'bg-emerald-500 border-emerald-500' : 'border-gray-300 hover:border-emerald-400'}`}>
                     {checked.includes(i) && <CheckCircle className="w-3.5 h-3.5 text-white fill-white" />}
                   </button>
-                  <span className={`text-xs font-medium flex-1 ${checked.includes(i) ? 'text-gray-400 line-through' : 'text-gray-700'}`}>{t.tool} — {t.title}</span>
+                  <span className={`text-xs font-medium flex-1 ${checked.includes(i) ? 'text-gray-400 line-through' : 'text-gray-700'}`}>{t.title}</span>
                   <span className="text-xs text-gray-400 shrink-0">{t.time}m</span>
                 </div>
               ))}
@@ -294,7 +298,7 @@ function PromptPreview() {
 
 /* ─── Product demo ───────────────────────────────────────────────────── */
 function ProductDemo() {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'studio' | 'tasks' | 'saved'>('dashboard')
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'studio' | 'tasks' | 'saved' | 'toolguides'>('dashboard')
   const [checkedTasks, setCheckedTasks] = useState<number[]>([])
   const [commandText, setCommandText] = useState('')
   const [showResult, setShowResult] = useState(false)
@@ -351,6 +355,7 @@ function ProductDemo() {
     { key: 'studio', label: 'Prompt Studio' },
     { key: 'tasks', label: 'Daily Tasks' },
     { key: 'saved', label: 'Saved Prompts' },
+    { key: 'toolguides', label: 'Tool Guides' },
   ]
 
   return (
@@ -576,6 +581,32 @@ function ProductDemo() {
               </div>
             )}
 
+            {activeTab === 'toolguides' && (
+              <div className="p-4 sm:p-5">
+                <div className="mb-4">
+                  <h2 className="text-sm font-bold text-gray-900">Tool Guides</h2>
+                  <p className="text-xs text-gray-400 mt-0.5">When to use each AI tool — for your role as a RevOps Manager</p>
+                </div>
+                <div className="space-y-2.5">
+                  {[
+                    { tool: 'Claude', badge: 'Best for analysis', when: 'Complex analysis, structured writing, long documents, and multi-step reasoning. Use for: deal health summaries, churn narratives, QBR prep, forecast write-ups.', notFor: 'Quick lookups or real-time data — it has a knowledge cutoff.' },
+                    { tool: 'ChatGPT', badge: 'Best for drafting', when: 'Emails, memos, sales copy, and fast first drafts. Use for: cold outreach, pipeline review memos, objection responses, follow-up sequences.', notFor: 'Deep structured reasoning — Claude handles that better.' },
+                    { tool: 'Perplexity', badge: 'Best for research', when: 'Real-time research with cited sources. Use for: account research before a call, competitive intel, market sizing, verifying recent data.', notFor: 'Drafting or editing — it\'s a research tool, not a writing tool.' },
+                    { tool: 'Notion AI', badge: 'Best for docs', when: 'Summarizing and organizing content already in Notion. Use for: meeting notes → action items, project briefs, status updates, deal summaries.', notFor: 'Starting from scratch — bring a draft or notes first.' },
+                  ].map(g => (
+                    <div key={g.tool} className="border border-gray-100 rounded-xl bg-white shadow-sm p-3.5">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-xs font-bold text-gray-900">{g.tool}</span>
+                        <span className="text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-100 px-2 py-0.5 rounded-full font-semibold">{g.badge}</span>
+                      </div>
+                      <p className="text-xs text-gray-500 leading-relaxed mb-1.5"><span className="font-semibold text-gray-700">Use when:</span> {g.when}</p>
+                      <p className="text-xs text-gray-400 leading-relaxed"><span className="font-semibold text-gray-500">Not best for:</span> {g.notFor}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {activeTab === 'saved' && (
               <div className="flex flex-col h-full">
                 <div className="md:hidden px-4 pt-3 pb-2 flex gap-2 overflow-x-auto no-scrollbar border-b border-gray-100 bg-white">
@@ -605,10 +636,10 @@ function ProductDemo() {
 
         <div className="border-t border-gray-100 px-4 sm:px-5 py-3 flex items-center justify-between gap-4 bg-white">
           <p className="text-xs text-gray-400 truncate">
-            {activeTab === 'dashboard' ? '👆 Your AI activity hub — stats, tasks, and progress at a glance' : activeTab === 'tasks' ? '👆 Tap any task to mark it done and earn XP' : activeTab === 'studio' ? '👆 Switch between Command Center and Prompt Lab modes' : '👆 Browse folders or tap a prompt to copy it'}
+            {activeTab === 'dashboard' ? '👆 Your AI activity hub — stats, tasks, and progress at a glance' : activeTab === 'tasks' ? '👆 Tap any task to mark it done and earn XP' : activeTab === 'studio' ? '👆 Switch between Command Center and Prompt Lab modes' : activeTab === 'toolguides' ? '👆 Know exactly when to use each tool — and when not to' : '👆 Browse folders or tap a prompt to copy it'}
           </p>
           <div className="flex items-center gap-2 shrink-0">
-            {(['dashboard', 'studio', 'tasks', 'saved'] as const).map(tab => (
+            {(['dashboard', 'studio', 'tasks', 'saved', 'toolguides'] as const).map(tab => (
               <button key={tab} onClick={() => setActiveTab(tab)} className={`w-1.5 h-1.5 rounded-full transition-all ${activeTab === tab ? 'bg-emerald-500' : 'bg-gray-200'}`} />
             ))}
           </div>
@@ -702,7 +733,7 @@ export default function Home() {
                 Your company bought the AI tools. Nobody trained you on them. LessAI fixes that — role-specific coaching, daily practice, and full team visibility in one place.
               </p>
               <p className="text-sm text-gray-400 mb-8 animate-fade-up" style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}>
-                Role-specific coaching · daily practice · AI Command Center · team skill tracking
+                Role-specific coaching · daily practice · Prompt Studio · team skill tracking
               </p>
               <div className="flex items-center gap-3 flex-wrap animate-fade-up" style={{ animationDelay: '260ms', animationFillMode: 'forwards' }}>
                 <Link href="/pricing" className="group relative">
