@@ -222,6 +222,23 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
 
   const [labSearch, setLabSearch] = useState('')
   const [copiedStep, setCopiedStep] = useState<string | null>(null)
+  const [confirmClearHistory, setConfirmClearHistory] = useState(false)
+
+  async function deleteHistoryItem(id: string) {
+    const supabase = createClient()
+    await supabase.from('prompt_lab_history').delete().eq('id', id)
+    setLabHistory(prev => prev.filter(h => h.id !== id))
+    if (labExpandedId === id) setLabExpandedId(null)
+  }
+
+  async function clearAllHistory() {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    await supabase.from('prompt_lab_history').delete().eq('user_id', user.id)
+    setLabHistory([])
+    setConfirmClearHistory(false)
+  }
 
   // Day-based task scheduling
   const [selectedWeekday, setSelectedWeekday] = useState<number>(() => {
@@ -2137,18 +2154,31 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                   </div>
 
                   {/* History list */}
-                  {labHistory.length > 3 && (
-                    <div className="relative">
-                      <input
-                        type="text"
-                        value={labSearch}
-                        onChange={e => setLabSearch(e.target.value)}
-                        placeholder="Search your prompt history…"
-                        className="w-full text-sm bg-white border border-gray-200 rounded-xl px-4 py-2.5 pl-9 focus:outline-none focus:border-emerald-400 transition-colors"
-                      />
-                      <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                    </div>
-                  )}
+                  <div className="flex items-center justify-between gap-2">
+                    {labHistory.length > 3 && (
+                      <div className="relative flex-1">
+                        <input
+                          type="text"
+                          value={labSearch}
+                          onChange={e => setLabSearch(e.target.value)}
+                          placeholder="Search your prompt history…"
+                          className="w-full text-sm bg-white border border-gray-200 rounded-xl px-4 py-2.5 pl-9 focus:outline-none focus:border-emerald-400 transition-colors"
+                        />
+                        <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                      </div>
+                    )}
+                    {confirmClearHistory ? (
+                      <div className="flex items-center gap-2 shrink-0 ml-auto">
+                        <span className="text-xs text-gray-500">Clear all history?</span>
+                        <button onClick={clearAllHistory} className="text-xs font-semibold text-red-600 hover:text-red-700 px-2.5 py-1.5 rounded-lg hover:bg-red-50 transition-colors">Yes, clear</button>
+                        <button onClick={() => setConfirmClearHistory(false)} className="text-xs text-gray-400 hover:text-gray-600 px-2.5 py-1.5 rounded-lg hover:bg-gray-50 transition-colors">Cancel</button>
+                      </div>
+                    ) : (
+                      <button onClick={() => setConfirmClearHistory(true)} className="shrink-0 ml-auto flex items-center gap-1.5 text-xs text-gray-400 hover:text-red-500 transition-colors px-2.5 py-1.5 rounded-lg hover:bg-red-50">
+                        <Trash2 className="w-3.5 h-3.5" /> Clear all
+                      </button>
+                    )}
+                  </div>
                   <div className="space-y-2">
                     {labHistory.filter(item =>
                       !labSearch.trim() ||
@@ -2226,7 +2256,7 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                               </div>
 
                               {/* Re-use button */}
-                              <div className="flex gap-2">
+                              <div className="flex gap-2 flex-wrap">
                                 <Button size="sm" variant="outline"
                                   className="gap-1.5 text-emerald-700 border-emerald-200 hover:bg-emerald-50 text-xs"
                                   onClick={() => {
@@ -2240,6 +2270,11 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                                   className="gap-1.5 text-gray-500 border-gray-200 hover:bg-gray-50 text-xs"
                                   onClick={() => { navigator.clipboard.writeText(item.improved) }}>
                                   <Copy className="w-3.5 h-3.5" /> Copy improved
+                                </Button>
+                                <Button size="sm" variant="outline"
+                                  className="gap-1.5 text-red-400 border-red-100 hover:bg-red-50 text-xs ml-auto"
+                                  onClick={() => deleteHistoryItem(item.id)}>
+                                  <Trash2 className="w-3.5 h-3.5" /> Delete
                                 </Button>
                               </div>
                             </div>
