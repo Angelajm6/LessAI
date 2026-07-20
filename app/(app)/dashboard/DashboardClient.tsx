@@ -223,6 +223,24 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
   const [labSearch, setLabSearch] = useState('')
   const [copiedStep, setCopiedStep] = useState<string | null>(null)
   const [confirmClearHistory, setConfirmClearHistory] = useState(false)
+  const [refreshingTasks, setRefreshingTasks] = useState(false)
+
+  async function refreshTasks() {
+    setRefreshingTasks(true)
+    try {
+      const res = await fetch('/api/ai/refresh-tasks', { method: 'POST' })
+      if (res.ok) {
+        window.location.reload()
+      } else {
+        const { error } = await res.json()
+        alert(error ?? 'Failed to generate new tasks. Please try again.')
+      }
+    } catch {
+      alert('Something went wrong. Please try again.')
+    } finally {
+      setRefreshingTasks(false)
+    }
+  }
 
   async function deleteHistoryItem(id: string) {
     const supabase = createClient()
@@ -1270,13 +1288,37 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                     )}
                   </div>
 
-                  <div className="text-center pt-2">
-                    <p className="text-xs text-gray-400 mb-2">Added new tools to your stack?</p>
-                    <Button variant="outline" size="sm" className="text-emerald-700 border-emerald-200 hover:bg-emerald-50 gap-1.5"
-                      onClick={() => window.location.href = '/onboarding?from=stack'}>
-                      <ArrowRight className="w-3.5 h-3.5" /> Update my stack
-                    </Button>
-                  </div>
+                  {(() => {
+                    const allTasksDone = stackMap.tool_tracks.every((track: ToolTrack) =>
+                      track.daily_tasks.every((t: DailyTask) => isCompleted(track.tool, t.day))
+                    )
+                    return allTasksDone ? (
+                      <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-5 text-center">
+                        <p className="text-sm font-bold text-gray-900 mb-1">You&apos;ve completed all your tasks! 🏆</p>
+                        <p className="text-xs text-gray-500 mb-4 max-w-xs mx-auto">Ready for a fresh set? Generate a new batch of tasks for your entire stack.</p>
+                        <Button
+                          onClick={refreshTasks}
+                          disabled={refreshingTasks}
+                          className="bg-emerald-600 hover:bg-emerald-700 gap-2 text-white"
+                          size="sm"
+                        >
+                          {refreshingTasks ? (
+                            <><div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Generating new tasks…</>
+                          ) : (
+                            <><RefreshCw className="w-3.5 h-3.5" /> Generate new tasks</>
+                          )}
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="text-center pt-2">
+                        <p className="text-xs text-gray-400 mb-2">Added new tools to your stack?</p>
+                        <Button variant="outline" size="sm" className="text-emerald-700 border-emerald-200 hover:bg-emerald-50 gap-1.5"
+                          onClick={() => window.location.href = '/onboarding?from=stack'}>
+                          <ArrowRight className="w-3.5 h-3.5" /> Update my stack
+                        </Button>
+                      </div>
+                    )
+                  })()}
                 </>
               )
             })()}
