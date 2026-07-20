@@ -1122,7 +1122,10 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
               const currentToolName = getToolForDay(selectedWeekday)
               const currentTrack = stackMap.tool_tracks.find((t: ToolTrack) => t.tool === currentToolName)
                 ?? stackMap.tool_tracks[selectedWeekday % stackMap.tool_tracks.length]
-              const nextTask = currentTrack?.daily_tasks.find((t: DailyTask) => !isCompleted(currentTrack.tool, t.day))
+              const isSwapped = selectedWeekday in dayToolOverrides
+              const nextTask = isSwapped
+                ? (currentTrack?.daily_tasks.find((t: DailyTask) => !isCompleted(currentTrack.tool, t.day)) ?? currentTrack?.daily_tasks[0])
+                : currentTrack?.daily_tasks.find((t: DailyTask) => !isCompleted(currentTrack.tool, t.day))
               return (
                 <>
                   {/* Mon–Fri strip */}
