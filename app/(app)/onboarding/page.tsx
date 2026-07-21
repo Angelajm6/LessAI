@@ -543,7 +543,7 @@ function OnboardingFlow() {
                 Continue <ArrowRight className="w-4 h-4" />
               </Button>
               <button onClick={() => setStep(3)} className="text-sm text-gray-400 hover:text-gray-600 underline underline-offset-2">
-                Skip
+                Skip — I don&apos;t have a company website
               </button>
             </div>
           </div>
