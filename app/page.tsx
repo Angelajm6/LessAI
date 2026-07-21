@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { ArrowRight, CheckCircle, Zap, BarChart3, Sparkles, Brain, Target, TrendingUp, Shield, BookOpen, MessageSquare, Mail, FlaskConical, Globe, Flame, Users } from 'lucide-react'
+import { ArrowRight, CheckCircle, Zap, BarChart3, Sparkles, Brain, Target, TrendingUp, Shield, BookOpen, MessageSquare, Mail, FlaskConical, Globe, Flame, Users, FileText } from 'lucide-react'
 
 /* ─── Logo ─────────────────────────────────────────────────────────── */
 function LogoMark({ size = 28 }: { size?: number }) {
@@ -146,14 +146,15 @@ const steps = [
 
 const features = [
   { icon: MessageSquare, title: 'Role-based prompt coaching', description: 'How a PM prompts Claude for a PRD is nothing like how a marketer prompts for a campaign. LessAI gives you the exact frameworks for your job — not generic advice.' },
-  { icon: FlaskConical, title: 'Prompt Lab', description: 'Paste any prompt — get an AI-rewritten version scored on Specificity, Context, and Output Clarity before and after. See exactly what changed and why.', highlight: true },
+  { icon: FileText, title: 'Prompt Playbook', description: 'A personalized library of prompt frameworks for every tool in your stack — generated from your role, tools, and company. Copy a template, fill in the brackets, get dramatically better outputs.' },
+  { icon: FlaskConical, title: 'Prompt Lab', description: 'Inside Prompt Studio: paste any prompt and get an AI-rewritten version scored on Specificity, Context, and Output Clarity — before and after. See exactly what changed and why.', highlight: true },
   { icon: Zap, title: 'Daily practice tasks', description: '3 tasks per tool per day, matched to your skill level. Earn XP, build a streak, and watch your heatmap fill up. Consistent daily practice beats any workshop.' },
   { icon: Globe, title: 'Company website context', description: 'We scrape your company URL to understand your industry and product. Every task, prompt, and use case references your actual business — not a made-up example.' },
   { icon: Brain, title: 'Tool comparison guides', description: 'Claude, ChatGPT, Gemini, and Copilot are not interchangeable. LessAI shows you: use Claude for analysis, ChatGPT for drafting, Perplexity for research — for your specific role and tasks.' },
   { icon: Flame, title: 'Progress tracking', description: 'XP, streaks, a 30-day activity heatmap, per-tool breakdowns, and milestone badges. Plus a weekly email digest every Monday with your next suggested task.' },
   { icon: BookOpen, title: 'Saved prompts + folders', description: 'Save any prompt to your personal library, organize by folder, and access it anywhere. Every prompt from the Lab or Command Center is one click away.' },
   { icon: BarChart3, title: 'Team skill dashboard', description: 'Managers see XP, streaks, and completion by person and tool. Spot skill gaps, identify who needs coaching, and prove AI ROI with real adoption data.' },
-  { icon: Sparkles, title: 'AI Command Center', description: 'Type "build a Q2 pipeline forecast" — get Claude recommended, the reason it wins over ChatGPT for this, and a ready-to-paste prompt built for your role. No more guessing which tool to open.' },
+  { icon: Sparkles, title: 'AI Command Center', description: 'Also inside Prompt Studio: describe any work task and get the right tool recommended with a ready-to-paste prompt built for your role. No more guessing which AI to open.' },
 ]
 
 /* ─── Stat card ─────────────────────────────────────────────────────── */
@@ -298,7 +299,7 @@ function PromptPreview() {
 
 /* ─── Product demo ───────────────────────────────────────────────────── */
 function ProductDemo() {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'studio' | 'tasks' | 'saved' | 'toolguides'>('dashboard')
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'studio' | 'tasks' | 'playbook' | 'saved' | 'toolguides'>('dashboard')
   const [checkedTasks, setCheckedTasks] = useState<number[]>([])
   const [commandText, setCommandText] = useState('')
   const [showResult, setShowResult] = useState(false)
@@ -354,6 +355,7 @@ function ProductDemo() {
     { key: 'dashboard', label: 'Dashboard' },
     { key: 'studio', label: 'Prompt Studio' },
     { key: 'tasks', label: 'Daily Tasks' },
+    { key: 'playbook', label: 'Playbook' },
     { key: 'saved', label: 'Saved Prompts' },
     { key: 'toolguides', label: 'Tool Guides' },
   ]
@@ -581,6 +583,38 @@ function ProductDemo() {
               </div>
             )}
 
+            {activeTab === 'playbook' && (
+              <div className="p-4 sm:p-5">
+                <div className="mb-4">
+                  <h2 className="text-sm font-bold text-gray-900">Prompt Playbook</h2>
+                  <p className="text-xs text-gray-400 mt-0.5">Role-specific prompt frameworks for every tool in your stack</p>
+                </div>
+                <div className="flex gap-2 mb-4 overflow-x-auto no-scrollbar pb-1">
+                  {['Claude', 'ChatGPT', 'Perplexity', 'Notion AI'].map((tool, i) => (
+                    <button key={tool} className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${i === 0 ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>{tool}</button>
+                  ))}
+                </div>
+                <div className="space-y-2.5">
+                  {[
+                    { title: 'Deal health summary', tag: 'Analysis', prompt: 'You are a RevOps analyst. For each deal below, assign a health score (1–10) based on: last activity date, number of stakeholders engaged, stage age, and ARR. Flag any deal scoring below 5 as at-risk. Data: [paste CRM export]' },
+                    { title: 'Churn risk narrative', tag: 'Writing', prompt: 'Review these customer health metrics and write a 2-paragraph churn risk summary for our VP of Customer Success. Highlight the top 3 at-risk accounts and the key signal for each. Data: [paste health scores]' },
+                    { title: 'QBR preparation brief', tag: 'Structured output', prompt: 'You are preparing a quarterly business review for our RevOps team. Using the data below, write: (1) 3-sentence executive summary, (2) top 3 wins, (3) top 3 risks, (4) recommended actions for Q3. Data: [paste Q2 metrics]' },
+                  ].map((f, i) => (
+                    <div key={i} className="border border-gray-100 rounded-xl bg-white shadow-sm p-3.5">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-xs font-bold text-gray-900">{f.title}</span>
+                        <span className="text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-100 px-2 py-0.5 rounded-full font-semibold">{f.tag}</span>
+                      </div>
+                      <p className="text-xs text-gray-500 font-mono leading-relaxed line-clamp-2">{f.prompt}</p>
+                      <div className="flex gap-2 mt-2.5">
+                        <button className="text-[10px] font-semibold text-emerald-600 hover:text-emerald-700 transition-colors">Copy template →</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {activeTab === 'toolguides' && (
               <div className="p-4 sm:p-5">
                 <div className="mb-4">
@@ -636,10 +670,10 @@ function ProductDemo() {
 
         <div className="border-t border-gray-100 px-4 sm:px-5 py-3 flex items-center justify-between gap-4 bg-white">
           <p className="text-xs text-gray-400 truncate">
-            {activeTab === 'dashboard' ? '👆 Your AI activity hub — stats, tasks, and progress at a glance' : activeTab === 'tasks' ? '👆 Tap any task to mark it done and earn XP' : activeTab === 'studio' ? '👆 Switch between Command Center and Prompt Lab modes' : activeTab === 'toolguides' ? '👆 Know exactly when to use each tool — and when not to' : '👆 Browse folders or tap a prompt to copy it'}
+            {activeTab === 'dashboard' ? '👆 Your AI activity hub — stats, tasks, and progress at a glance' : activeTab === 'tasks' ? '👆 Tap any task to mark it done and earn XP' : activeTab === 'studio' ? '👆 Switch between Command Center and Prompt Lab modes' : activeTab === 'playbook' ? '👆 Role-specific prompt frameworks for every tool in your stack' : activeTab === 'toolguides' ? '👆 Know exactly when to use each tool — and when not to' : '👆 Browse folders or tap a prompt to copy it'}
           </p>
           <div className="flex items-center gap-2 shrink-0">
-            {(['dashboard', 'studio', 'tasks', 'saved', 'toolguides'] as const).map(tab => (
+            {(['dashboard', 'studio', 'tasks', 'playbook', 'saved', 'toolguides'] as const).map(tab => (
               <button key={tab} onClick={() => setActiveTab(tab)} className={`w-1.5 h-1.5 rounded-full transition-all ${activeTab === tab ? 'bg-emerald-500' : 'bg-gray-200'}`} />
             ))}
           </div>
@@ -786,7 +820,7 @@ export default function Home() {
               {
                 n: '01', label: 'Individuals', sub: 'Learning on your own',
                 color: 'emerald',
-                items: ['Role-specific prompt frameworks for your exact job', 'Prompt Lab: paste any prompt, get a sharper version instantly', 'Daily practice tasks — 3 per tool — that build real AI habits', 'AI Command Center: right tool + ready-to-paste prompt'],
+                items: ['Prompt Playbook: role-specific frameworks for every tool in your stack', 'Prompt Lab: paste any prompt, get a sharper version instantly', 'Daily practice tasks — 3 per tool — that build real AI habits', 'AI Command Center: right tool + ready-to-paste prompt for any task'],
               },
               {
                 n: '02', label: 'Employees', sub: 'Have tools, got no training',
@@ -892,7 +926,7 @@ export default function Home() {
             Your complete AI hub — explore it live
           </h2>
           <p className={`text-center text-gray-500 mb-12 max-w-2xl mx-auto text-sm ${demoInView ? 'animate-fade-up' : 'opacity-0'}`} style={{ animationDelay: '180ms', animationFillMode: 'forwards' }}>
-            Click through the tabs — this is the real product. <strong className="text-gray-300">Dashboard</strong> shows your progress and daily tasks. <strong className="text-gray-300">Prompt Studio</strong> is your AI Command Center and Prompt Lab in one. <strong className="text-gray-300">Daily Tasks</strong> is your practice queue. <strong className="text-gray-300">Saved Prompts</strong> is your personal library. <strong className="text-gray-300">Tool Guides</strong> teach you when and how to use each AI tool for your exact role.
+            Click through the tabs — this is the real product. <strong className="text-gray-300">Dashboard</strong> shows your progress and daily tasks. <strong className="text-gray-300">Prompt Studio</strong> is your AI Command Center and Prompt Lab in one. <strong className="text-gray-300">Daily Tasks</strong> is your practice queue. <strong className="text-gray-300">Playbook</strong> holds your role-specific prompt frameworks. <strong className="text-gray-300">Saved Prompts</strong> is your personal library. <strong className="text-gray-300">Tool Guides</strong> teach you when and how to use each AI tool.
           </p>
           <div className={`${demoInView ? 'animate-fade-up' : 'opacity-0'}`} style={{ animationDelay: '260ms', animationFillMode: 'forwards' }}>
             <ProductDemo />
