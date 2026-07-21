@@ -179,6 +179,7 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
   const [showNewFolder, setShowNewFolder] = useState(false)
   const [creatingFolder, setCreatingFolder] = useState(false)
   const [editingFolderId, setEditingFolderId] = useState<string | null>(null)
+  const [confirmDeleteFolderId, setConfirmDeleteFolderId] = useState<string | null>(null)
   const [editFolderName, setEditFolderName] = useState('')
   const [manualContent, setManualContent] = useState('')
   const [manualLabel, setManualLabel] = useState('')
@@ -1305,7 +1306,7 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                                 <div className="flex items-center gap-2">
                                   <button onClick={() => launchTask(nextTask.task)}
                                     className="flex items-center gap-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg transition-colors">
-                                    <Zap className="w-3 h-3" /> Do this task →
+                                    <Zap className="w-3 h-3" /> Open in Prompt Studio →
                                   </button>
                                   <button onClick={() => savePrompt(nextTask.task, `${currentTrack.tool} — ${nextTask.title}`, currentTrack.tool)}
                                     disabled={alreadySaved || savingPrompt === nextTask.task}
@@ -1520,7 +1521,15 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
 
                 {folders.map(f => (
                   <div key={f.id}>
-                    {editingFolderId === f.id ? (
+                    {confirmDeleteFolderId === f.id ? (
+                      <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-red-50 border border-red-200">
+                        <p className="text-xs text-red-700 flex-1 leading-tight">Delete &ldquo;{f.name}&rdquo;?</p>
+                        <button onClick={() => { deleteFolder(f.id); setConfirmDeleteFolderId(null) }}
+                          className="text-xs font-semibold text-red-600 hover:text-red-700 px-2 py-0.5 rounded hover:bg-red-100 transition-colors">Yes</button>
+                        <button onClick={() => setConfirmDeleteFolderId(null)}
+                          className="text-xs text-gray-400 hover:text-gray-600 px-2 py-0.5 rounded hover:bg-gray-100 transition-colors">No</button>
+                      </div>
+                    ) : editingFolderId === f.id ? (
                       <div className="flex gap-1 px-1">
                         <Input value={editFolderName} onChange={(e) => setEditFolderName(e.target.value)}
                           onKeyDown={(e) => { if (e.key === 'Enter') renameFolder(f.id); if (e.key === 'Escape') setEditingFolderId(null) }}
@@ -1547,7 +1556,7 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                           className={`opacity-0 group-hover:opacity-100 transition-opacity ${activeFolder === f.id ? 'text-white/60 hover:text-white' : 'text-gray-400 hover:text-blue-500'}`}>
                           <Pencil className="w-3 h-3" />
                         </button>
-                        <button onClick={(e) => { e.stopPropagation(); deleteFolder(f.id) }}
+                        <button onClick={(e) => { e.stopPropagation(); setConfirmDeleteFolderId(f.id) }}
                           className={`opacity-0 group-hover:opacity-100 transition-opacity ${activeFolder === f.id ? 'text-white/60 hover:text-white' : 'text-gray-400 hover:text-red-500'}`}>
                           <X className="w-3 h-3" />
                         </button>
@@ -1667,7 +1676,7 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                                 )}
                               </div>
                             </div>
-                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                            <div className="flex items-center gap-1 shrink-0">
                               {folders.length > 0 && (
                                 <select value={prompt.folder_id ?? ''} onChange={(e) => movePromptToFolder(prompt.id, e.target.value || null)}
                                   className="text-xs border border-gray-200 rounded-lg px-2 py-1 bg-white text-gray-500 focus:outline-none focus:ring-1 focus:ring-emerald-400"

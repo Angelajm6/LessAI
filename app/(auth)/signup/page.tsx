@@ -9,6 +9,23 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ArrowRight, User, Building2, Mail, Lock, Eye, EyeOff, CheckCircle } from 'lucide-react'
 
+function ResendButton({ email }: { email: string }) {
+  const [status, setStatus] = useState<'idle' | 'sending' | 'sent'>('idle')
+  async function resend() {
+    setStatus('sending')
+    const supabase = createClient()
+    await supabase.auth.resend({ type: 'signup', email })
+    setStatus('sent')
+  }
+  if (status === 'sent') return <p className="text-sm text-emerald-600 font-medium">Email resent — check your inbox.</p>
+  return (
+    <button onClick={resend} disabled={status === 'sending'}
+      className="text-sm text-emerald-600 hover:text-emerald-700 font-medium hover:underline underline-offset-2 disabled:opacity-60">
+      {status === 'sending' ? 'Resending…' : 'Resend confirmation email'}
+    </button>
+  )
+}
+
 export default function SignupPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
@@ -85,10 +102,10 @@ export default function SignupPage() {
   }
 
   const fields = [
-    { id: 'fullName', label: 'Your name', placeholder: 'Angela Martin', type: 'text', icon: User, key: 'fullName' as const },
-    { id: 'companyName', label: 'Company name', placeholder: 'Acme Corp', type: 'text', icon: Building2, key: 'companyName' as const },
-    { id: 'email', label: 'Work email', placeholder: 'you@company.com', type: 'email', icon: Mail, key: 'email' as const },
-    { id: 'password', label: 'Password', placeholder: 'Min. 8 characters', type: 'password', icon: Lock, key: 'password' as const },
+    { id: 'fullName', label: 'Your name', placeholder: 'Angela Martin', type: 'text', icon: User, key: 'fullName' as const, required: true },
+    { id: 'companyName', label: 'Company name', placeholder: 'Acme Corp (optional)', type: 'text', icon: Building2, key: 'companyName' as const, required: false },
+    { id: 'email', label: 'Work email', placeholder: 'you@company.com', type: 'email', icon: Mail, key: 'email' as const, required: true },
+    { id: 'password', label: 'Password', placeholder: 'Min. 8 characters', type: 'password', icon: Lock, key: 'password' as const, required: true },
   ]
 
   if (emailSent) {
@@ -107,8 +124,9 @@ export default function SignupPage() {
         <p className="text-gray-500 text-sm mb-1">We sent a confirmation link to</p>
         <p className="font-semibold text-gray-900 text-sm mb-6">{form.email}</p>
         <p className="text-xs text-gray-400 mb-6">Click the link in the email to activate your account. Check your spam folder if you don&apos;t see it within a minute.</p>
+        <ResendButton email={form.email} />
         <button onClick={() => setEmailSent(false)}
-          className="text-sm text-emerald-600 hover:text-emerald-700 font-medium hover:underline underline-offset-2">
+          className="block text-sm text-gray-400 hover:text-gray-600 font-medium hover:underline underline-offset-2 mt-3 mx-auto">
           ← Use a different email
         </button>
       </div>
@@ -157,10 +175,10 @@ export default function SignupPage() {
         </div>
 
         <h1 className="text-2xl font-black text-gray-900 mb-1">Create your account</h1>
-        <p className="text-gray-500 text-sm mb-6">Set up LessAI for your team — 7-day free trial</p>
+        <p className="text-gray-500 text-sm mb-6">For individuals, teams, and companies — 7-day free trial</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {fields.map(({ id, label, placeholder, type, icon: Icon, key }) => (
+          {fields.map(({ id, label, placeholder, type, icon: Icon, key, required: fieldRequired }) => (
             <div key={id} className="space-y-1.5">
               <Label htmlFor={id} className="text-sm font-medium text-gray-700">{label}</Label>
               <div
@@ -178,7 +196,7 @@ export default function SignupPage() {
                   onBlur={() => setFocused(null)}
                   className={`pl-9 border-gray-200 focus:border-emerald-400 focus:ring-emerald-400 transition-colors ${key === 'password' ? 'pr-10' : ''}`}
                   minLength={key === 'password' ? 8 : undefined}
-                  required
+                  required={fieldRequired}
                 />
                 {key === 'password' && (
                   <button type="button" onClick={() => setShowPassword(v => !v)}

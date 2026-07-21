@@ -137,7 +137,12 @@ export default function LoginPage() {
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="password" className="text-sm font-medium text-gray-700">Password</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password" className="text-sm font-medium text-gray-700">Password</Label>
+              <Link href="/forgot-password" className="text-xs text-emerald-600 hover:text-emerald-700 hover:underline underline-offset-2 transition-colors">
+                Forgot password?
+              </Link>
+            </div>
             <div
               style={{
                 transform: focused === 'password' ? 'scale(1.015)' : 'scale(1)',
