@@ -125,7 +125,7 @@ function InviteForm() {
           <p className="text-gray-400 text-sm">
             {invite?.companies?.name
               ? `${invite.companies.name} is using LessAI to level up their AI skills. Set up your account and build your personal prompt playbook.`
-              : 'Your team is waiting. Set up your account and build your AI Stack Map.'}
+              : 'Your team is waiting. Set up your account and build your personalized AI plan.'}
           </p>
         </div>
       </div>
@@ -176,7 +176,7 @@ function InviteForm() {
 
           <Button type="submit" disabled={submitting || !form.fullName.trim() || form.password.length < 8}
             className="w-full bg-emerald-600 hover:bg-emerald-700 h-11 font-semibold gap-2">
-            {submitting ? 'Creating account…' : <><Sparkles className="w-4 h-4" /> Join team & build my Stack Map</>}
+            {submitting ? 'Creating account…' : <><Sparkles className="w-4 h-4" /> Join team & build my AI plan</>}
           </Button>
         </form>
 
@@ -186,7 +186,7 @@ function InviteForm() {
           <div className="space-y-2.5">
             {[
               { icon: Users, text: 'Your account is linked to your team' },
-              { icon: Zap, text: 'You\'ll set up your personal AI Stack Map' },
+              { icon: Zap, text: 'You\'ll set up your personalized AI learning plan' },
               { icon: Sparkles, text: 'Daily tasks are generated for your tools' },
             ].map(({ icon: Icon, text }) => (
               <div key={text} className="flex items-center gap-2.5 text-sm text-gray-500">

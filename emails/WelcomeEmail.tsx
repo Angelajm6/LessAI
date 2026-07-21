@@ -15,7 +15,7 @@ export default function WelcomeEmail({ firstName, role, tools, stackSummary, das
   return (
     <Html>
       <Head />
-      <Preview>Your AI Stack Map is ready, {firstName} — here's what we built for you.</Preview>
+      <Preview>Your personalized AI plan is ready, {firstName} — here's what we built for you.</Preview>
       <Body style={body}>
         <Container style={container}>
 
@@ -27,7 +27,7 @@ export default function WelcomeEmail({ firstName, role, tools, stackSummary, das
 
           {/* Hero */}
           <Section style={hero}>
-            <Heading style={h1}>Your AI Stack Map is ready ⚡</Heading>
+            <Heading style={h1}>Your personalized AI plan is ready ⚡</Heading>
             <Text style={subtitle}>
               Hey {firstName} — we built a personalized learning plan for you as a <strong>{role}</strong>. Here's your stack:
             </Text>
@@ -76,7 +76,7 @@ export default function WelcomeEmail({ firstName, role, tools, stackSummary, das
           {/* CTA */}
           <Section style={ctaSection}>
             <Button href={dashboardUrl} style={ctaButton}>
-              Open my Stack Map →
+              Go to my dashboard →
             </Button>
             <Text style={ctaNote}>Takes 10 minutes to complete your first task.</Text>
           </Section>

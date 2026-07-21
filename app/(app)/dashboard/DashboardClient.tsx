@@ -732,7 +732,7 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
             <div className="relative z-10">
               <div className="flex items-center gap-2 mb-2">
                 <Zap className="w-4 h-4 text-amber-200" />
-                <span className="text-xs font-bold uppercase tracking-widest text-emerald-100">AI Stack Map</span>
+                <span className="text-xs font-bold uppercase tracking-widest text-emerald-100">Your AI Plan</span>
               </div>
               <p className="text-white/90 text-sm leading-relaxed mb-3">{stackMap.summary}</p>
 
@@ -899,6 +899,7 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                               </div>
                               <p className="text-sm font-semibold text-gray-900 mb-1">{task.title}</p>
                               <p className="text-xs text-gray-500 leading-relaxed line-clamp-2">{task.task}</p>
+                              {task.why && <p className="text-xs text-emerald-700 mt-1.5 italic leading-relaxed">Why: {task.why}</p>}
                             </div>
                           </div>
                           <div className="mt-3 flex items-center justify-between">
@@ -1970,63 +1971,66 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
             {/* Results */}
             {labResult && (
               <>
-                {/* Score comparison — colorful */}
-                <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
-                  <div className="flex items-center justify-between mb-4">
-                    <p className="text-sm font-bold text-gray-800 flex items-center gap-1.5"><TrendingUp className="w-4 h-4 text-emerald-500" /> Quality scores</p>
-                    <div className="bg-emerald-50 border border-emerald-200 rounded-full px-3 py-1">
-                      <p className="text-xs font-bold text-emerald-700">
-                        +{Math.round((['specificity','context','output_clarity'] as const).reduce((s,k) => s + labResult.scores.after[k] - labResult.scores.before[k], 0) / 3)} avg improvement
-                      </p>
+                {/* Scores + What changed — side by side */}
+                <div className="grid sm:grid-cols-2 gap-3">
+                  {/* Quality scores */}
+                  <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                    <div className="flex items-center justify-between mb-4">
+                      <p className="text-sm font-bold text-gray-800 flex items-center gap-1.5"><TrendingUp className="w-4 h-4 text-emerald-500" /> Quality scores</p>
+                      <div className="bg-emerald-50 border border-emerald-200 rounded-full px-3 py-1">
+                        <p className="text-xs font-bold text-emerald-700">
+                          +{Math.round((['specificity','context','output_clarity'] as const).reduce((s,k) => s + labResult.scores.after[k] - labResult.scores.before[k], 0) / 3)} avg
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="space-y-4">
-                    {([
-                      { key: 'specificity' as const, label: 'Specificity', color: 'from-blue-400 to-blue-500', bg: 'bg-blue-50', text: 'text-blue-600', emoji: '🎯' },
-                      { key: 'context' as const, label: 'Context', color: 'from-purple-400 to-purple-500', bg: 'bg-purple-50', text: 'text-purple-600', emoji: '🧠' },
-                      { key: 'output_clarity' as const, label: 'Output clarity', color: 'from-amber-400 to-amber-500', bg: 'bg-amber-50', text: 'text-amber-600', emoji: '📄' },
-                    ]).map(({ key, label, color, bg, text, emoji }) => {
-                      const before = labResult.scores.before[key]
-                      const after = labResult.scores.after[key]
-                      const delta = after - before
-                      return (
-                        <div key={key} className={`${bg} rounded-xl p-3`}>
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-xs font-bold text-gray-700 flex items-center gap-1">{emoji} {label}</span>
-                            <div className="flex items-center gap-2 text-xs">
-                              <span className="text-gray-400 line-through">{before}/10</span>
-                              <span className={`font-black text-sm ${text}`}>{after}/10</span>
-                              {delta > 0 && <span className="bg-emerald-100 text-emerald-700 font-bold px-1.5 py-0.5 rounded-full text-xs">+{delta}</span>}
+                    <div className="space-y-4">
+                      {([
+                        { key: 'specificity' as const, label: 'Specificity', color: 'from-blue-400 to-blue-500', bg: 'bg-blue-50', text: 'text-blue-600', emoji: '🎯' },
+                        { key: 'context' as const, label: 'Context', color: 'from-purple-400 to-purple-500', bg: 'bg-purple-50', text: 'text-purple-600', emoji: '🧠' },
+                        { key: 'output_clarity' as const, label: 'Output clarity', color: 'from-amber-400 to-amber-500', bg: 'bg-amber-50', text: 'text-amber-600', emoji: '📄' },
+                      ]).map(({ key, label, color, bg, text, emoji }) => {
+                        const before = labResult.scores.before[key]
+                        const after = labResult.scores.after[key]
+                        const delta = after - before
+                        return (
+                          <div key={key} className={`${bg} rounded-xl p-3`}>
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-xs font-bold text-gray-700 flex items-center gap-1">{emoji} {label}</span>
+                              <div className="flex items-center gap-2 text-xs">
+                                <span className="text-gray-400 line-through">{before}/10</span>
+                                <span className={`font-black text-sm ${text}`}>{after}/10</span>
+                                {delta > 0 && <span className="bg-emerald-100 text-emerald-700 font-bold px-1.5 py-0.5 rounded-full text-xs">+{delta}</span>}
+                              </div>
+                            </div>
+                            <div className="relative h-3 bg-white/70 rounded-full overflow-hidden">
+                              <div className={`absolute inset-y-0 left-0 bg-gradient-to-r ${color} rounded-full transition-all duration-700`} style={{ width: `${after * 10}%` }} />
+                              <div className="absolute inset-y-0 left-0 w-px bg-gray-400/30" style={{ left: `${before * 10}%` }} />
                             </div>
                           </div>
-                          <div className="relative h-3 bg-white/70 rounded-full overflow-hidden">
-                            <div className={`absolute inset-y-0 left-0 bg-gradient-to-r ${color} rounded-full transition-all duration-700`} style={{ width: `${after * 10}%` }} />
-                            <div className="absolute inset-y-0 left-0 w-px bg-gray-400/30" style={{ left: `${before * 10}%` }} />
-                          </div>
-                        </div>
-                      )
-                    })}
+                        )
+                      })}
+                    </div>
+                    <div className="mt-4 flex items-start gap-2 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl px-4 py-3">
+                      <Sparkles className="w-3.5 h-3.5 text-emerald-500 mt-0.5 shrink-0" />
+                      <p className="text-xs text-emerald-800"><span className="font-bold">Key win:</span> {labResult.summary}</p>
+                    </div>
                   </div>
-                  <div className="mt-4 flex items-start gap-2 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl px-4 py-3">
-                    <Sparkles className="w-3.5 h-3.5 text-emerald-500 mt-0.5 shrink-0" />
-                    <p className="text-xs text-emerald-800"><span className="font-bold">Key win:</span> {labResult.summary}</p>
-                  </div>
-                </div>
 
-                {/* What changed — promoted above before/after */}
-                <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
-                  <p className="text-sm font-bold text-gray-800 mb-1">What we changed</p>
-                  <p className="text-xs text-gray-400 mb-3">Each fix explains exactly why your original prompt was underperforming.</p>
-                  <div className="space-y-3">
-                    {labResult.changes.map((c, i) => {
-                      const chipColors = ['bg-blue-100 text-blue-700', 'bg-purple-100 text-purple-700', 'bg-amber-100 text-amber-700', 'bg-emerald-100 text-emerald-700', 'bg-pink-100 text-pink-700']
-                      return (
-                        <div key={i} className="flex gap-3 items-start">
-                          <span className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0 mt-0.5 ${chipColors[i % chipColors.length]}`}>{c.label}</span>
-                          <p className="text-xs text-gray-500 leading-relaxed">{c.description}</p>
-                        </div>
-                      )
-                    })}
+                  {/* What changed */}
+                  <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                    <p className="text-sm font-bold text-gray-800 mb-1">What we changed</p>
+                    <p className="text-xs text-gray-400 mb-3">Each fix explains exactly why your original prompt was underperforming.</p>
+                    <div className="space-y-3">
+                      {labResult.changes.map((c, i) => {
+                        const chipColors = ['bg-blue-100 text-blue-700', 'bg-purple-100 text-purple-700', 'bg-amber-100 text-amber-700', 'bg-emerald-100 text-emerald-700', 'bg-pink-100 text-pink-700']
+                        return (
+                          <div key={i} className="flex gap-3 items-start">
+                            <span className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0 mt-0.5 ${chipColors[i % chipColors.length]}`}>{c.label}</span>
+                            <p className="text-xs text-gray-500 leading-relaxed">{c.description}</p>
+                          </div>
+                        )
+                      })}
+                    </div>
                   </div>
                 </div>
 

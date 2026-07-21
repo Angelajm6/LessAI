@@ -70,6 +70,7 @@ export interface DailyTask {
   title: string
   task: string              // Specific, concrete, 10-min task
   time_minutes: number
+  why?: string              // Why this task matters for their role (optional, shown in UI)
 }
 
 export interface ToolTrack {
