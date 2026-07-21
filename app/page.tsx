@@ -764,6 +764,7 @@ export default function Home() {
       {/* ── LOGO TICKER ── */}
       <div className="border-y border-gray-100 py-4 overflow-hidden bg-gray-50/60">
         <p className="text-center text-xs text-gray-400 mb-3 font-medium tracking-wide uppercase">Works with every tool your company already pays for</p>
+        <p className="text-center text-xs text-gray-400 mb-3">No integrations or logins required — just tell us what you use.</p>
         <div className="flex animate-ticker whitespace-nowrap" style={{ width: 'max-content' }}>
           {[...logos, ...logos].map((logo, i) => (
             <span key={i} className="inline-flex items-center gap-2 mx-8 text-sm text-gray-400 font-medium">

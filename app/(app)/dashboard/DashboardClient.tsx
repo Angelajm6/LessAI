@@ -224,6 +224,8 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
   const [copiedStep, setCopiedStep] = useState<string | null>(null)
   const [confirmClearHistory, setConfirmClearHistory] = useState(false)
   const [refreshingTasks, setRefreshingTasks] = useState(false)
+  const [labFollowUp, setLabFollowUp] = useState('')
+  const [labFollowUpLoading, setLabFollowUpLoading] = useState(false)
 
   async function refreshTasks() {
     setRefreshingTasks(true)
@@ -1173,6 +1175,20 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                     })}
                   </div>
 
+                  {/* First-task onboarding nudge — shown only until the first task is completed */}
+                  {completed.length === 0 && (
+                    <div className="relative flex items-start gap-3 bg-emerald-50 border border-emerald-200 rounded-2xl px-4 py-3.5">
+                      <div className="relative shrink-0 mt-0.5">
+                        <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                        <div className="absolute inset-0 w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping opacity-75" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-emerald-900">Start here — complete your first task below</p>
+                        <p className="text-xs text-emerald-700 mt-0.5">Click the circle next to a task to mark it done and earn your first XP.</p>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Day card */}
                   <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
                     {/* Tool header */}
@@ -2090,11 +2106,56 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                     {labSaved ? <><BookmarkCheck className="w-3.5 h-3.5" /> Saved!</> : <><Bookmark className="w-3.5 h-3.5" /> Save to my prompts</>}
                   </Button>
                   <button
-                    onClick={() => { setLabResult(null); setLabInput('') }}
+                    onClick={() => { setLabResult(null); setLabInput(''); setLabFollowUp('') }}
                     className="text-xs text-gray-400 hover:text-gray-600 flex items-center gap-1 ml-auto"
                   >
                     <RefreshCw className="w-3 h-3" /> Try another
                   </button>
+                </div>
+
+                {/* Follow-up refinement */}
+                <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4">
+                  <p className="text-xs font-semibold text-gray-600 mb-2">Anything we missed?</p>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={labFollowUp}
+                      onChange={e => setLabFollowUp(e.target.value)}
+                      onKeyDown={async e => { if (e.key === 'Enter' && labFollowUp.trim()) e.currentTarget.blur() }}
+                      placeholder="e.g. make it shorter, add more context about my industry, use a formal tone…"
+                      className="flex-1 text-xs rounded-xl border border-gray-200 bg-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-400 placeholder:text-gray-400"
+                    />
+                    <Button
+                      size="sm"
+                      disabled={!labFollowUp.trim() || labFollowUpLoading}
+                      className="bg-emerald-600 hover:bg-emerald-700 gap-1.5 shrink-0"
+                      onClick={async () => {
+                        if (!labFollowUp.trim()) return
+                        setLabFollowUpLoading(true)
+                        setLabError('')
+                        try {
+                          const res = await fetch('/api/prompt/improve', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ original: `${labResult!.improved}\n\nAdditional context: ${labFollowUp}` }),
+                          })
+                          const body = await res.json().catch(() => ({}))
+                          if (!res.ok) { setLabError(body.error ?? `Error ${res.status}`); return }
+                          setLabResult(body)
+                          setLabFollowUp('')
+                          setLabSaved(false)
+                          setLabCopied(false)
+                        } catch (e) {
+                          setLabError(`Network error: ${e instanceof Error ? e.message : String(e)}`)
+                        }
+                        setLabFollowUpLoading(false)
+                      }}
+                    >
+                      {labFollowUpLoading
+                        ? <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        : <><Sparkles className="w-3.5 h-3.5" /> Refine</>}
+                    </Button>
+                  </div>
                 </div>
               </>
             )}
