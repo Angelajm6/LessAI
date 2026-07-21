@@ -909,7 +909,7 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                               <Clock className="w-3 h-3" /> {task.time_minutes}m
                             </div>
                             <button onClick={() => launchTask(task.task)}
-                              className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1">
+                              className="text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors">
                               Use Prompt Studio <ArrowRight className="w-3 h-3" />
                             </button>
                           </div>
@@ -1609,10 +1609,10 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                             rows={4} className="text-sm border-emerald-200 focus:ring-emerald-400 resize-none" />
                           <div className="flex gap-2">
                             <Button size="sm" onClick={() => saveEdit(prompt.id)} disabled={savingEdit || !editContent.trim()}
-                              className="bg-emerald-600 hover:bg-emerald-700 gap-1.5 text-xs">
+                              className="bg-emerald-600 hover:bg-emerald-700 gap-1.5">
                               <CheckCircle className="w-3.5 h-3.5" /> {savingEdit ? 'Saving…' : 'Save'}
                             </Button>
-                            <Button size="sm" variant="outline" onClick={cancelEdit} className="text-xs">Cancel</Button>
+                            <Button size="sm" variant="outline" onClick={cancelEdit}>Cancel</Button>
                           </div>
                         </div>
                       ) : (
@@ -1658,7 +1658,7 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                               {new Date(prompt.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                             </span>
                             <button onClick={() => copyPrompt(prompt.content, prompt.id)}
-                              className="text-xs text-emerald-600 hover:text-emerald-700 font-medium flex items-center gap-1">
+                              className="text-xs font-semibold text-emerald-700 border border-emerald-200 hover:bg-emerald-50 flex items-center gap-1 px-2.5 py-1 rounded-lg transition-colors">
                               {copiedId === prompt.id ? 'Copied!' : <><Copy className="w-3 h-3" /> Copy</>}
                             </button>
                           </div>
