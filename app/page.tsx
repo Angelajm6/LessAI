@@ -777,7 +777,7 @@ export default function Home() {
                   </span>
                 </Link>
                 <Link href="/pricing" className="text-sm text-gray-500 hover:text-gray-900 transition-colors px-4 py-3.5 border border-gray-200 rounded-2xl hover:border-gray-300 hover:bg-gray-50 font-medium">
-                  See pricing
+                  From $12/mo
                 </Link>
               </div>
               <div className="flex items-center gap-5 mt-8 animate-fade-up" style={{ animationDelay: '340ms', animationFillMode: 'forwards' }}>
