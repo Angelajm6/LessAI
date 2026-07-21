@@ -202,7 +202,7 @@ export default function LoginPage() {
               : <><PlayCircle className="w-4 h-4" /> Try the live demo</>
             }
           </button>
-          <p className="text-center text-xs text-gray-400 mt-2">No account needed — judge / evaluator access</p>
+          <p className="text-center text-xs text-gray-400 mt-2">No account needed — explore the full platform</p>
         </div>
 
         <p className="text-center text-sm text-gray-500 mt-4">

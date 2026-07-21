@@ -95,6 +95,7 @@ const NAV_ITEMS: { key: Section; icon: React.ElementType; label: string }[] = [
   { key: 'dashboard', icon: Home, label: 'Dashboard' },
   { key: 'studio', icon: Sparkles, label: 'Prompt Studio' },
   { key: 'tasks', icon: LayoutDashboard, label: 'Daily Tasks' },
+  { key: 'playbook', icon: FileText, label: 'Playbook' },
   { key: 'saved', icon: Bookmark, label: 'Saved Prompts' },
   { key: 'guides', icon: BookOpen, label: 'Tool Guides' },
 ]
@@ -226,6 +227,28 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
   const [refreshingTasks, setRefreshingTasks] = useState(false)
   const [labFollowUp, setLabFollowUp] = useState('')
   const [labFollowUpLoading, setLabFollowUpLoading] = useState(false)
+
+  async function runLabFollowUp(currentResult: typeof labResult) {
+    if (!labFollowUp.trim() || !currentResult) return
+    setLabFollowUpLoading(true)
+    setLabError('')
+    try {
+      const res = await fetch('/api/prompt/improve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ original: `${currentResult.improved}\n\nAdditional context: ${labFollowUp}` }),
+      })
+      const body = await res.json().catch(() => ({}))
+      if (!res.ok) { setLabError(body.error ?? `Error ${res.status}`); return }
+      setLabResult(body)
+      setLabFollowUp('')
+      setLabSaved(false)
+      setLabCopied(false)
+    } catch (e) {
+      setLabError(`Network error: ${e instanceof Error ? e.message : String(e)}`)
+    }
+    setLabFollowUpLoading(false)
+  }
 
   async function refreshTasks() {
     setRefreshingTasks(true)
@@ -626,10 +649,15 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
 
             {/* Streak + XP */}
             <div className="px-3 pb-4 mb-2 border-b border-gray-100">
-              {streakState > 0 && (
+              {streakState > 0 ? (
                 <div className="flex items-center gap-1.5 mb-2">
                   <span className="text-base leading-none">🔥</span>
                   <span className="text-sm font-bold text-gray-900">{streakState}-day streak</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5 mb-2">
+                  <span className="text-base leading-none">🔥</span>
+                  <span className="text-xs text-gray-400">Complete a task to start your streak</span>
                 </div>
               )}
               <div className="flex justify-between text-xs mb-1">
@@ -798,7 +826,7 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                 const steps = [
                   { label: 'Complete your profile', done: !!(profile.role && tools.length > 0), action: () => window.location.href = '/settings' },
                   { label: 'Complete your first daily task', done: completed.length > 0, action: () => setSection('tasks') },
-                  { label: 'Save a prompt', done: saved.length > 0, action: () => setSection('tasks') },
+                  { label: 'Save a prompt', done: saved.length > 0, action: () => setSection('saved') },
                   { label: 'Try the Prompt Studio', done: labHistory.length > 0, action: () => setSection('studio') },
                 ]
                 const doneCount = steps.filter(s => s.done).length
@@ -874,7 +902,7 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <Zap className="w-4 h-4 text-amber-500" />
-                      <h3 className="text-sm font-bold text-gray-900">Continue where you left off</h3>
+                      <h3 className="text-sm font-bold text-gray-900">{completed.length === 0 ? 'Start today' : 'Continue where you left off'}</h3>
                     </div>
                     <button onClick={() => setSection('tasks')} className="text-xs text-emerald-600 font-medium hover:text-emerald-700 flex items-center gap-1">
                       All tasks <ArrowRight className="w-3 h-3" />
@@ -1102,6 +1130,16 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
         {/* Daily Tasks */}
         {section === 'tasks' && (
           <div className="space-y-4">
+            {/* Weekend notice */}
+            {(() => { const d = new Date().getDay(); return (d === 0 || d === 6) })() && (
+              <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3">
+                <span className="text-lg">📅</span>
+                <div>
+                  <p className="text-sm font-semibold text-amber-900">Tasks run Monday – Friday</p>
+                  <p className="text-xs text-amber-700 mt-0.5">Enjoy your weekend — new tasks are waiting on Monday.</p>
+                </div>
+              </div>
+            )}
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold text-gray-900">Daily Tasks</h2>
               {playbookTools.length > 0 && (
@@ -1759,7 +1797,7 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                       </div>
                       <div className="flex gap-2 flex-wrap mt-3 overflow-x-auto sm:overflow-visible pb-1 sm:pb-0 no-scrollbar">
                         {SUGGESTIONS.map(s => (
-                          <button key={s} onClick={() => setCommandInput(s)}
+                          <button key={s} onClick={() => { setCommandInput(s); setTimeout(getRecommendation, 0) }}
                             className="text-xs px-3 py-1.5 rounded-full bg-white/[0.07] text-gray-400 border border-white/[0.08] hover:bg-white/[0.13] hover:text-gray-200 hover:border-white/20 transition-all duration-150 whitespace-nowrap shrink-0">
                             {s}
                           </button>
@@ -2121,7 +2159,7 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                       type="text"
                       value={labFollowUp}
                       onChange={e => setLabFollowUp(e.target.value)}
-                      onKeyDown={async e => { if (e.key === 'Enter' && labFollowUp.trim()) e.currentTarget.blur() }}
+                      onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); runLabFollowUp(labResult) } }}
                       placeholder="e.g. make it shorter, add more context about my industry, use a formal tone…"
                       className="flex-1 text-xs rounded-xl border border-gray-200 bg-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-400 placeholder:text-gray-400"
                     />
@@ -2129,27 +2167,7 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                       size="sm"
                       disabled={!labFollowUp.trim() || labFollowUpLoading}
                       className="bg-emerald-600 hover:bg-emerald-700 gap-1.5 shrink-0"
-                      onClick={async () => {
-                        if (!labFollowUp.trim()) return
-                        setLabFollowUpLoading(true)
-                        setLabError('')
-                        try {
-                          const res = await fetch('/api/prompt/improve', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ original: `${labResult!.improved}\n\nAdditional context: ${labFollowUp}` }),
-                          })
-                          const body = await res.json().catch(() => ({}))
-                          if (!res.ok) { setLabError(body.error ?? `Error ${res.status}`); return }
-                          setLabResult(body)
-                          setLabFollowUp('')
-                          setLabSaved(false)
-                          setLabCopied(false)
-                        } catch (e) {
-                          setLabError(`Network error: ${e instanceof Error ? e.message : String(e)}`)
-                        }
-                        setLabFollowUpLoading(false)
-                      }}
+                      onClick={() => runLabFollowUp(labResult)}
                     >
                       {labFollowUpLoading
                         ? <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
