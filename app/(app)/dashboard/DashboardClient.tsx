@@ -2038,15 +2038,19 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                 <div className="grid sm:grid-cols-2 gap-3">
                   {/* Quality scores */}
                   <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center justify-between mb-3">
                       <p className="text-sm font-bold text-gray-800 flex items-center gap-1.5"><TrendingUp className="w-4 h-4 text-emerald-500" /> Quality scores</p>
                       <div className="bg-emerald-50 border border-emerald-200 rounded-full px-3 py-1">
                         <p className="text-xs font-bold text-emerald-700">
-                          +{Math.round((['specificity','context','output_clarity'] as const).reduce((s,k) => s + labResult.scores.after[k] - labResult.scores.before[k], 0) / 3)} avg
+                          +{Math.round((['specificity','context','output_clarity'] as const).reduce((s,k) => s + labResult.scores.after[k] - labResult.scores.before[k], 0) / 3)} avg improvement
                         </p>
                       </div>
                     </div>
-                    <div className="space-y-4">
+                    <div className="flex justify-end gap-4 text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-2 pr-1">
+                      <span>Before</span>
+                      <span>After</span>
+                    </div>
+                    <div className="space-y-3">
                       {([
                         { key: 'specificity' as const, label: 'Specificity', color: 'from-blue-400 to-blue-500', bg: 'bg-blue-50', text: 'text-blue-600', emoji: '🎯' },
                         { key: 'context' as const, label: 'Context', color: 'from-purple-400 to-purple-500', bg: 'bg-purple-50', text: 'text-purple-600', emoji: '🧠' },
@@ -2059,15 +2063,20 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                           <div key={key} className={`${bg} rounded-xl p-3`}>
                             <div className="flex items-center justify-between mb-2">
                               <span className="text-xs font-bold text-gray-700 flex items-center gap-1">{emoji} {label}</span>
-                              <div className="flex items-center gap-2 text-xs">
-                                <span className="text-gray-400 line-through">{before}/10</span>
+                              <div className="flex items-center gap-3 text-xs">
+                                <span className="text-gray-500 font-semibold bg-white/70 px-2 py-0.5 rounded-md">{before}/10</span>
+                                <span className="text-gray-300">→</span>
                                 <span className={`font-black text-sm ${text}`}>{after}/10</span>
                                 {delta > 0 && <span className="bg-emerald-100 text-emerald-700 font-bold px-1.5 py-0.5 rounded-full text-xs">+{delta}</span>}
                               </div>
                             </div>
-                            <div className="relative h-3 bg-white/70 rounded-full overflow-hidden">
+                            <div className="relative h-2.5 bg-white/70 rounded-full overflow-hidden">
+                              <div className="absolute inset-y-0 left-0 bg-gray-200 rounded-full" style={{ width: `${before * 10}%` }} />
                               <div className={`absolute inset-y-0 left-0 bg-gradient-to-r ${color} rounded-full transition-all duration-700`} style={{ width: `${after * 10}%` }} />
-                              <div className="absolute inset-y-0 left-0 w-px bg-gray-400/30" style={{ left: `${before * 10}%` }} />
+                            </div>
+                            <div className="flex justify-between mt-1">
+                              <span className="text-[9px] text-gray-400">0</span>
+                              <span className="text-[9px] text-gray-400">10</span>
                             </div>
                           </div>
                         )

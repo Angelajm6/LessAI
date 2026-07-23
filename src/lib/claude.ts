@@ -451,13 +451,18 @@ export async function improvePrompt(
 
 Their AI tools: ${tools.join(', ')}.
 
-Return this exact JSON structure:
-{"improved":"rewritten prompt here","changes":[{"label":"label","description":"description"}],"scores":{"before":{"specificity":3,"context":2,"output_clarity":2},"after":{"specificity":8,"context":9,"output_clarity":8}},"summary":"key improvement sentence","recommended_tool":"ChatGPT","why_this_tool":"one sentence explaining why this tool is best for this specific prompt","why_not_others":[{"tool":"Claude","reason":"one sentence why it's not the best pick for this task"},{"tool":"Notion AI","reason":"one sentence why it's not the best pick for this task"}]}
+Return this exact JSON structure (with realistic integer values — do NOT copy these placeholder numbers):
+{"improved":"rewritten prompt here","changes":[{"label":"label","description":"description"}],"scores":{"before":{"specificity":0,"context":0,"output_clarity":0},"after":{"specificity":0,"context":0,"output_clarity":0}},"summary":"key improvement sentence","recommended_tool":"ChatGPT","why_this_tool":"one sentence explaining why this tool is best for this specific prompt","why_not_others":[{"tool":"Claude","reason":"one sentence why it's not the best pick for this task"},{"tool":"Notion AI","reason":"one sentence why it's not the best pick for this task"}]}
 
 Rules:
 - improved: rewrite as a much more effective, structured prompt (3-8 sentences, role-specific for a ${role})
 - changes: 3-5 items, each a distinct improvement
-- scores: integers 1-10 for specificity, context, output_clarity
+- scores.before: honestly score the ORIGINAL prompt as written — a one-line vague prompt should score 1-3 on most dimensions
+- scores.after: score the improved prompt honestly — a well-structured rewrite typically lands 6-8; reserve 9-10 for truly exceptional prompts
+- Scoring rubric for each dimension (1-10):
+  * specificity: 1-2=completely vague (no subject/task detail), 3-4=some direction but missing key specifics, 5-6=moderately specific, 7-8=clear and detailed, 9-10=extremely precise with all relevant constraints
+  * context: 1-2=no role/audience/background, 3-4=minimal context, 5-6=some context provided, 7-8=good role+audience+situation, 9-10=complete context including tone, format, constraints
+  * output_clarity: 1-2=no indication of desired output, 3-4=vague output expectation, 5-6=some format guidance, 7-8=clear format and length, 9-10=exact output structure specified
 - summary: one sentence on the most important improvement
 - recommended_tool: pick the single best tool from [${tools.join(', ')}] for this prompt based on the task type
 - why_this_tool: one clear sentence on why this tool wins for this specific task — be specific, not generic
