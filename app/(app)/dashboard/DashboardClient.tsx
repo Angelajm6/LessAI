@@ -1674,15 +1674,9 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                           <div className="flex items-start justify-between gap-3 mb-3">
                             <div className="min-w-0">
                               <div className="flex items-center gap-2 mb-1 flex-wrap">
-                                {isImproved ? (
-                                  <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-emerald-700 bg-emerald-100 border border-emerald-200 px-2 py-0.5 rounded-full">
-                                    <Sparkles className="w-2.5 h-2.5" /> LessAI improved
-                                  </span>
-                                ) : (
-                                  <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-gray-500 bg-gray-100 border border-gray-200 px-2 py-0.5 rounded-full">
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-gray-500 bg-gray-100 border border-gray-200 px-2 py-0.5 rounded-full">
                                     <User className="w-2.5 h-2.5" /> Your prompt
                                   </span>
-                                )}
                                 {prompt.tool && <span className="text-xs text-emerald-600 font-medium">{prompt.tool}</span>}
                                 {prompt.folder_id && (
                                   <span className="text-xs text-gray-400 flex items-center gap-0.5">
@@ -1716,12 +1710,12 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                             </div>
                           </div>
                           <div className={`rounded-xl border ${isImproved ? 'bg-white border-emerald-100' : 'bg-gray-50 border-gray-100'}`}>
-                            <div className={`flex items-center gap-1.5 px-3 pt-2.5 pb-1.5 border-b ${isImproved ? 'border-emerald-100' : 'border-gray-100'}`}>
-                              {isImproved
-                                ? <><Sparkles className="w-3 h-3 text-emerald-500" /><span className="text-[10px] font-bold uppercase tracking-wide text-emerald-600">LessAI improved</span></>
-                                : <><User className="w-3 h-3 text-gray-400" /><span className="text-[10px] font-bold uppercase tracking-wide text-gray-400">My prompt</span></>
-                              }
-                            </div>
+                            {isImproved && (
+                              <div className="flex items-center gap-1.5 px-3 pt-2.5 pb-1.5 border-b border-emerald-100">
+                                <Sparkles className="w-3 h-3 text-emerald-500" />
+                                <span className="text-[10px] font-bold uppercase tracking-wide text-emerald-600">LessAI improved</span>
+                              </div>
+                            )}
                             <p className="text-sm text-gray-700 leading-relaxed p-3">{prompt.content}</p>
                           </div>
                           <div className="flex items-center justify-between mt-3">
