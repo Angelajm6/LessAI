@@ -1715,9 +1715,15 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                               </button>
                             </div>
                           </div>
-                          <p className={`text-sm leading-relaxed rounded-xl p-3 border ${
-                            isImproved ? 'text-gray-700 bg-white border-emerald-100' : 'text-gray-600 bg-gray-50 border-gray-100'
-                          }`}>{prompt.content}</p>
+                          <div className={`rounded-xl border ${isImproved ? 'bg-white border-emerald-100' : 'bg-gray-50 border-gray-100'}`}>
+                            <div className={`flex items-center gap-1.5 px-3 pt-2.5 pb-1.5 border-b ${isImproved ? 'border-emerald-100' : 'border-gray-100'}`}>
+                              {isImproved
+                                ? <><Sparkles className="w-3 h-3 text-emerald-500" /><span className="text-[10px] font-bold uppercase tracking-wide text-emerald-600">LessAI improved</span></>
+                                : <><User className="w-3 h-3 text-gray-400" /><span className="text-[10px] font-bold uppercase tracking-wide text-gray-400">My prompt</span></>
+                              }
+                            </div>
+                            <p className="text-sm text-gray-700 leading-relaxed p-3">{prompt.content}</p>
+                          </div>
                           <div className="flex items-center justify-between mt-3">
                             <span className="text-xs text-gray-400">
                               {new Date(prompt.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
