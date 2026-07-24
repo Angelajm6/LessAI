@@ -1645,9 +1645,16 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {visiblePrompts.map(prompt => (
+                  {visiblePrompts.map(prompt => {
+                    const isImproved = prompt.label.startsWith('✨')
+                    const displayLabel = prompt.label.replace(/^✨\s*/, '')
+                    return (
                     <div key={prompt.id}
-                      className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm group hover:border-emerald-200 hover:shadow-md transition-all duration-200">
+                      className={`border rounded-2xl p-5 shadow-sm group transition-all duration-200 ${
+                        isImproved
+                          ? 'bg-gradient-to-br from-emerald-50/60 to-white border-emerald-200 hover:border-emerald-300 hover:shadow-emerald-100/60 hover:shadow-md'
+                          : 'bg-white border-gray-100 hover:border-emerald-200 hover:shadow-md'
+                      }`}>
                       {editingId === prompt.id ? (
                         <div className="space-y-3">
                           <Input value={editLabel} onChange={(e) => setEditLabel(e.target.value)}
@@ -1664,10 +1671,18 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                         </div>
                       ) : (
                         <>
-                          <div className="flex items-start justify-between gap-3 mb-2">
-                            <div>
-                              <p className="text-sm font-semibold text-gray-900">{prompt.label}</p>
-                              <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                          <div className="flex items-start justify-between gap-3 mb-3">
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                {isImproved ? (
+                                  <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-emerald-700 bg-emerald-100 border border-emerald-200 px-2 py-0.5 rounded-full">
+                                    <Sparkles className="w-2.5 h-2.5" /> LessAI improved
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-gray-500 bg-gray-100 border border-gray-200 px-2 py-0.5 rounded-full">
+                                    <User className="w-2.5 h-2.5" /> Your prompt
+                                  </span>
+                                )}
                                 {prompt.tool && <span className="text-xs text-emerald-600 font-medium">{prompt.tool}</span>}
                                 {prompt.folder_id && (
                                   <span className="text-xs text-gray-400 flex items-center gap-0.5">
@@ -1675,6 +1690,7 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                                   </span>
                                 )}
                               </div>
+                              <p className="text-sm font-semibold text-gray-900 truncate">{displayLabel}</p>
                             </div>
                             <div className="flex items-center gap-1 shrink-0">
                               {folders.length > 0 && (
@@ -1699,7 +1715,9 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                               </button>
                             </div>
                           </div>
-                          <p className="text-sm text-gray-600 leading-relaxed bg-gray-50 rounded-xl p-3 border border-gray-100">{prompt.content}</p>
+                          <p className={`text-sm leading-relaxed rounded-xl p-3 border ${
+                            isImproved ? 'text-gray-700 bg-white border-emerald-100' : 'text-gray-600 bg-gray-50 border-gray-100'
+                          }`}>{prompt.content}</p>
                           <div className="flex items-center justify-between mt-3">
                             <span className="text-xs text-gray-400">
                               {new Date(prompt.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
@@ -1712,7 +1730,8 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                         </>
                       )}
                     </div>
-                  ))}
+                  )
+                  })}
                 </div>
               )}
             </div>
