@@ -377,7 +377,7 @@ function ProductDemo() {
         {/* Mobile nav */}
         <div className="md:hidden border-b border-gray-100 bg-white">
           <div className="px-4 pt-3 pb-2 flex items-center justify-between">
-            <div><p className="text-sm font-semibold text-gray-900">Jordan Reyes</p><p className="text-xs text-gray-400">RevOps Manager · 5 tools</p></div>
+            <div><p className="text-sm font-semibold text-gray-900">Jordan Reyes</p><p className="text-xs text-gray-400">RevOps Manager · 4 tools</p></div>
             <div className="flex items-center gap-3 text-xs"><span className="flex items-center gap-1 text-amber-500 font-semibold"><span>🔥</span>7</span><span className="text-emerald-600 font-semibold">310 XP</span></div>
           </div>
           <div className="flex border-t border-gray-100">
@@ -396,7 +396,7 @@ function ProductDemo() {
           <div className="hidden md:flex w-48 shrink-0 bg-white border-r border-gray-100 p-4 flex-col">
             <div className="px-1 mb-4">
               <p className="text-sm font-semibold text-gray-900 truncate">Jordan Reyes</p>
-              <p className="text-xs text-gray-400 truncate mb-2.5">RevOps Manager · 5 tools</p>
+              <p className="text-xs text-gray-400 truncate mb-2.5">RevOps Manager · 4 tools</p>
               <div className="flex justify-between text-xs text-gray-400 mb-1"><span>Stack progress</span><span className="text-emerald-600 font-semibold">14/25</span></div>
               <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden"><div className="h-1.5 rounded-full" style={{ width: '56%', background: 'linear-gradient(90deg,#10b981,#f59e0b)' }} /></div>
             </div>
@@ -433,7 +433,7 @@ function ProductDemo() {
               <div className="p-4 sm:p-5 space-y-3 sm:space-y-4">
                 <div className="hidden md:block">
                   <h2 className="text-base font-bold text-gray-900">Good morning, Jordan.</h2>
-                  <p className="text-xs text-gray-400 mt-0.5">RevOps Manager · 5 tools in your stack</p>
+                  <p className="text-xs text-gray-400 mt-0.5">RevOps Manager · 4 tools in your stack</p>
                 </div>
                 <div className="grid grid-cols-4 gap-2">
                   {[
