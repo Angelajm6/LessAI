@@ -418,7 +418,7 @@ function ProductDemo() {
             </div>
             <div className="mt-auto pt-4 border-t border-gray-100">
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Your stack</p>
-              {[{ name: 'Claude', level: '✓' }, { name: 'ChatGPT', level: '✓' }, { name: 'Perplexity', level: '~' }, { name: 'Notion AI', level: '~' }, { name: 'Grok', level: '·' }].map(t => (
+              {[{ name: 'Claude', level: '✓' }, { name: 'ChatGPT', level: '✓' }, { name: 'Perplexity', level: '~' }, { name: 'Notion AI', level: '~' }].map(t => (
                 <div key={t.name} className="flex items-center justify-between py-0.5">
                   <span className="text-xs text-gray-500 truncate">{t.name}</span>
                   <span className={`text-xs ${t.level === '✓' ? 'text-emerald-500' : t.level === '~' ? 'text-teal-500' : 'text-gray-300'}`}>{t.level}</span>
