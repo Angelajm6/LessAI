@@ -18,6 +18,18 @@ export async function POST(req: NextRequest) {
 
   // Reuse existing Stripe customer or create one
   let customerId = profile?.stripe_customer_id as string | undefined
+  if (customerId) {
+    // Verify the customer still exists in Stripe (may have been deleted)
+    try {
+      const existing = await stripe.customers.retrieve(customerId)
+      if ((existing as { deleted?: boolean }).deleted) customerId = undefined
+    } catch {
+      customerId = undefined
+    }
+    if (!customerId) {
+      await supabase.from('profiles').update({ stripe_customer_id: null }).eq('id', user.id)
+    }
+  }
   if (!customerId) {
     const customer = await stripe.customers.create({
       email: user.email,
