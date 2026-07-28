@@ -2,12 +2,12 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { ArrowRight, User, Building2, Mail, Lock, Eye, EyeOff, CheckCircle } from 'lucide-react'
+import { ArrowRight, User, Building2, Mail, Lock, Eye, EyeOff, CheckCircle, Sparkles, Users } from 'lucide-react'
 
 function ResendButton({ email }: { email: string }) {
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent'>('idle')
@@ -28,6 +28,8 @@ function ResendButton({ email }: { email: string }) {
 
 export default function SignupPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const plan = searchParams.get('plan') as 'pro' | 'teams' | null
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [emailSent, setEmailSent] = useState(false)
@@ -63,7 +65,7 @@ export default function SignupPage() {
       password: form.password,
       options: {
         data: { full_name: form.fullName, company_name: form.companyName, is_admin: true },
-        emailRedirectTo: `${window.location.origin}/api/auth/callback?next=/admin`,
+        emailRedirectTo: `${window.location.origin}/api/auth/callback?next=${encodeURIComponent('/dashboard' + (plan ? `?checkout=${plan}` : ''))}`,
       },
     })
 
@@ -97,7 +99,7 @@ export default function SignupPage() {
         onboarded: true,
       })
 
-      router.push('/admin')
+      router.push(plan ? `/dashboard?checkout=${plan}` : '/dashboard')
     }
   }
 
@@ -175,7 +177,16 @@ export default function SignupPage() {
         </div>
 
         <h1 className="text-2xl font-black text-gray-900 mb-1">Create your account</h1>
-        <p className="text-gray-500 text-sm mb-6">For individuals, teams, and companies — 7-day free trial</p>
+        {plan ? (
+          <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2 mb-5">
+            {plan === 'teams' ? <Users className="w-4 h-4 text-emerald-600 shrink-0" /> : <Sparkles className="w-4 h-4 text-emerald-600 shrink-0" />}
+            <p className="text-sm text-emerald-700 font-medium">
+              Starting your <span className="font-bold capitalize">{plan}</span> free trial — 7 days, no charge until day 8
+            </p>
+          </div>
+        ) : (
+          <p className="text-gray-500 text-sm mb-6">For individuals, teams, and companies — 7-day free trial</p>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {fields.map(({ id, label, placeholder, type, icon: Icon, key, required: fieldRequired }) => (
