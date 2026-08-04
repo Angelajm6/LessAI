@@ -11,43 +11,97 @@ const dashboardUrl = (path = '/dashboard') =>
 
 // ── Shared HTML helpers ────────────────────────────────────────────────────
 
-function emailShell(body: string) {
+const LOGO_URL = 'https://lessai.io/logo.svg'
+const APP_URL = 'https://app.lessai.io'
+const BRAND_GREEN = '#059669'
+const BRAND_GREEN_LIGHT = '#10b981'
+
+function emailShell(body: string, { badge }: { badge?: string } = {}) {
   return `<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="background:#f3f4f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;margin:0;padding:0">
-  <div style="max-width:580px;margin:40px auto 24px;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08),0 4px 16px rgba(0,0,0,0.04)">
-    <div style="background:#0a0a0a;padding:24px 32px">
-      <table cellpadding="0" cellspacing="0" width="100%"><tr>
-        <td style="vertical-align:middle">
-          <table cellpadding="0" cellspacing="0"><tr>
-            <td style="vertical-align:middle;padding-right:10px">
-              <div style="width:32px;height:32px;background:#10b981;border-radius:8px;display:flex;align-items:center;justify-content:center">
-                <span style="color:#fff;font-weight:900;font-size:18px;line-height:32px;display:block;text-align:center">&lt;</span>
-              </div>
-            </td>
-            <td style="vertical-align:middle">
-              <span style="color:#ffffff;font-weight:800;font-size:18px;letter-spacing:-0.3px">LessAI</span>
-            </td>
-          </tr></table>
-        </td>
-        <td style="text-align:right;vertical-align:middle">
-          <span style="background:rgba(16,185,129,0.2);border:1px solid rgba(16,185,129,0.4);color:#6ee7b7;font-size:11px;font-weight:700;padding:3px 10px;border-radius:100px;letter-spacing:0.05em">7-DAY FREE TRIAL</span>
-        </td>
-      </tr></table>
-    </div>
-    ${body}
-    <div style="padding:20px 32px;background:#f9fafb;border-top:1px solid #f0f0f0;text-align:center">
-      <p style="font-size:12px;color:#9ca3af;margin:0 0 4px">LessAI · hello@lessai.io</p>
-      <p style="font-size:11px;color:#d1d5db;margin:0">You're receiving this because you created a LessAI account. <a href="mailto:hello@lessai.io?subject=Unsubscribe" style="color:#d1d5db">Unsubscribe</a></p>
-    </div>
-  </div>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>LessAI</title>
+</head>
+<body style="margin:0;padding:0;background:#f0f2f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased">
+  <!--[if mso]><table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center"><![endif]-->
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0f2f5;min-height:100vh">
+    <tr><td align="center" style="padding:40px 16px 24px">
+
+      <!-- Card -->
+      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:580px;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08)">
+
+        <!-- Header -->
+        <tr>
+          <td style="background:#0a0a0a;padding:0">
+            <!-- Green accent line -->
+            <div style="height:3px;background:linear-gradient(90deg,${BRAND_GREEN} 0%,${BRAND_GREEN_LIGHT} 50%,#f59e0b 100%)"></div>
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td style="padding:20px 28px;vertical-align:middle">
+                  <!-- Logo mark + wordmark -->
+                  <table cellpadding="0" cellspacing="0">
+                    <tr>
+                      <td style="vertical-align:middle;padding-right:10px;width:36px">
+                        <img src="${LOGO_URL}" width="30" height="30" alt="" style="display:block;width:30px;height:30px">
+                      </td>
+                      <td style="vertical-align:middle">
+                        <span style="color:#ffffff;font-size:17px;font-weight:800;letter-spacing:-0.4px;line-height:1">LessAI</span>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+                ${badge ? `<td style="padding:20px 28px 20px 0;vertical-align:middle;text-align:right">
+                  <span style="background:rgba(5,150,105,0.2);border:1px solid rgba(5,150,105,0.4);color:#6ee7b7;font-size:10px;font-weight:700;padding:4px 10px;border-radius:100px;letter-spacing:0.06em;white-space:nowrap">${badge}</span>
+                </td>` : '<td></td>'}
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- Body -->
+        <tr><td>${body}</td></tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="padding:20px 28px;background:#f8f9fa;border-top:1px solid #eaecef;text-align:center">
+            <table width="100%" cellpadding="0" cellspacing="0"><tr>
+              <td align="center">
+                <p style="font-size:12px;color:#6b7280;margin:0 0 6px">
+                  <a href="${APP_URL}/dashboard" style="color:${BRAND_GREEN};text-decoration:none;font-weight:600">Open LessAI</a>
+                  &nbsp;·&nbsp;
+                  <a href="mailto:hello@lessai.io" style="color:#9ca3af;text-decoration:none">hello@lessai.io</a>
+                  &nbsp;·&nbsp;
+                  <a href="${APP_URL}/settings" style="color:#9ca3af;text-decoration:none">Account settings</a>
+                </p>
+                <p style="font-size:11px;color:#d1d5db;margin:0">
+                  You're receiving this because you have a LessAI account.
+                  &nbsp;<a href="mailto:hello@lessai.io?subject=Unsubscribe" style="color:#d1d5db;text-decoration:underline">Unsubscribe</a>
+                </p>
+              </td>
+            </tr></table>
+          </td>
+        </tr>
+
+      </table>
+      <!-- End card -->
+
+    </td></tr>
+  </table>
+  <!--[if mso]></td></tr></table><![endif]-->
 </body>
 </html>`
 }
 
-function ctaButton(href: string, label: string, color = '#059669') {
-  return `<a href="${href}" style="background:${color};color:${color === '#fbbf24' ? '#111827' : '#fff'};font-weight:700;font-size:15px;padding:14px 32px;border-radius:12px;text-decoration:none;display:inline-block">${label}</a>`
+function ctaButton(href: string, label: string, style: 'primary' | 'secondary' | 'amber' = 'primary') {
+  const styles = {
+    primary: `background:${BRAND_GREEN};color:#ffffff`,
+    secondary: `background:#f3f4f6;color:#111827`,
+    amber: `background:#f59e0b;color:#111827`,
+  }
+  return `<a href="${href}" style="${styles[style]};font-weight:700;font-size:14px;padding:13px 28px;border-radius:10px;text-decoration:none;display:inline-block;letter-spacing:-0.1px">${label}</a>`
 }
 
 // ── Signup welcome (pre-onboarding) ─────────────────────────────────────────
@@ -229,7 +283,7 @@ export async function sendTrialDay7Email({
       ${ctaButton(dashboardUrl(), 'Keep my plan →')}
     </div>
     <div style="padding:0 32px 32px;text-align:center">
-      ${ctaButton('mailto:hello@lessai.io', 'Cancel my trial', '#f3f4f6')}
+      ${ctaButton('mailto:hello@lessai.io', 'Cancel my trial', 'secondary')}
     </div>
   `)
 
