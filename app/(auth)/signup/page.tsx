@@ -65,7 +65,7 @@ function SignupForm() {
       password: form.password,
       options: {
         data: { full_name: form.fullName, company_name: form.companyName, is_admin: true },
-        emailRedirectTo: `${window.location.origin}/api/auth/callback?next=${encodeURIComponent('/dashboard' + (plan ? `?checkout=${plan}` : ''))}`,
+        emailRedirectTo: `${window.location.origin}/api/auth/callback?next=${encodeURIComponent(plan ? `/checkout?plan=${plan}` : '/dashboard')}`,
       },
     })
 
@@ -99,7 +99,7 @@ function SignupForm() {
         onboarded: true,
       })
 
-      router.push(plan ? `/dashboard?checkout=${plan}` : '/dashboard')
+      router.push(plan ? `/checkout?plan=${plan}` : '/dashboard')
     }
   }
 

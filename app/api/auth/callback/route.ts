@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { sendSignupWelcomeEmail } from '@/lib/email'
 
 export async function GET(req: NextRequest) {
   const { searchParams, origin } = new URL(req.url)
@@ -33,8 +34,12 @@ export async function GET(req: NextRequest) {
           full_name: (meta.full_name as string) ?? '',
           company_id: company?.id ?? null,
           is_admin: true,
-          onboarded: true,
+          onboarded: false,
         })
+
+        // Send welcome email (fire-and-forget)
+        const firstName = ((meta.full_name as string) ?? '').split(' ')[0] || 'there'
+        sendSignupWelcomeEmail({ to: user.email ?? '', firstName }).catch(() => {})
       }
     }
   }

@@ -34,7 +34,57 @@ function ctaButton(href: string, label: string, color = '#059669') {
   return `<a href="${href}" style="background:${color};color:${color === '#fbbf24' ? '#111827' : '#fff'};font-weight:700;font-size:15px;padding:14px 32px;border-radius:12px;text-decoration:none;display:inline-block">${label}</a>`
 }
 
-// ── Welcome email ────────────────────────────────────────────────────────────
+// ── Signup welcome (pre-onboarding) ─────────────────────────────────────────
+
+export async function sendSignupWelcomeEmail({ to, firstName }: { to: string; firstName: string }) {
+  const onboardingUrl = dashboardUrl('/onboarding')
+  const html = emailShell(`
+    <div style="padding:32px 32px 24px">
+      <h1 style="font-size:24px;font-weight:800;color:#111827;margin:0 0 12px;line-height:1.3">Welcome to LessAI, ${firstName} 👋</h1>
+      <p style="font-size:15px;color:#4b5563;margin:0 0 20px;line-height:1.6">
+        You're in. Your 7-day free trial starts the moment you complete setup — and it takes less than 5 minutes.
+      </p>
+      <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:16px 20px;margin-bottom:24px">
+        <p style="font-size:13px;font-weight:700;color:#111827;margin:0 0 12px">What happens during setup:</p>
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr><td style="padding-bottom:10px;vertical-align:top">
+            <span style="display:inline-block;background:#ecfdf5;color:#059669;border-radius:100px;font-size:11px;font-weight:700;padding:2px 8px;margin-right:8px">Step 1</span>
+            <span style="font-size:13px;color:#374151">Tell us your role</span>
+          </td></tr>
+          <tr><td style="padding-bottom:10px;vertical-align:top">
+            <span style="display:inline-block;background:#ecfdf5;color:#059669;border-radius:100px;font-size:11px;font-weight:700;padding:2px 8px;margin-right:8px">Step 2</span>
+            <span style="font-size:13px;color:#374151">Add your company website — we'll pull context automatically</span>
+          </td></tr>
+          <tr><td style="padding-bottom:10px;vertical-align:top">
+            <span style="display:inline-block;background:#ecfdf5;color:#059669;border-radius:100px;font-size:11px;font-weight:700;padding:2px 8px;margin-right:8px">Step 3</span>
+            <span style="font-size:13px;color:#374151">Pick the AI tools you use</span>
+          </td></tr>
+          <tr><td style="vertical-align:top">
+            <span style="display:inline-block;background:#ecfdf5;color:#059669;border-radius:100px;font-size:11px;font-weight:700;padding:2px 8px;margin-right:8px">Step 4</span>
+            <span style="font-size:13px;color:#374151">Rate your skill level — we personalize your playbook around it</span>
+          </td></tr>
+        </table>
+      </div>
+      <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.6">
+        At the end, LessAI generates your personalized prompt playbook — ready-to-use prompts for every tool you picked, tailored to your role and your company.
+      </p>
+    </div>
+    <div style="padding:0 32px 32px;text-align:center">
+      ${ctaButton(onboardingUrl, 'Complete my setup →')}
+      <p style="font-size:12px;color:#9ca3af;margin:12px 0 0">Takes about 5 minutes. Your trial is waiting.</p>
+    </div>
+  `)
+
+  const { data, error } = await getResend().emails.send({
+    from: FROM, to,
+    subject: `Welcome to LessAI — complete your setup to get started`,
+    html,
+  })
+  if (error) console.error('[email] sendSignupWelcomeEmail error:', error)
+  return { data, error }
+}
+
+// ── Welcome email (post-onboarding) ─────────────────────────────────────────
 
 export async function sendWelcomeEmail({
   to, firstName, role, tools, stackSummary,

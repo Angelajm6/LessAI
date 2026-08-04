@@ -229,20 +229,6 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
   const [labFollowUp, setLabFollowUp] = useState('')
   const [labFollowUpLoading, setLabFollowUpLoading] = useState(false)
 
-  // Auto-trigger Stripe checkout when redirected from signup with ?checkout=plan
-  useEffect(() => {
-    const checkoutPlan = searchParams.get('checkout')
-    if (checkoutPlan !== 'pro' && checkoutPlan !== 'teams') return
-    fetch('/api/stripe/checkout', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ plan: checkoutPlan }),
-    })
-      .then(r => r.json())
-      .then(data => { if (data.url) window.location.href = data.url })
-      .catch(() => {})
-  }, [])
-
   async function runLabFollowUp(currentResult: typeof labResult) {
     if (!labFollowUp.trim() || !currentResult) return
     setLabFollowUpLoading(true)
