@@ -15,15 +15,31 @@ function emailShell(body: string) {
   return `<!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="background:#f9fafb;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;margin:0;padding:0">
-  <div style="max-width:560px;margin:32px auto;background:#fff;border-radius:16px;overflow:hidden;border:1px solid #e5e7eb">
-    <div style="background:#030712;padding:20px 32px;display:flex;align-items:center">
-      <span style="background:rgba(255,255,255,0.15);border-radius:6px;padding:4px 10px;color:#fff;font-weight:800;font-size:14px;margin-right:8px">L</span>
-      <span style="color:#fff;font-weight:700;font-size:16px">LessAI</span>
+<body style="background:#f3f4f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;margin:0;padding:0">
+  <div style="max-width:580px;margin:40px auto 24px;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08),0 4px 16px rgba(0,0,0,0.04)">
+    <div style="background:#0a0a0a;padding:24px 32px">
+      <table cellpadding="0" cellspacing="0" width="100%"><tr>
+        <td style="vertical-align:middle">
+          <table cellpadding="0" cellspacing="0"><tr>
+            <td style="vertical-align:middle;padding-right:10px">
+              <div style="width:32px;height:32px;background:#10b981;border-radius:8px;display:flex;align-items:center;justify-content:center">
+                <span style="color:#fff;font-weight:900;font-size:18px;line-height:32px;display:block;text-align:center">&lt;</span>
+              </div>
+            </td>
+            <td style="vertical-align:middle">
+              <span style="color:#ffffff;font-weight:800;font-size:18px;letter-spacing:-0.3px">LessAI</span>
+            </td>
+          </tr></table>
+        </td>
+        <td style="text-align:right;vertical-align:middle">
+          <span style="background:rgba(16,185,129,0.2);border:1px solid rgba(16,185,129,0.4);color:#6ee7b7;font-size:11px;font-weight:700;padding:3px 10px;border-radius:100px;letter-spacing:0.05em">7-DAY FREE TRIAL</span>
+        </td>
+      </tr></table>
     </div>
     ${body}
-    <div style="padding:20px 32px;background:#f9fafb;text-align:center;border-top:1px solid #f3f4f6">
-      <p style="font-size:12px;color:#9ca3af;margin:0">LessAI · <a href="${dashboardUrl()}" style="color:#9ca3af">Dashboard</a> · <a href="mailto:hello@lessai.io" style="color:#9ca3af">hello@lessai.io</a></p>
+    <div style="padding:20px 32px;background:#f9fafb;border-top:1px solid #f0f0f0;text-align:center">
+      <p style="font-size:12px;color:#9ca3af;margin:0 0 4px">LessAI · hello@lessai.io</p>
+      <p style="font-size:11px;color:#d1d5db;margin:0">You're receiving this because you created a LessAI account. <a href="mailto:hello@lessai.io?subject=Unsubscribe" style="color:#d1d5db">Unsubscribe</a></p>
     </div>
   </div>
 </body>
@@ -39,45 +55,44 @@ function ctaButton(href: string, label: string, color = '#059669') {
 export async function sendSignupWelcomeEmail({ to, firstName }: { to: string; firstName: string }) {
   const onboardingUrl = dashboardUrl('/onboarding')
   const html = emailShell(`
-    <div style="padding:32px 32px 24px">
-      <h1 style="font-size:24px;font-weight:800;color:#111827;margin:0 0 12px;line-height:1.3">Welcome to LessAI, ${firstName} 👋</h1>
-      <p style="font-size:15px;color:#4b5563;margin:0 0 20px;line-height:1.6">
-        You're in. Your 7-day free trial starts the moment you complete setup — and it takes less than 5 minutes.
+    <div style="padding:36px 32px 28px">
+      <p style="font-size:15px;color:#6b7280;margin:0 0 6px">Hey ${firstName},</p>
+      <h1 style="font-size:26px;font-weight:800;color:#0a0a0a;margin:0 0 16px;line-height:1.25">Welcome to LessAI.</h1>
+      <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.7">
+        Your account is ready. Next step: a quick 4-step setup so we can build your personalized AI prompt playbook — tailored to your role, your tools, and your company.
       </p>
-      <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:16px 20px;margin-bottom:24px">
-        <p style="font-size:13px;font-weight:700;color:#111827;margin:0 0 12px">What happens during setup:</p>
-        <table width="100%" cellpadding="0" cellspacing="0">
-          <tr><td style="padding-bottom:10px;vertical-align:top">
-            <span style="display:inline-block;background:#ecfdf5;color:#059669;border-radius:100px;font-size:11px;font-weight:700;padding:2px 8px;margin-right:8px">Step 1</span>
-            <span style="font-size:13px;color:#374151">Tell us your role</span>
-          </td></tr>
-          <tr><td style="padding-bottom:10px;vertical-align:top">
-            <span style="display:inline-block;background:#ecfdf5;color:#059669;border-radius:100px;font-size:11px;font-weight:700;padding:2px 8px;margin-right:8px">Step 2</span>
-            <span style="font-size:13px;color:#374151">Add your company website — we'll pull context automatically</span>
-          </td></tr>
-          <tr><td style="padding-bottom:10px;vertical-align:top">
-            <span style="display:inline-block;background:#ecfdf5;color:#059669;border-radius:100px;font-size:11px;font-weight:700;padding:2px 8px;margin-right:8px">Step 3</span>
-            <span style="font-size:13px;color:#374151">Pick the AI tools you use</span>
-          </td></tr>
-          <tr><td style="vertical-align:top">
-            <span style="display:inline-block;background:#ecfdf5;color:#059669;border-radius:100px;font-size:11px;font-weight:700;padding:2px 8px;margin-right:8px">Step 4</span>
-            <span style="font-size:13px;color:#374151">Rate your skill level — we personalize your playbook around it</span>
-          </td></tr>
-        </table>
+      <div style="background:#f0fdf4;border-left:3px solid #10b981;border-radius:0 8px 8px 0;padding:14px 18px;margin-bottom:28px">
+        <p style="font-size:13px;font-weight:700;color:#065f46;margin:0 0 2px">What you get at the end:</p>
+        <p style="font-size:13px;color:#047857;margin:0;line-height:1.6">A personalized prompt playbook for every AI tool you use — plus daily 10-minute practice tasks and a before/after scoring system so you can see yourself improve.</p>
       </div>
-      <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.6">
-        At the end, LessAI generates your personalized prompt playbook — ready-to-use prompts for every tool you picked, tailored to your role and your company.
-      </p>
+      <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px">
+        <tr>
+          <td style="width:28px;vertical-align:top;padding-top:2px"><span style="display:inline-block;background:#10b981;color:#fff;font-size:10px;font-weight:800;width:20px;height:20px;border-radius:100px;text-align:center;line-height:20px">1</span></td>
+          <td style="padding-bottom:12px;vertical-align:top;padding-left:8px"><span style="font-size:14px;color:#111827;font-weight:600">Your role</span><br><span style="font-size:13px;color:#6b7280">So we know which prompts and tasks apply to you</span></td>
+        </tr>
+        <tr>
+          <td style="width:28px;vertical-align:top;padding-top:2px"><span style="display:inline-block;background:#10b981;color:#fff;font-size:10px;font-weight:800;width:20px;height:20px;border-radius:100px;text-align:center;line-height:20px">2</span></td>
+          <td style="padding-bottom:12px;vertical-align:top;padding-left:8px"><span style="font-size:14px;color:#111827;font-weight:600">Your company</span><br><span style="font-size:13px;color:#6b7280">We scan your website and pull context automatically</span></td>
+        </tr>
+        <tr>
+          <td style="width:28px;vertical-align:top;padding-top:2px"><span style="display:inline-block;background:#10b981;color:#fff;font-size:10px;font-weight:800;width:20px;height:20px;border-radius:100px;text-align:center;line-height:20px">3</span></td>
+          <td style="padding-bottom:12px;vertical-align:top;padding-left:8px"><span style="font-size:14px;color:#111827;font-weight:600">Your AI tools</span><br><span style="font-size:13px;color:#6b7280">ChatGPT, Claude, Notion AI — pick everything you use</span></td>
+        </tr>
+        <tr>
+          <td style="width:28px;vertical-align:top;padding-top:2px"><span style="display:inline-block;background:#10b981;color:#fff;font-size:10px;font-weight:800;width:20px;height:20px;border-radius:100px;text-align:center;line-height:20px">4</span></td>
+          <td style="vertical-align:top;padding-left:8px"><span style="font-size:14px;color:#111827;font-weight:600">Your skill level</span><br><span style="font-size:13px;color:#6b7280">We calibrate the playbook difficulty to where you actually are</span></td>
+        </tr>
+      </table>
     </div>
-    <div style="padding:0 32px 32px;text-align:center">
-      ${ctaButton(onboardingUrl, 'Complete my setup →')}
-      <p style="font-size:12px;color:#9ca3af;margin:12px 0 0">Takes about 5 minutes. Your trial is waiting.</p>
+    <div style="padding:0 32px 36px;text-align:center">
+      <a href="${onboardingUrl}" style="display:inline-block;background:#10b981;color:#ffffff;font-weight:700;font-size:15px;padding:14px 36px;border-radius:10px;text-decoration:none;letter-spacing:-0.1px">Complete my setup →</a>
+      <p style="font-size:12px;color:#9ca3af;margin:14px 0 0">Takes about 5 minutes &nbsp;·&nbsp; No credit card asked yet</p>
     </div>
   `)
 
   const { data, error } = await getResend().emails.send({
     from: FROM, to,
-    subject: `Welcome to LessAI — complete your setup to get started`,
+    subject: `Welcome to LessAI, ${firstName} — complete your setup`,
     html,
   })
   if (error) console.error('[email] sendSignupWelcomeEmail error:', error)

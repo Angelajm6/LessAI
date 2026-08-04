@@ -275,7 +275,27 @@ function OnboardingFlow() {
         throw new Error(err.error ?? `Generation failed (${res.status})`)
       }
 
-      router.push('/dashboard')
+      // Require payment for self-signup users who haven't subscribed yet
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('subscription_id, is_admin, company_id')
+        .eq('id', user.id)
+        .single()
+
+      // Skip payment gate for team members (company has an admin who already paid)
+      const { data: companyRow } = await supabase
+        .from('companies')
+        .select('admin_id')
+        .eq('id', profile?.company_id ?? '')
+        .single()
+
+      const isTeamMember = companyRow && companyRow.admin_id !== user.id
+
+      if (!profile?.subscription_id && !isTeamMember) {
+        router.push('/checkout?plan=pro')
+      } else {
+        router.push('/dashboard')
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
       setGenerating(false)
