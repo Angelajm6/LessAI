@@ -465,15 +465,25 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
     setTimeout(() => setCopiedFramework(null), 2000)
   }
 
+  function extractPrompt(taskText: string): string {
+    // Pull out the text between Input: '...' or Input: "..."
+    const m = taskText.match(/Input:\s*['"](.+?)['"]/i)
+    if (m) return m[1].trim()
+    // Fallback: strip the instructional prefix ("Use X to Y. ") and return remainder
+    const fallback = taskText.replace(/^Use\s+\S+\s+to\s+[^.]+\.\s*/i, '').trim()
+    return fallback || taskText
+  }
+
   function launchTask(taskText: string) {
-    setCommandInput(taskText)
+    const prompt = extractPrompt(taskText)
+    setCommandInput(prompt)
     setRecommendation(null)
     setSection('studio')
     setStudioMode('command')
     // Auto-run recommendation after state settles
     setTimeout(async () => {
       setRecommending(true)
-      setCommandTask(taskText)
+      setCommandTask(prompt)
       try {
         const res = await fetch('/api/ai/recommend', {
           method: 'POST',
