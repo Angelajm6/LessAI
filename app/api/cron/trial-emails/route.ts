@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
-import { sendTrialDay4Email, sendTrialDay7Email } from '@/lib/email'
+import { createClient } from '@supabase/supabase-js'
+import { sendDayOneSupportEmail, sendTrialDay4Email, sendTrialDay7Email } from '@/lib/email'
+
+// Cron jobs have no user session. Use the service role so RLS does not prevent
+// scheduled email jobs from finding the profiles they need to process.
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
 
 export async function GET(req: NextRequest) {
   // Protect with a secret so only Vercel Cron can call this
@@ -9,7 +16,12 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const supabase = await createClient()
+  // The daily job runs at 09:00 UTC. This calendar-day window reaches everyone
+  // who signed up the prior day, regardless of their signup hour.
+  const day1Cutoff = new Date()
+  day1Cutoff.setDate(day1Cutoff.getDate() - 1)
+  const day1Start = day1Cutoff.toISOString().split('T')[0] + 'T00:00:00.000Z'
+  const day1End = day1Cutoff.toISOString().split('T')[0] + 'T23:59:59.999Z'
 
   // Find users whose trial started 4 days ago (send day 4 reminder)
   const day4Cutoff = new Date()
@@ -23,7 +35,12 @@ export async function GET(req: NextRequest) {
   const day7Start = day7Cutoff.toISOString().split('T')[0] + 'T00:00:00.000Z'
   const day7End = day7Cutoff.toISOString().split('T')[0] + 'T23:59:59.999Z'
 
-  const [{ data: day4Users }, { data: day7Users }] = await Promise.all([
+  const [{ data: day1Users }, { data: day4Users }, { data: day7Users }] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('id, email, full_name')
+      .gte('created_at', day1Start)
+      .lte('created_at', day1End),
     supabase
       .from('profiles')
       .select('id, email, full_name, tools')
@@ -38,7 +55,19 @@ export async function GET(req: NextRequest) {
       .eq('onboarded', true),
   ])
 
-  const results = { day4: 0, day7: 0, errors: 0 }
+  const results = { day1: 0, day4: 0, day7: 0, errors: 0 }
+
+  // Day-one welcome/support survey. This route runs once per day, so users in
+  // the prior-day window receive one check-in alongside the existing trial flow.
+  for (const user of day1Users ?? []) {
+    const firstName = user.full_name?.split(' ')[0] ?? 'there'
+    const { error } = await sendDayOneSupportEmail({ to: user.email, firstName })
+    if (error) {
+      results.errors++
+    } else {
+      results.day1++
+    }
+  }
 
   // Day 4 emails
   for (const user of day4Users ?? []) {

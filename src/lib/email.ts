@@ -157,6 +157,43 @@ export async function sendSignupWelcomeEmail({ to, firstName }: { to: string; fi
   return { data, error }
 }
 
+// ── Day-one support check-in ────────────────────────────────────────────────
+
+export async function sendDayOneSupportEmail({ to, firstName }: { to: string; firstName: string }) {
+  const html = emailShell(`
+    <div style="padding:36px 32px 12px">
+      <p style="font-size:15px;color:#6b7280;margin:0 0 8px">Hey ${firstName},</p>
+      <h1 style="font-size:25px;font-weight:800;color:#0a0a0a;margin:0 0 14px;line-height:1.25">A quick hello from LessAI.</h1>
+      <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.7">
+        If you have a question, hit a snag, or want a second opinion, just reply to this email. It goes straight to our small team at <a href="mailto:${SUPPORT_EMAIL}" style="color:${BRAND_GREEN};font-weight:600;text-decoration:none">${SUPPORT_EMAIL}</a>.
+      </p>
+      <div style="background:#f0fdf4;border-left:3px solid #10b981;border-radius:0 8px 8px 0;padding:14px 18px;margin-bottom:22px">
+        <p style="font-size:13px;font-weight:700;color:#065f46;margin:0 0 4px">Four quick questions</p>
+        <p style="font-size:13px;color:#047857;margin:0;line-height:1.6">Short answers are perfect — no form, no fuss.</p>
+      </div>
+      <ol style="margin:0;padding:0 0 0 20px;font-size:14px;color:#374151;line-height:1.85">
+        <li>What made you sign up for LessAI?</li>
+        <li>What do you want to get better at with AI?</li>
+        <li>How did you hear about us?</li>
+        <li>What would make LessAI most useful in your first week?</li>
+      </ol>
+    </div>
+    <div style="padding:24px 32px 36px;text-align:center">
+      ${ctaButton(`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('A few answers from a new LessAI member')}`, 'Reply with my answers →')}
+      <p style="font-size:12px;color:#9ca3af;margin:14px 0 0">Your feedback helps us make LessAI better for you.</p>
+    </div>
+  `)
+
+  const { data, error } = await getResend().emails.send({
+    from: FROM, to,
+    replyTo: SUPPORT_EMAIL,
+    subject: `Quick question, ${firstName} — how can we help?`,
+    html,
+  })
+  if (error) console.error('[email] sendDayOneSupportEmail error:', error)
+  return { data, error }
+}
+
 // ── Welcome email (post-onboarding) ─────────────────────────────────────────
 
 export async function sendWelcomeEmail({
