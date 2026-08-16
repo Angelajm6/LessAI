@@ -15,7 +15,7 @@ const dashboardUrl = (path = '/dashboard') =>
 // ── Shared HTML helpers ────────────────────────────────────────────────────
 
 const LOGO_URL = 'https://lessai.io/logo.svg'
-const APP_URL = 'https://app.lessai.io'
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://lessai.io'
 const BRAND_GREEN = '#059669'
 const BRAND_GREEN_LIGHT = '#10b981'
 
