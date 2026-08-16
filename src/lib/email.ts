@@ -1,6 +1,9 @@
 import { Resend } from 'resend'
 
-const FROM = 'LessAI <hello@lessai.io>'
+// Keep the address used in transactional email and the address users reply to
+// together. Override SUPPORT_EMAIL only if the verified support address changes.
+const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL ?? 'hello@lessai.io'
+const FROM = `LessAI <${SUPPORT_EMAIL}>`
 
 function getResend() {
   return new Resend(process.env.RESEND_API_KEY)
@@ -72,13 +75,13 @@ function emailShell(body: string, { badge }: { badge?: string } = {}) {
                 <p style="font-size:12px;color:#6b7280;margin:0 0 6px">
                   <a href="${APP_URL}/dashboard" style="color:${BRAND_GREEN};text-decoration:none;font-weight:600">Open LessAI</a>
                   &nbsp;·&nbsp;
-                  <a href="mailto:hello@lessai.io" style="color:#9ca3af;text-decoration:none">hello@lessai.io</a>
+                  <a href="mailto:${SUPPORT_EMAIL}" style="color:#9ca3af;text-decoration:none">${SUPPORT_EMAIL}</a>
                   &nbsp;·&nbsp;
                   <a href="${APP_URL}/settings" style="color:#9ca3af;text-decoration:none">Account settings</a>
                 </p>
                 <p style="font-size:11px;color:#d1d5db;margin:0">
                   You're receiving this because you have a LessAI account.
-                  &nbsp;<a href="mailto:hello@lessai.io?subject=Unsubscribe" style="color:#d1d5db;text-decoration:underline">Unsubscribe</a>
+                  &nbsp;<a href="mailto:${SUPPORT_EMAIL}?subject=Unsubscribe" style="color:#d1d5db;text-decoration:underline">Unsubscribe</a>
                 </p>
               </td>
             </tr></table>
@@ -146,6 +149,7 @@ export async function sendSignupWelcomeEmail({ to, firstName }: { to: string; fi
 
   const { data, error } = await getResend().emails.send({
     from: FROM, to,
+    replyTo: SUPPORT_EMAIL,
     subject: `Welcome to LessAI, ${firstName} — complete your setup`,
     html,
   })
@@ -204,6 +208,7 @@ export async function sendWelcomeEmail({
 
   const { data, error } = await getResend().emails.send({
     from: FROM, to,
+    replyTo: SUPPORT_EMAIL,
     subject: `Your prompt playbook is ready, ${firstName} ⚡`,
     html,
   })
@@ -244,12 +249,13 @@ export async function sendTrialDay4Email({
     </div>
     <div style="padding:0 32px 32px;text-align:center">
       ${ctaButton(dashboardUrl(), 'Continue my trial →')}
-      <p style="margin:12px 0 0;font-size:12px;color:#9ca3af">Or <a href="mailto:hello@lessai.io" style="color:#059669">reply to this email</a> if you have questions.</p>
+      <p style="margin:12px 0 0;font-size:12px;color:#9ca3af">Or <a href="mailto:${SUPPORT_EMAIL}" style="color:#059669">reply to this email</a> if you have questions.</p>
     </div>
   `)
 
   const { data, error } = await getResend().emails.send({
     from: FROM, to,
+    replyTo: SUPPORT_EMAIL,
     subject: `${firstName}, your LessAI trial ends in 3 days`,
     html,
   })
@@ -283,12 +289,13 @@ export async function sendTrialDay7Email({
       ${ctaButton(dashboardUrl(), 'Keep my plan →')}
     </div>
     <div style="padding:0 32px 32px;text-align:center">
-      ${ctaButton('mailto:hello@lessai.io', 'Cancel my trial', 'secondary')}
+      ${ctaButton(`mailto:${SUPPORT_EMAIL}`, 'Cancel my trial', 'secondary')}
     </div>
   `)
 
   const { data, error } = await getResend().emails.send({
     from: FROM, to,
+    replyTo: SUPPORT_EMAIL,
     subject: `Last chance — your LessAI trial ends today`,
     html,
   })
@@ -330,6 +337,7 @@ export async function sendStreakReminderEmail({
 
   const { data, error } = await getResend().emails.send({
     from: FROM, to,
+    replyTo: SUPPORT_EMAIL,
     subject: hasStreak ? `🔥 Don't break your ${streak}-day streak, ${firstName}` : `⚡ One quick task today, ${firstName}`,
     html,
   })
@@ -412,6 +420,7 @@ export async function sendWeeklyDigestEmail({
 
   const { data, error } = await getResend().emails.send({
     from: FROM, to,
+    replyTo: SUPPORT_EMAIL,
     subject: subjectLine,
     html,
   })
@@ -466,6 +475,7 @@ export async function sendInviteEmail({
 
   const { data, error } = await getResend().emails.send({
     from: FROM, to,
+    replyTo: SUPPORT_EMAIL,
     subject: `${adminFirstName} invited you to join ${companyName} on LessAI`,
     html,
   })
