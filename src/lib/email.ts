@@ -160,6 +160,7 @@ export async function sendSignupWelcomeEmail({ to, firstName }: { to: string; fi
 // ── Day-one support check-in ────────────────────────────────────────────────
 
 export async function sendDayOneSupportEmail({ to, firstName }: { to: string; firstName: string }) {
+  const replyUrl = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('A few answers from a new LessAI member')}&body=${encodeURIComponent('1. What made you sign up for LessAI?\n\n2. What do you want to get better at with AI?\n\n3. How did you hear about us?\n\n4. What would make LessAI most useful in your first week?')}`
   const html = emailShell(`
     <div style="padding:36px 32px 12px">
       <p style="font-size:15px;color:#6b7280;margin:0 0 8px">Hey ${firstName},</p>
@@ -179,7 +180,7 @@ export async function sendDayOneSupportEmail({ to, firstName }: { to: string; fi
       </ol>
     </div>
     <div style="padding:24px 32px 36px;text-align:center">
-      ${ctaButton(`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('A few answers from a new LessAI member')}`, 'Reply with my answers →')}
+      ${ctaButton(replyUrl, 'Reply with my answers →')}
       <p style="font-size:12px;color:#9ca3af;margin:14px 0 0">Your feedback helps us make LessAI better for you.</p>
     </div>
   `)
