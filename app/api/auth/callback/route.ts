@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
     const { data: { user }, error } = await supabase.auth.exchangeCodeForSession(code)
 
     if (error) {
-      return NextResponse.redirect(`${origin}/forgot-password?error=invalid_or_expired_link`)
+      return NextResponse.redirect(`${origin}/reset-password?error=invalid_or_expired_link`)
     }
 
     if (user) {
