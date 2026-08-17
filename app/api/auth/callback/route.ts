@@ -9,7 +9,11 @@ export async function GET(req: NextRequest) {
 
   if (code) {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.exchangeCodeForSession(code)
+    const { data: { user }, error } = await supabase.auth.exchangeCodeForSession(code)
+
+    if (error) {
+      return NextResponse.redirect(`${origin}/forgot-password?error=invalid_or_expired_link`)
+    }
 
     if (user) {
       const { data: existing } = await supabase
