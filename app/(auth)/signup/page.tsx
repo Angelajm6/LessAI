@@ -65,7 +65,10 @@ function SignupForm() {
       password: form.password,
       options: {
         data: { full_name: form.fullName, company_name: form.companyName, is_admin: true },
-        emailRedirectTo: `${window.location.origin}/api/auth/callback?next=${encodeURIComponent(plan ? `/checkout?plan=${plan}` : '/dashboard')}`,
+        // After email confirmation, ask the person to sign in rather than
+        // dropping them directly into onboarding. Keep the selected plan so
+        // pricing-page signups still continue to checkout after sign-in.
+        emailRedirectTo: `${window.location.origin}/api/auth/callback?next=${encodeURIComponent(plan ? `/login?plan=${plan}&confirmed=1` : '/login?confirmed=1')}`,
       },
     })
 

@@ -15,12 +15,12 @@ function CheckoutRedirect() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ plan }),
     })
-      .then(r => r.json())
-      .then(data => {
+      .then(async r => ({ ok: r.ok, data: await r.json().catch(() => ({})) }))
+      .then(({ ok, data }) => {
         if (data.url) {
           window.location.href = data.url
         } else {
-          setError('Could not start checkout. Please try again.')
+          setError(data.error ?? (ok ? 'Could not start checkout. Please try again.' : 'We could not start checkout. Please try again.'))
         }
       })
       .catch(() => setError('Something went wrong. Please try again.'))

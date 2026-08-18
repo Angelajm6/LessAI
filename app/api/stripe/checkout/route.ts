@@ -3,55 +3,82 @@ import { createClient } from '@/lib/supabase/server'
 import { stripe, PLANS, Plan } from '@/lib/stripe'
 
 export async function POST(req: NextRequest) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { plan } = await req.json() as { plan: Plan }
-  if (!PLANS[plan]) return NextResponse.json({ error: 'Invalid plan' }, { status: 400 })
+    const { plan } = await req.json() as { plan: Plan }
+    if (!PLANS[plan]) return NextResponse.json({ error: 'Invalid plan' }, { status: 400 })
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('stripe_customer_id, full_name')
-    .eq('id', user.id)
-    .single()
+    // A test secret key cannot create a live Checkout Session. Catch this before
+    // sending a customer to an unhelpful generic error page.
+    if (process.env.VERCEL_ENV === 'production' && process.env.STRIPE_SECRET_KEY?.startsWith('sk_test_')) {
+      console.error('[stripe checkout] Test Stripe secret key is configured in production')
+      return NextResponse.json({ error: 'Payments are not configured for live checkout yet. Please contact support.' }, { status: 503 })
+    }
 
-  // Reuse existing Stripe customer or create one
-  let customerId = profile?.stripe_customer_id as string | undefined
-  if (customerId) {
-    // Verify the customer still exists in Stripe (may have been deleted)
-    try {
-      const existing = await stripe.customers.retrieve(customerId)
-      if ((existing as { deleted?: boolean }).deleted) customerId = undefined
-    } catch {
-      customerId = undefined
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('stripe_customer_id, full_name')
+      .eq('id', user.id)
+      .single()
+
+    // Reuse existing Stripe customer or create one.
+    let customerId = profile?.stripe_customer_id as string | undefined
+    if (customerId) {
+      try {
+        const existing = await stripe.customers.retrieve(customerId)
+        if ((existing as { deleted?: boolean }).deleted) customerId = undefined
+      } catch {
+        customerId = undefined
+      }
+      if (!customerId) {
+        await supabase.from('profiles').update({ stripe_customer_id: null }).eq('id', user.id)
+      }
     }
     if (!customerId) {
-      await supabase.from('profiles').update({ stripe_customer_id: null }).eq('id', user.id)
+      const customer = await stripe.customers.create({
+        email: user.email,
+        name: profile?.full_name ?? undefined,
+        metadata: { supabase_user_id: user.id },
+      })
+      customerId = customer.id
+      await supabase.from('profiles').update({ stripe_customer_id: customerId }).eq('id', user.id)
     }
-  }
-  if (!customerId) {
-    const customer = await stripe.customers.create({
-      email: user.email,
-      name: profile?.full_name ?? undefined,
-      metadata: { supabase_user_id: user.id },
+
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.lessai.io'
+    const session = await stripe.checkout.sessions.create({
+      customer: customerId,
+      mode: 'subscription',
+      payment_method_types: ['card'],
+      line_items: [{ price: PLANS[plan].priceId, quantity: 1 }],
+      subscription_data: { trial_period_days: 7 },
+      success_url: `${appUrl}/onboarding`,
+      cancel_url: `${appUrl}/pricing`,
+      metadata: { supabase_user_id: user.id, plan },
     })
-    customerId = customer.id
-    await supabase.from('profiles').update({ stripe_customer_id: customerId }).eq('id', user.id)
+
+    return NextResponse.json({ url: session.url })
+  } catch (error) {
+    const stripeError = error as { type?: string; code?: string; message?: string; requestId?: string }
+    // Detailed information stays in Vercel's server logs; never expose Stripe's
+    // raw message or IDs to visitors.
+    console.error('[stripe checkout] Could not create Checkout Session', {
+      type: stripeError.type,
+      code: stripeError.code,
+      message: stripeError.message,
+      requestId: stripeError.requestId,
+    })
+
+    const isPriceConfigurationIssue =
+      stripeError.code === 'resource_missing' ||
+      stripeError.type === 'StripeInvalidRequestError'
+
+    return NextResponse.json({
+      error: isPriceConfigurationIssue
+        ? 'This plan is not configured correctly for live checkout yet. Please contact support.'
+        : 'We could not start checkout. Please try again or contact hello@lessai.io.',
+    }, { status: 500 })
   }
-
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://lessai.io'
-
-  const session = await stripe.checkout.sessions.create({
-    customer: customerId,
-    mode: 'subscription',
-    payment_method_types: ['card'],
-    line_items: [{ price: PLANS[plan].priceId, quantity: 1 }],
-    subscription_data: { trial_period_days: 7 },
-    success_url: `${appUrl}/onboarding`,
-    cancel_url: `${appUrl}/pricing`,
-    metadata: { supabase_user_id: user.id, plan },
-  })
-
-  return NextResponse.json({ url: session.url })
 }

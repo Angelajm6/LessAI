@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,6 +11,8 @@ import { ArrowRight, Mail, Lock, Eye, EyeOff, PlayCircle } from 'lucide-react'
 
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const selectedPlan = searchParams.get('plan')
   const [loading, setLoading] = useState(false)
   const [demoLoading, setDemoLoading] = useState(false)
   const [error, setError] = useState('')
@@ -54,7 +56,9 @@ export default function LoginPage() {
         .eq('id', user?.id ?? '')
         .single()
 
-      if (profile?.is_admin) {
+      if (selectedPlan === 'pro' || selectedPlan === 'teams') {
+        router.push(`/checkout?plan=${selectedPlan}`)
+      } else if (profile?.is_admin) {
         router.push('/admin')
       } else if (!profile?.onboarded) {
         router.push('/onboarding')

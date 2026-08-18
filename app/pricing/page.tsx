@@ -75,22 +75,28 @@ const FAQS = [
 export default function PricingPage() {
   const [annual, setAnnual] = useState(false)
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)
+  const [checkoutError, setCheckoutError] = useState('')
 
   async function handleCheckout(plan: 'pro' | 'teams') {
     setCheckoutLoading(plan)
+    setCheckoutError('')
     try {
       const res = await fetch('/api/stripe/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ plan }),
       })
-      const data = await res.json()
+      const data = await res.json().catch(() => ({}))
       if (data.url) {
         window.location.href = data.url
       } else if (res.status === 401) {
         window.location.href = `/signup?plan=${plan}`
+      } else {
+        setCheckoutError(data.error ?? 'We could not start checkout. Please try again or contact hello@lessai.io.')
       }
     } catch {
+      setCheckoutError('We could not start checkout. Please try again or contact hello@lessai.io.')
+    } finally {
       setCheckoutLoading(null)
     }
   }
@@ -129,6 +135,9 @@ export default function PricingPage() {
             <p className="text-lg text-gray-500 max-w-xl mx-auto">
               Full access from day one. Card collected at signup, charged on day 8. No surprise fees.
             </p>
+            {checkoutError && (
+              <p role="alert" className="mt-4 text-sm font-medium text-red-600">{checkoutError}</p>
+            )}
           </div>
 
           {/* Billing toggle */}
