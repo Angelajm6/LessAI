@@ -1,6 +1,9 @@
 import Stripe from 'stripe'
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+// Keep module loading safe when a deployment is missing its Stripe variable.
+// Checkout routes validate the variable and return a useful response before
+// making any request with this placeholder.
+export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? 'sk_missing_configuration', {
   apiVersion: '2026-06-24.dahlia',
 })
 
