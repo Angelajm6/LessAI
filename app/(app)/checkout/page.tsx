@@ -10,20 +10,15 @@ function CheckoutRedirect() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    fetch('/api/stripe/checkout', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ plan }),
-    })
-      .then(async r => ({ ok: r.ok, data: await r.json().catch(() => ({})) }))
-      .then(({ ok, data }) => {
-        if (data.url) {
-          window.location.href = data.url
-        } else {
-          setError(data.error ?? (ok ? 'Could not start checkout. Please try again.' : 'We could not start checkout. Please try again.'))
-        }
-      })
-      .catch(() => setError('Something went wrong. Please try again.'))
+    const paymentLink = plan === 'teams'
+      ? process.env.NEXT_PUBLIC_STRIPE_TEAMS_PAYMENT_LINK
+      : process.env.NEXT_PUBLIC_STRIPE_PRO_PAYMENT_LINK
+
+    if (paymentLink) {
+      window.location.assign(paymentLink)
+    } else {
+      setError('Checkout is being set up. Please try again shortly or contact hello@lessai.io.')
+    }
   }, [plan])
 
   return (

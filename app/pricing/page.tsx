@@ -80,23 +80,19 @@ export default function PricingPage() {
   async function handleCheckout(plan: 'pro' | 'teams') {
     setCheckoutLoading(plan)
     setCheckoutError('')
-    try {
-      const res = await fetch('/api/stripe/public-checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan }),
-      })
-      const data = await res.json().catch(() => ({}))
-      if (data.url) {
-        window.location.href = data.url
-      } else {
-        setCheckoutError(data.error ?? 'We could not start checkout. Please try again or contact hello@lessai.io.')
-      }
-    } catch {
-      setCheckoutError('We could not start checkout. Please try again or contact hello@lessai.io.')
-    } finally {
+    const paymentLink = plan === 'pro'
+      ? process.env.NEXT_PUBLIC_STRIPE_PRO_PAYMENT_LINK
+      : process.env.NEXT_PUBLIC_STRIPE_TEAMS_PAYMENT_LINK
+
+    if (!paymentLink) {
+      setCheckoutError('Checkout is being set up. Please try again shortly or contact hello@lessai.io.')
       setCheckoutLoading(null)
+      return
     }
+
+    // Stripe hosts the checkout directly. This keeps payment collection
+    // independent from the app server and avoids a server-to-Stripe hop.
+    window.location.assign(paymentLink)
   }
 
   return (
