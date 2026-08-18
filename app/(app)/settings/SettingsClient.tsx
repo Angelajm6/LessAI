@@ -191,7 +191,14 @@ export default function SettingsClient({ profile, companyName, userEmail }: Prop
 
   async function confirmDeleteAccount() {
     setDeleting(true)
-    await fetch('/api/account/delete', { method: 'POST' })
+    const response = await fetch('/api/account/delete', { method: 'POST' })
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}))
+      setError(body.error ?? 'We could not delete your account. Please try again.')
+      setDeleting(false)
+      setShowDeleteModal(false)
+      return
+    }
     const supabase = createClient()
     await supabase.auth.signOut()
     router.push('/')

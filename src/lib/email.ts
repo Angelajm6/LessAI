@@ -19,7 +19,10 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://lessai.io'
 const BRAND_GREEN = '#059669'
 const BRAND_GREEN_LIGHT = '#10b981'
 
-function emailShell(body: string, { badge }: { badge?: string } = {}) {
+function emailShell(
+  body: string,
+  { badge, includeAccountLinks = true }: { badge?: string; includeAccountLinks?: boolean } = {}
+) {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -72,17 +75,24 @@ function emailShell(body: string, { badge }: { badge?: string } = {}) {
           <td style="padding:20px 28px;background:#f8f9fa;border-top:1px solid #eaecef;text-align:center">
             <table width="100%" cellpadding="0" cellspacing="0"><tr>
               <td align="center">
-                <p style="font-size:12px;color:#6b7280;margin:0 0 6px">
-                  <a href="${APP_URL}/dashboard" style="color:${BRAND_GREEN};text-decoration:none;font-weight:600">Open LessAI</a>
-                  &nbsp;·&nbsp;
-                  <a href="mailto:${SUPPORT_EMAIL}" style="color:#9ca3af;text-decoration:none">${SUPPORT_EMAIL}</a>
-                  &nbsp;·&nbsp;
-                  <a href="${APP_URL}/settings" style="color:#9ca3af;text-decoration:none">Account settings</a>
-                </p>
-                <p style="font-size:11px;color:#d1d5db;margin:0">
-                  You're receiving this because you have a LessAI account.
-                  &nbsp;<a href="mailto:${SUPPORT_EMAIL}?subject=Unsubscribe" style="color:#d1d5db;text-decoration:underline">Unsubscribe</a>
-                </p>
+                ${includeAccountLinks ? `
+                  <p style="font-size:12px;color:#6b7280;margin:0 0 6px">
+                    <a href="${APP_URL}/dashboard" style="color:${BRAND_GREEN};text-decoration:none;font-weight:600">Open LessAI</a>
+                    &nbsp;·&nbsp;
+                    <a href="mailto:${SUPPORT_EMAIL}" style="color:#9ca3af;text-decoration:none">${SUPPORT_EMAIL}</a>
+                    &nbsp;·&nbsp;
+                    <a href="${APP_URL}/settings" style="color:#9ca3af;text-decoration:none">Account settings</a>
+                  </p>
+                  <p style="font-size:11px;color:#d1d5db;margin:0">
+                    You're receiving this because you have a LessAI account.
+                    &nbsp;<a href="mailto:${SUPPORT_EMAIL}?subject=Unsubscribe" style="color:#d1d5db;text-decoration:underline">Unsubscribe</a>
+                  </p>
+                ` : `
+                  <p style="font-size:12px;color:#6b7280;margin:0 0 6px">
+                    Need help? <a href="mailto:${SUPPORT_EMAIL}" style="color:${BRAND_GREEN};text-decoration:none;font-weight:600">${SUPPORT_EMAIL}</a>
+                  </p>
+                  <p style="font-size:11px;color:#d1d5db;margin:0">This is a confirmation of your LessAI account deletion.</p>
+                `}
               </td>
             </tr></table>
           </td>
@@ -96,6 +106,51 @@ function emailShell(body: string, { badge }: { badge?: string } = {}) {
   <!--[if mso]></td></tr></table><![endif]-->
 </body>
 </html>`
+}
+
+// ── Account deletion confirmation ──────────────────────────────────────────
+
+export async function sendAccountDeletionConfirmationEmail({
+  to,
+  firstName,
+  deletedAt,
+}: {
+  to: string
+  firstName: string
+  deletedAt: Date
+}) {
+  const deletionTime = new Intl.DateTimeFormat('en-US', {
+    dateStyle: 'long',
+    timeStyle: 'short',
+    timeZone: 'UTC',
+  }).format(deletedAt)
+
+  const html = emailShell(`
+    <div style="padding:36px 32px 32px">
+      <p style="font-size:15px;color:#6b7280;margin:0 0 8px">Hi ${firstName},</p>
+      <h1 style="font-size:25px;font-weight:800;color:#111827;margin:0 0 14px;line-height:1.25">Your LessAI account has been deleted.</h1>
+      <p style="font-size:15px;color:#374151;margin:0 0 22px;line-height:1.7">
+        This email confirms that the LessAI account associated with <strong>${to}</strong> was permanently deleted on <strong>${deletionTime} UTC</strong>.
+      </p>
+      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px 18px;margin-bottom:22px">
+        <p style="font-size:13px;font-weight:700;color:#065f46;margin:0 0 5px">Deletion completed</p>
+        <p style="font-size:13px;color:#047857;margin:0;line-height:1.65">You can no longer sign in with this account or access its LessAI profile and progress.</p>
+      </div>
+      <p style="font-size:14px;color:#4b5563;margin:0;line-height:1.7">
+        If you did not request this deletion, or need help with a billing-related question, please contact us at <a href="mailto:${SUPPORT_EMAIL}" style="color:${BRAND_GREEN};font-weight:600;text-decoration:none">${SUPPORT_EMAIL}</a>.
+      </p>
+    </div>
+  `, { badge: 'ACCOUNT DELETED', includeAccountLinks: false })
+
+  const { data, error } = await getResend().emails.send({
+    from: FROM,
+    to,
+    replyTo: SUPPORT_EMAIL,
+    subject: 'Confirmation: your LessAI account has been deleted',
+    html,
+  })
+  if (error) console.error('[email] sendAccountDeletionConfirmationEmail error:', error)
+  return { data, error }
 }
 
 function ctaButton(href: string, label: string, style: 'primary' | 'secondary' | 'amber' = 'primary') {
