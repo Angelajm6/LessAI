@@ -81,7 +81,7 @@ export default function PricingPage() {
     setCheckoutLoading(plan)
     setCheckoutError('')
     try {
-      const res = await fetch('/api/stripe/checkout', {
+      const res = await fetch('/api/stripe/public-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ plan }),
@@ -89,8 +89,6 @@ export default function PricingPage() {
       const data = await res.json().catch(() => ({}))
       if (data.url) {
         window.location.href = data.url
-      } else if (res.status === 401) {
-        window.location.href = `/signup?plan=${plan}`
       } else {
         setCheckoutError(data.error ?? 'We could not start checkout. Please try again or contact hello@lessai.io.')
       }

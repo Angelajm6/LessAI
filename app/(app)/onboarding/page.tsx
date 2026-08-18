@@ -292,7 +292,7 @@ function OnboardingFlow() {
       const isTeamMember = companyRow && companyRow.admin_id !== user.id
 
       if (!profile?.subscription_id && !isTeamMember) {
-        router.push('/checkout?plan=pro')
+        router.push('/pricing')
       } else {
         router.push('/dashboard')
       }

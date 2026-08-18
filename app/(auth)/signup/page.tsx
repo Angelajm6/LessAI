@@ -30,6 +30,7 @@ function SignupForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const plan = searchParams.get('plan') as 'pro' | 'teams' | null
+  const checkoutSessionId = searchParams.get('checkout_session_id')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [emailSent, setEmailSent] = useState(false)
@@ -65,10 +66,10 @@ function SignupForm() {
       password: form.password,
       options: {
         data: { full_name: form.fullName, company_name: form.companyName, is_admin: true },
-        // After email confirmation, ask the person to sign in rather than
-        // dropping them directly into onboarding. Keep the selected plan so
-        // pricing-page signups still continue to checkout after sign-in.
-        emailRedirectTo: `${window.location.origin}/api/auth/callback?next=${encodeURIComponent(plan ? `/login?plan=${plan}&confirmed=1` : '/login?confirmed=1')}`,
+        // A payment-first signup returns from Stripe with a Checkout Session.
+        // Keep it through confirmation so the server can attach the paid trial
+        // to this exact account before onboarding starts.
+        emailRedirectTo: `${window.location.origin}/api/auth/callback?next=${encodeURIComponent(checkoutSessionId ? `/onboarding?checkout_session_id=${checkoutSessionId}` : plan ? `/login?plan=${plan}&confirmed=1` : '/login?confirmed=1')}`,
       },
     })
 
@@ -102,7 +103,7 @@ function SignupForm() {
         onboarded: true,
       })
 
-      router.push(plan ? `/checkout?plan=${plan}` : '/dashboard')
+      router.push(checkoutSessionId ? `/onboarding?checkout_session_id=${checkoutSessionId}` : plan ? `/checkout?plan=${plan}` : '/dashboard')
     }
   }
 
