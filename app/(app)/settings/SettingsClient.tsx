@@ -81,6 +81,7 @@ export default function SettingsClient({ profile, companyName, userEmail }: Prop
   const [deleting, setDeleting] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [portalLoading, setPortalLoading] = useState(false)
+  const [portalError, setPortalError] = useState('')
 
   const finalRole = role === 'Other' ? customRole.trim() : role
   const originalRole = profile?.role ?? ''
@@ -414,16 +415,27 @@ export default function SettingsClient({ profile, companyName, userEmail }: Prop
         <Button
           onClick={async () => {
             setPortalLoading(true)
-            const res = await fetch('/api/stripe/portal', { method: 'POST' })
-            const data = await res.json()
-            if (data.url) window.location.href = data.url
-            else setPortalLoading(false)
+            setPortalError('')
+            try {
+              const res = await fetch('/api/stripe/portal', { method: 'POST' })
+              const data = await res.json().catch(() => ({}))
+              if (data.url) {
+                window.location.assign(data.url)
+                return
+              }
+              setPortalError(data.error ?? 'We could not open billing right now. Please try again shortly.')
+            } catch {
+              setPortalError('We could not open billing right now. Please check your connection and try again.')
+            } finally {
+              setPortalLoading(false)
+            }
           }}
           disabled={portalLoading}
           className="bg-gray-900 hover:bg-gray-800 text-white gap-2"
         >
           {portalLoading ? 'Loading…' : 'Manage billing →'}
         </Button>
+        {portalError && <p role="alert" className="mt-3 text-sm text-red-600">{portalError}</p>}
       </section>
 
       {/* Delete account */}
