@@ -1,7 +1,51 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { sendSignupWelcomeEmail } from '@/lib/email'
-import { stripe } from '@/lib/stripe'
+
+type StripeCheckoutSession = {
+  status: string | null
+  mode: string | null
+  customer: string | null
+  subscription: string | null
+  customer_details?: { email?: string | null } | null
+  customer_email?: string | null
+  metadata?: Record<string, string> | null
+}
+
+type StripeSubscription = {
+  id: string
+  status: string
+  trial_end: number | null
+  items?: { data?: Array<{ price?: { id?: string | null } | null }> }
+}
+
+/**
+ * Stripe's SDK has intermittently failed to establish a connection from the
+ * signup callback in production. Use the same native Stripe API request used
+ * by the billing-portal route so a completed Payment Link is always linked to
+ * the newly confirmed LessAI account.
+ */
+async function stripeRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
+  const secretKey = process.env.STRIPE_SECRET_KEY
+  if (!secretKey) throw new Error('STRIPE_SECRET_KEY is missing')
+
+  const response = await fetch(`https://api.stripe.com/v1${path}`, {
+    ...init,
+    headers: {
+      Authorization: `Basic ${Buffer.from(`${secretKey}:`).toString('base64')}`,
+      ...init.headers,
+    },
+    cache: 'no-store',
+  })
+
+  if (!response.ok) {
+    const detail = await response.text()
+    console.error('[signup checkout] Stripe API request failed', { path, status: response.status, detail })
+    throw new Error(`Stripe API request failed (${response.status})`)
+  }
+
+  return response.json() as Promise<T>
+}
 
 async function attachPreSignupCheckout({
   sessionId,
@@ -12,7 +56,7 @@ async function attachPreSignupCheckout({
   userId: string
   email: string
 }) {
-  const session = await stripe.checkout.sessions.retrieve(sessionId)
+  const session = await stripeRequest<StripeCheckoutSession>(`/checkout/sessions/${sessionId}`)
   const checkoutEmail = (session.customer_details?.email ?? session.customer_email ?? '').toLowerCase()
 
   if (
@@ -26,19 +70,28 @@ async function attachPreSignupCheckout({
     return
   }
 
-  const customerId = session.customer as string
-  const subscription = await stripe.subscriptions.retrieve(session.subscription as string)
+  const customerId = session.customer
+  const subscription = await stripeRequest<StripeSubscription>(`/subscriptions/${session.subscription}`)
   const trialEnd = subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null
 
-  await stripe.customers.update(customerId, { metadata: { supabase_user_id: userId } })
+  await stripeRequest(`/customers/${customerId}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ 'metadata[supabase_user_id]': userId }),
+  })
+
+  const priceId = subscription.items?.data?.[0]?.price?.id
+  const plan = session.metadata?.plan ?? (priceId === process.env.STRIPE_TEAMS_PRICE_ID ? 'teams' : 'pro')
   const supabase = await createClient()
-  await supabase.from('profiles').update({
+  const { error } = await supabase.from('profiles').update({
     stripe_customer_id: customerId,
     subscription_id: subscription.id,
     subscription_status: subscription.status,
-    plan: session.metadata?.plan ?? 'pro',
+    plan,
     trial_end: trialEnd,
   }).eq('id', userId)
+
+  if (error) throw new Error(`Could not link Stripe billing account: ${error.message}`)
 }
 
 export async function GET(req: NextRequest) {
