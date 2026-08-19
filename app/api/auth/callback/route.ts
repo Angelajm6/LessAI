@@ -55,7 +55,7 @@ async function attachPreSignupCheckout({
   sessionId: string
   userId: string
   email: string
-}) {
+}): Promise<'pro' | 'teams' | null> {
   const session = await stripeRequest<StripeCheckoutSession>(`/checkout/sessions/${sessionId}`)
   const checkoutEmail = (session.customer_details?.email ?? session.customer_email ?? '').toLowerCase()
 
@@ -67,7 +67,7 @@ async function attachPreSignupCheckout({
     checkoutEmail !== email.toLowerCase()
   ) {
     console.warn('[signup checkout] Checkout Session could not be attached', { sessionId, userId })
-    return
+    return null
   }
 
   const customerId = session.customer
@@ -89,9 +89,13 @@ async function attachPreSignupCheckout({
     subscription_status: subscription.status,
     plan,
     trial_end: trialEnd,
+    // Only Teams customers get the company Admin Dashboard. A Pro customer is
+    // an individual user, even if they supplied a company name at signup.
+    is_admin: plan === 'teams',
   }).eq('id', userId)
 
   if (error) throw new Error(`Could not link Stripe billing account: ${error.message}`)
+  return plan === 'teams' ? 'teams' : 'pro'
 }
 
 export async function GET(req: NextRequest) {
@@ -130,7 +134,9 @@ export async function GET(req: NextRequest) {
           email: user.email ?? '',
           full_name: (meta.full_name as string) ?? '',
           company_id: company?.id ?? null,
-          is_admin: true,
+          // A checkout confirmation will promote this to a Teams admin only
+          // after we verify that its Stripe subscription is actually Teams.
+          is_admin: false,
           onboarded: false,
         })
 

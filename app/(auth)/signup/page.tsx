@@ -65,7 +65,9 @@ function SignupForm() {
       email: form.email,
       password: form.password,
       options: {
-        data: { full_name: form.fullName, company_name: form.companyName, is_admin: true },
+        // Only a verified Teams checkout receives administrator privileges.
+        // Pro is an individual plan and must always start as a normal user.
+        data: { full_name: form.fullName, company_name: form.companyName, is_admin: false },
         // A payment-first signup returns from Stripe with a Checkout Session.
         // Keep it through confirmation so the server can attach the paid trial
         // to this exact account before onboarding starts.
@@ -99,7 +101,7 @@ function SignupForm() {
         email: form.email,
         full_name: form.fullName,
         company_id: company?.id,
-        is_admin: true,
+        is_admin: false,
         onboarded: true,
       })
 
