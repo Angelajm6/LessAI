@@ -738,10 +738,16 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
 
         {/* Trial countdown banner */}
         {(() => {
-          if (subscriptionStatus !== 'trialing' || !trialEnd) return null
-          const daysLeft = Math.ceil((new Date(trialEnd).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
-          if (daysLeft < 0) return null
-          const urgent = daysLeft <= 2
+          const isTrialing = subscriptionStatus === 'trialing'
+          const isActive = subscriptionStatus === 'active'
+          if (!isTrialing && !isActive) return null
+
+          const daysLeft = isTrialing && trialEnd
+            ? Math.ceil((new Date(trialEnd).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+            : null
+          if (isTrialing && (daysLeft === null || daysLeft < 0)) return null
+
+          const urgent = isTrialing && daysLeft !== null && daysLeft <= 2
           return (
             <div className={`mb-5 rounded-2xl px-5 py-4 flex items-center justify-between gap-4 ${urgent ? 'bg-amber-50 border border-amber-200' : 'bg-emerald-50 border border-emerald-200'}`}>
               <div className="flex items-center gap-3 min-w-0">
@@ -750,16 +756,20 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                 </div>
                 <div className="min-w-0">
                   <p className={`text-sm font-bold ${urgent ? 'text-amber-900' : 'text-emerald-900'}`}>
-                    {daysLeft === 0 ? 'Your trial ends today' : `${daysLeft} day${daysLeft === 1 ? '' : 's'} left in your free trial`}
+                    {isActive
+                      ? `Your ${plan === 'teams' ? 'Teams' : 'Pro'} plan is active`
+                      : daysLeft === 0 ? 'Your trial ends today' : `${daysLeft} day${daysLeft === 1 ? '' : 's'} left in your free trial`}
                   </p>
                   <p className={`text-xs mt-0.5 ${urgent ? 'text-amber-700' : 'text-emerald-700'}`}>
-                    {urgent ? 'Upgrade now to keep your progress, prompts, and daily tasks.' : `You're on the ${plan === 'teams' ? 'Teams' : 'Pro'} plan trial. No charge until day 8.`}
+                    {isActive
+                      ? 'Your subscription renews monthly. Manage or cancel your plan anytime.'
+                      : `Your ${plan === 'teams' ? 'Teams' : 'Pro'} plan will begin monthly billing when your trial ends. Cancel anytime before then.`}
                   </p>
                 </div>
               </div>
-              <a href="/pricing"
+              <a href="/settings"
                 className={`shrink-0 text-xs font-bold px-4 py-2 rounded-xl transition-colors ${urgent ? 'bg-amber-500 hover:bg-amber-400 text-white' : 'bg-emerald-600 hover:bg-emerald-700 text-white'}`}>
-                Upgrade now
+                Manage billing
               </a>
             </div>
           )
