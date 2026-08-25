@@ -14,7 +14,7 @@ import {
   MessageSquare, FolderPlus, Folder, FolderOpen, Plus, X, Pencil,
   FileText, ChevronUp, Home, TrendingUp, Star, Settings, FlaskConical,
   RefreshCw, TrendingDown, BarChart2, Flame, Trophy, Target, Calendar, Brain,
-  ChevronLeft, Play
+  ChevronLeft, Play, Mail
 } from 'lucide-react'
 import Link from 'next/link'
 import type { StackMap, ToolCard, ToolTrack, DailyTask, Playbook, ToolPlaybook, PromptFramework, Recommendation, PromptImprovement } from '@/lib/claude'
@@ -840,6 +840,22 @@ export default function DashboardClient({ profile, stackMap, playbook, completed
                   </h2>
                   <p className="text-xs sm:text-sm text-gray-400 mt-0.5">{profile.role} · {tools.length} tools in your stack</p>
                 </div>
+              </div>
+
+              {/* Support */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-2xl border border-emerald-100 bg-emerald-50/60 px-4 py-3.5">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-white border border-emerald-100 flex items-center justify-center shrink-0">
+                    <Mail className="w-4 h-4 text-emerald-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-gray-900">Questions or feedback?</p>
+                    <p className="text-xs text-gray-600 mt-0.5">We’d love to hear from you.</p>
+                  </div>
+                </div>
+                <a href="mailto:hello@lessai.io" className="shrink-0 text-sm font-semibold text-emerald-700 hover:text-emerald-800 hover:underline">
+                  hello@lessai.io
+                </a>
               </div>
 
               {/* Onboarding checklist */}
