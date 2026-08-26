@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { LogOut, Settings } from 'lucide-react'
+import SupportChat from '@/components/SupportChat'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -43,6 +44,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         </div>
       </nav>
       <main className="max-w-screen-2xl mx-auto px-3 sm:px-4 py-5 sm:py-8">{children}</main>
+      <SupportChat />
     </div>
   )
 }
