@@ -1,0 +1,23 @@
+<svg width="1584" height="396" viewBox="0 0 1584 396" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1490" y2="396" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#075E4A"/><stop offset=".5" stop-color="#001B14"/><stop offset="1" stop-color="#030605"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="45" y1="10" x2="785" y2="360" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0B7C61" stop-opacity=".55"/><stop offset="1" stop-color="#002E23" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="1584" height="396" fill="url(#bg)"/>
+  <ellipse cx="167" cy="448" rx="660" ry="370" fill="url(#glow)"/>
+  <path d="M0 111C208 35 455 75 732 396H0V111Z" fill="#001A13" fill-opacity=".9"/>
+  <path d="M1584 156L1261 396H1584V156Z" fill="#08755B" fill-opacity=".65"/>
+  <g font-family="Manrope, Arial, sans-serif">
+    <text x="231" y="208" fill="#00C99E" font-size="36" font-weight="800" letter-spacing=".2">Get more from the AI tools you already pay for.</text>
+    <text x="294" y="267" fill="#F7FFFC" font-size="26" font-weight="700">Prompts built for <tspan fill="#00D5BE">YOUR role, YOUR company, YOUR tech stack.</tspan></text>
+    <path d="M1261 173L1296 154L1301 169L1272 181L1301 195L1296 210L1261 191L1249 182L1261 173Z" fill="#F7FFFC"/>
+    <path d="M1261 239L1296 220L1301 235L1272 247L1301 261L1296 276L1261 257L1249 248L1261 239Z" fill="#F7FFFC"/>
+    <text x="1320" y="197" fill="#F7FFFC" font-size="30" font-weight="800">Less AI noise.</text>
+    <text x="1320" y="258" fill="#F7FFFC" font-size="30" font-weight="800">More AI coaching.</text>
+    <text x="1321" y="301" fill="#00D5BE" font-size="15" font-weight="800" letter-spacing="1.4">LESSAI</text>
+  </g>
+</svg>

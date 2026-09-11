@@ -30,7 +30,7 @@ export default async function PlatformAdminPage() {
       .order('created_at', { ascending: false }),
     supabase
       .from('task_completions')
-      .select('user_id, created_at'),
+      .select('user_id, completed_at'),
   ])
 
   if (profilesError || completionsError) {
@@ -41,8 +41,8 @@ export default async function PlatformAdminPage() {
   for (const completion of completions ?? []) {
     const current = activityByUser.get(completion.user_id) ?? { tasksCompleted: 0, lastTaskAt: null }
     current.tasksCompleted += 1
-    if (!current.lastTaskAt || new Date(completion.created_at) > new Date(current.lastTaskAt)) {
-      current.lastTaskAt = completion.created_at
+    if (!current.lastTaskAt || new Date(completion.completed_at) > new Date(current.lastTaskAt)) {
+      current.lastTaskAt = completion.completed_at
     }
     activityByUser.set(completion.user_id, current)
   }
