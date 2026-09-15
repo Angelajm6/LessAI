@@ -1,43 +1,61 @@
 # Support email setup
 
-The product sends transactional email as `LessAI <hello@lessai.io>` and sets
-that same address as the reply-to address. Incoming messages are accepted by
-`POST /api/resend/inbound`, signature-verified, then forwarded to the inbox
-specified by `SUPPORT_INBOX_FORWARD_TO`.
+Last verified against live DNS on 2026-09-15.
 
-## Required Vercel environment variables
+## How mail flows
 
-Add these to **Production** (and Preview if you want to test previews):
+**Outbound.** The product sends all transactional email through Resend as
+`LessAI <hello@lessai.io>` and sets the same address as Reply-To. The
+templates live in `src/lib/email.ts`.
+
+**Inbound.** Mail sent to `hello@lessai.io` (including customer replies to
+any transactional email) is delivered to a Google Workspace mailbox, not to
+Resend. The MX record for `lessai.io` points at Google, and `hello@lessai.io`
+exists as a full user named "LessAI Support" in the Bookore Systems Workspace,
+where `lessai.io` is a verified secondary domain. Read and answer support mail
+by signing in to that mailbox.
+
+The `POST /api/resend/inbound` route and the `RESEND_INBOUND_WEBHOOK_SECRET`
+and `SUPPORT_INBOX_FORWARD_TO` variables belong to an earlier plan to receive
+mail through Resend and forward it. That path is dormant: Resend never
+receives mail for this domain while the MX record points at Google. Leave the
+route in place or remove it, but do not set those variables expecting them to
+do anything.
+
+## Required environment variables
 
 ```text
-RESEND_API_KEY=re_...
-SUPPORT_EMAIL=hello@lessai.io
-RESEND_INBOUND_WEBHOOK_SECRET=whsec_...
-SUPPORT_INBOX_FORWARD_TO=an-inbox-you-monitor@example.com
+RESEND_API_KEY=re_...          # send-only key is sufficient
+SUPPORT_EMAIL=hello@lessai.io  # optional, this is the default
 ```
 
-`SUPPORT_INBOX_FORWARD_TO` should be a real inbox belonging to the team; it is
-where messages sent to `hello@lessai.io` will arrive. Do not set it to
-`hello@lessai.io`, which would create a forwarding loop.
+## DNS records that make this work
 
-## Resend configuration
+| Record | Value | Purpose |
+|---|---|---|
+| `lessai.io` MX | `smtp.google.com` | Inbound mail to Google Workspace |
+| `resend._domainkey.lessai.io` TXT | Resend's DKIM public key | Signs outbound mail as lessai.io |
+| `send.lessai.io` TXT | `v=spf1 include:amazonses.com ~all` | SPF for Resend's bounce address |
+| `send.lessai.io` MX | `feedback-smtp.eu-west-1.amazonses.com` | Bounce handling for Resend |
+| `_dmarc.lessai.io` TXT | `v=DMARC1; p=none;` | DMARC, monitoring only |
 
-1. In Resend, add and verify the sending domain `lessai.io`. Copy every DNS
-   record Resend provides (SPF, DKIM, and verification record) into the domain
-   DNS provider, then wait until the domain is verified.
-2. Enable Receiving for `lessai.io` in Resend. Add the provided receiving MX
-   record with the lowest numerical priority. This causes mail for
-   `hello@lessai.io` to reach Resend.
-3. Create a Resend webhook for `email.received` pointing to
-   `https://lessai.io/api/resend/inbound`. Copy its signing secret into
-   `RESEND_INBOUND_WEBHOOK_SECRET`.
-4. Redeploy the site after adding the environment variables.
-5. Send a test email from an unrelated mailbox to `hello@lessai.io`, confirm
-   it reaches `SUPPORT_INBOX_FORWARD_TO`, then use the product's test-email
-   route or normal onboarding to verify an outbound message and its Reply-To.
+Do not change the `lessai.io` MX record to Resend or anything else; that
+would cut off the support mailbox. Optional improvement: add
+`v=spf1 include:_spf.google.com ~all` as a TXT record on `lessai.io` so mail
+sent directly from the Workspace mailbox is fully authenticated too.
 
-If `lessai.io` already has an MX record for Google Workspace, Microsoft 365,
-or another mailbox host, do not replace it blindly. Either configure that host
-to forward `hello@lessai.io` to Resend, or use the existing mailbox host for
-inbound mail and keep Resend for sending. Resend recommends a subdomain for
-inbound when an existing email provider owns the root domain.
+## Sender logo in Gmail
+
+Gmail shows the Google profile picture of `hello@lessai.io` next to
+transactional emails, because the address is a Google account and the mail
+passes DKIM. The picture is set by the Workspace admin on the LessAI Support
+user, its visibility is "people you interact with", and the admin setting
+Directory → Directory settings → Profile editing → Photo is enabled. Gmail
+caches sender lookups per recipient, so a change can take up to two days to
+appear in an inbox that has already received mail from this address.
+
+## Testing outbound mail
+
+Run any of the `send*Email` helpers in `src/lib/email.ts` with a Node script
+that loads `.env.local`, or trigger the Stripe billing emails end to end with
+a test clock (see `docs/stripe-payment-receipt-email.md`).
