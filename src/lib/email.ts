@@ -575,3 +575,127 @@ export async function sendInviteEmail({
   if (error) console.error('[email] sendInviteEmail error:', error)
   return { data, error }
 }
+
+// ── Subscription payment receipt ─────────────────────────────────────────────
+//
+// Sent from the Stripe `invoice.paid` webhook whenever a subscription invoice
+// is actually charged: the first payment on day 8 after the free trial, and
+// every renewal after that. The $0 invoice Stripe creates when a trial starts
+// never reaches this function.
+
+export type SubscriptionReceiptProps = {
+  to: string
+  firstName: string
+  planName: string
+  /** Amount charged, in the smallest currency unit (cents). */
+  amountPaid: number
+  currency: string
+  /** e.g. "Visa •••• 4242". Falls back to a generic label when unknown. */
+  paymentMethodLabel: string | null
+  invoiceNumber: string | null
+  paidAt: Date
+  /** Null when the subscription is set to cancel at the end of this period. */
+  nextBillingDate: Date | null
+  billingInterval: 'day' | 'week' | 'month' | 'year'
+  /** Seats on a Teams plan; 1 for Pro. */
+  quantity: number
+  /** Stripe-hosted invoice page, when available. */
+  invoiceUrl: string | null
+  /** True for the charge that ends the free trial; false for renewals. */
+  isFirstPayment: boolean
+}
+
+function formatMoney(amount: number, currency: string) {
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: currency.toUpperCase() }).format(amount / 100)
+}
+
+function formatDate(date: Date) {
+  return new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' }).format(date)
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+}
+
+export function renderSubscriptionReceiptEmail({
+  firstName, planName, amountPaid, currency, paymentMethodLabel, invoiceNumber,
+  paidAt, nextBillingDate, billingInterval, quantity, invoiceUrl, isFirstPayment,
+}: Omit<SubscriptionReceiptProps, 'to'>) {
+  const amount = formatMoney(amountPaid, currency)
+  const intervalLabel = billingInterval === 'year' ? 'year' : billingInterval === 'week' ? 'week' : billingInterval === 'day' ? 'day' : 'month'
+  const seatsLabel = quantity > 1 ? ` · ${quantity} seats` : ''
+  const settingsUrl = dashboardUrl('/settings')
+
+  const receiptRow = (label: string, value: string, last = false) => `
+    <tr>
+      <td style="padding:${last ? '11px 0 0' : '11px 0'};font-size:13px;color:#6b7280;vertical-align:top;white-space:nowrap;${last ? '' : 'border-bottom:1px solid #eaecef'}">${label}</td>
+      <td style="padding:${last ? '11px 0 0' : '11px 0'};font-size:13px;color:#111827;font-weight:600;text-align:right;vertical-align:top;${last ? '' : 'border-bottom:1px solid #eaecef'}">${value}</td>
+    </tr>`
+
+  const html = emailShell(`
+    <div style="padding:36px 32px 28px">
+      <p style="font-size:15px;color:#6b7280;margin:0 0 8px">Hi ${escapeHtml(firstName)},</p>
+      <h1 style="font-size:25px;font-weight:800;color:#0a0a0a;margin:0 0 14px;line-height:1.25">
+        ${isFirstPayment
+          ? `You're all set — ${escapeHtml(planName)} is active.`
+          : `Your ${escapeHtml(planName)} subscription renewed.`}
+      </h1>
+      <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.7">
+        ${isFirstPayment
+          ? `Your free trial has ended and your first payment went through. Nothing changes on your side: your prompt playbook, saved prompts, daily tasks, and XP all carry over exactly as they are.`
+          : `Thanks for sticking with LessAI. Your payment went through and your plan continues without interruption. Here is your receipt for this billing period.`}
+      </p>
+
+      <div style="background:#f8f9fa;border:1px solid #eaecef;border-radius:12px;padding:18px 20px 16px;margin-bottom:22px">
+        <p style="font-size:11px;font-weight:700;color:${BRAND_GREEN};letter-spacing:0.08em;text-transform:uppercase;margin:0 0 4px">Billing receipt</p>
+        <table width="100%" cellpadding="0" cellspacing="0">
+          ${receiptRow('Plan', `${escapeHtml(planName)}${seatsLabel}`)}
+          ${receiptRow('Payment method', escapeHtml(paymentMethodLabel ?? 'Card on file'))}
+          ${receiptRow('Amount paid', amount)}
+          ${invoiceNumber ? receiptRow('Invoice number', escapeHtml(invoiceNumber)) : ''}
+          ${receiptRow('Payment date', formatDate(paidAt), true)}
+        </table>
+      </div>
+
+      <div style="background:#f0fdf4;border-left:3px solid ${BRAND_GREEN_LIGHT};border-radius:0 8px 8px 0;padding:14px 18px;margin-bottom:8px">
+        <p style="font-size:13px;font-weight:700;color:#065f46;margin:0 0 3px">${nextBillingDate ? 'Next payment' : 'Subscription ending'}</p>
+        <p style="font-size:13px;color:#047857;margin:0;line-height:1.6">
+          ${nextBillingDate
+            ? `Your subscription renews automatically at <strong>${amount}</strong> every ${intervalLabel}. The next charge is on <strong>${formatDate(nextBillingDate)}</strong>. Change or cancel your plan any time from your account settings.`
+            : `Your subscription is set to cancel at the end of this billing period, so this is your last charge. You keep full access until then.`}
+        </p>
+      </div>
+    </div>
+    <div style="padding:0 32px 36px;text-align:center">
+      ${ctaButton(dashboardUrl(), 'Go to my dashboard →')}
+      <p style="font-size:12px;color:#9ca3af;margin:14px 0 0">
+        ${invoiceUrl ? `<a href="${invoiceUrl}" style="color:${BRAND_GREEN};font-weight:600;text-decoration:none">View invoice</a> &nbsp;·&nbsp; ` : ''}
+        <a href="${settingsUrl}" style="color:${BRAND_GREEN};font-weight:600;text-decoration:none">Manage billing</a>
+      </p>
+    </div>
+  `, { badge: 'PAYMENT CONFIRMED' })
+
+  const subject = isFirstPayment
+    ? `Payment confirmed — your ${planName} subscription is active`
+    : `Receipt: your ${planName} subscription renewed (${amount})`
+
+  return { subject, html }
+}
+
+export async function sendSubscriptionReceiptEmail(props: SubscriptionReceiptProps) {
+  const { to, ...rest } = props
+  const { subject, html } = renderSubscriptionReceiptEmail(rest)
+
+  const { data, error } = await getResend().emails.send({
+    from: FROM, to,
+    replyTo: SUPPORT_EMAIL,
+    subject,
+    html,
+  })
+  if (error) console.error('[email] sendSubscriptionReceiptEmail error:', error)
+  return { data, error }
+}
