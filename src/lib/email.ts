@@ -800,3 +800,97 @@ export async function sendPaymentFailedEmail(props: PaymentFailedProps) {
   if (error) console.error('[email] sendPaymentFailedEmail error:', error)
   return { data, error }
 }
+
+// ── Subscription cancellation confirmation ───────────────────────────────────
+//
+// Sent from the Stripe webhook when a customer cancels. Most cancellations
+// are scheduled for the end of the paid period (access continues until then
+// and the plan can be reactivated); `accessEndsAt` is null when the
+// subscription ended immediately.
+
+export type SubscriptionCanceledProps = {
+  to: string
+  firstName: string
+  planName: string
+  /** When paid access ends; null when it already has. */
+  accessEndsAt: Date | null
+}
+
+export function renderSubscriptionCanceledEmail({
+  firstName, planName, accessEndsAt,
+}: Omit<SubscriptionCanceledProps, 'to'>) {
+  const scheduled = accessEndsAt !== null
+  const settingsUrl = dashboardUrl('/settings')
+  const pricingUrl = dashboardUrl('/pricing')
+
+  const html = emailShell(`
+    <div style="padding:36px 32px 28px">
+      <p style="font-size:15px;color:#6b7280;margin:0 0 8px">Hi ${escapeHtml(firstName)},</p>
+      <h1 style="font-size:25px;font-weight:800;color:#0a0a0a;margin:0 0 14px;line-height:1.25">
+        ${scheduled
+          ? `Your ${escapeHtml(planName)} subscription has been canceled.`
+          : `Your ${escapeHtml(planName)} subscription has ended.`}
+      </h1>
+      <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.7">
+        ${scheduled
+          ? `We've turned off auto-renewal, so you won't be charged again. You keep full access to everything until the end of the period you've already paid for.`
+          : `Your plan is no longer active and you won't be charged again. Thanks for practicing with LessAI, and sorry to see you go.`}
+      </p>
+
+      <div style="background:#f8f9fa;border:1px solid #eaecef;border-radius:12px;padding:18px 20px 16px;margin-bottom:22px">
+        <p style="font-size:11px;font-weight:700;color:${BRAND_GREEN};letter-spacing:0.08em;text-transform:uppercase;margin:0 0 4px">Cancellation details</p>
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td style="padding:11px 0;font-size:13px;color:#6b7280;border-bottom:1px solid #eaecef">Plan</td>
+            <td style="padding:11px 0;font-size:13px;color:#111827;font-weight:600;text-align:right;border-bottom:1px solid #eaecef">${escapeHtml(planName)}</td>
+          </tr>
+          <tr>
+            <td style="padding:11px 0;font-size:13px;color:#6b7280;border-bottom:1px solid #eaecef">Auto-renewal</td>
+            <td style="padding:11px 0;font-size:13px;color:#111827;font-weight:600;text-align:right;border-bottom:1px solid #eaecef">Off</td>
+          </tr>
+          <tr>
+            <td style="padding:11px 0 0;font-size:13px;color:#6b7280">${scheduled ? 'Access ends' : 'Access ended'}</td>
+            <td style="padding:11px 0 0;font-size:13px;color:#111827;font-weight:600;text-align:right">${scheduled ? formatDate(accessEndsAt) : 'Today'}</td>
+          </tr>
+        </table>
+      </div>
+
+      <div style="background:#f0fdf4;border-left:3px solid ${BRAND_GREEN_LIGHT};border-radius:0 8px 8px 0;padding:14px 18px;margin-bottom:8px">
+        <p style="font-size:13px;font-weight:700;color:#065f46;margin:0 0 3px">${scheduled ? 'Changed your mind?' : 'Your progress is safe'}</p>
+        <p style="font-size:13px;color:#047857;margin:0;line-height:1.6">
+          ${scheduled
+            ? `You can turn auto-renewal back on any time before <strong>${formatDate(accessEndsAt)}</strong> from your billing settings, and nothing about your account changes. Your prompt playbook, saved prompts, and XP stay exactly where they are.`
+            : `Your prompt playbook, saved prompts, and XP are kept on your account. If you come back, you pick up right where you left off.`}
+        </p>
+      </div>
+    </div>
+    <div style="padding:0 32px 36px;text-align:center">
+      ${scheduled
+        ? ctaButton(settingsUrl, 'Reactivate my plan →')
+        : ctaButton(pricingUrl, 'Restart my subscription →')}
+      <p style="font-size:12px;color:#9ca3af;margin:14px 0 0">
+        Was something not working for you? Reply to this email and tell us. It goes straight to <a href="mailto:${SUPPORT_EMAIL}" style="color:${BRAND_GREEN};font-weight:600;text-decoration:none">${SUPPORT_EMAIL}</a>.
+      </p>
+    </div>
+  `, { badge: scheduled ? 'CANCELLATION CONFIRMED' : 'SUBSCRIPTION ENDED' })
+
+  const subject = scheduled
+    ? `Your ${planName} subscription is canceled — access until ${formatDate(accessEndsAt)}`
+    : `Your ${planName} subscription has ended`
+
+  return { subject, html }
+}
+
+export async function sendSubscriptionCanceledEmail(props: SubscriptionCanceledProps) {
+  const { to, ...rest } = props
+  const { subject, html } = renderSubscriptionCanceledEmail(rest)
+
+  const { data, error } = await getResend().emails.send({
+    from: FROM, to,
+    replyTo: SUPPORT_EMAIL,
+    subject,
+    html,
+  })
+  if (error) console.error('[email] sendSubscriptionCanceledEmail error:', error)
+  return { data, error }
+}

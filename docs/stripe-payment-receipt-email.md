@@ -1,4 +1,4 @@
-# Billing emails (receipt and payment failed)
+# Billing emails (receipt, payment failed, cancellation)
 
 When a subscription invoice is charged, the Stripe webhook sends a branded
 billing receipt from `LessAI <hello@lessai.io>`. This covers:
@@ -18,9 +18,19 @@ has no retries left). It shows the amount, card, and decline reason, the date
 of the next automatic retry, and an "Update payment method" button that opens
 the billing settings page.
 
-Code: `handleInvoicePaid` and `handleInvoicePaymentFailed` in
-`app/api/stripe/webhook/route.ts`; `sendSubscriptionReceiptEmail` and
-`sendPaymentFailedEmail` in `src/lib/email.ts`.
+When a customer cancels from the billing portal, Stripe schedules the
+cancellation for the end of the paid period and the webhook sends a
+confirmation (subject: "Your LessAI Pro subscription is canceled — access
+until <date>") with a "Reactivate my plan" button. It is sent once, when
+`cancel_at_period_end` flips on in `customer.subscription.updated`. If a
+subscription is ended immediately instead, `customer.subscription.deleted`
+sends the "Your LessAI Pro subscription has ended" variant. A subscription
+that ends after a scheduled cancellation does not email a second time.
+
+Code: `handleInvoicePaid`, `handleInvoicePaymentFailed`, and
+`sendCancellationEmail` in `app/api/stripe/webhook/route.ts`;
+`sendSubscriptionReceiptEmail`, `sendPaymentFailedEmail`, and
+`sendSubscriptionCanceledEmail` in `src/lib/email.ts`.
 
 ## Required Stripe configuration
 
@@ -31,7 +41,7 @@ it already receives:
 
 ```text
 checkout.session.completed
-customer.subscription.updated
+customer.subscription.updated   (also sends the cancellation confirmation)
 customer.subscription.deleted
 invoice.paid              <- add this
 invoice.payment_failed    <- add this
@@ -48,6 +58,9 @@ stripe listen --forward-to localhost:3000/api/stripe/webhook
 stripe trigger invoice.paid
 stripe trigger invoice.payment_failed
 ```
+
+To test the cancellation email, cancel a test subscription from the Stripe
+Dashboard or the billing portal with "cancel at period end".
 
 To test the real trial-to-paid transition, create a test subscription with a
 7-day trial and advance a Stripe test clock past the trial end.

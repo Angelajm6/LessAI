@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe, PLANS } from '@/lib/stripe'
-import { sendPaymentFailedEmail, sendSubscriptionReceiptEmail } from '@/lib/email'
+import { sendPaymentFailedEmail, sendSubscriptionCanceledEmail, sendSubscriptionReceiptEmail } from '@/lib/email'
 import { createClient } from '@supabase/supabase-js'
 import Stripe from 'stripe'
 
@@ -174,6 +174,34 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
   }
 }
 
+/**
+ * Send the cancellation confirmation for a subscription. `accessEndsAt` is
+ * the end of the already-paid period for a scheduled cancellation, or null
+ * when the subscription has ended immediately.
+ */
+async function sendCancellationEmail(sub: Stripe.Subscription, customer: Stripe.Customer, accessEndsAt: Date | null) {
+  const userId = customer.metadata?.supabase_user_id
+  const { data: profile } = userId
+    ? await supabase.from('profiles').select('email, full_name, plan').eq('id', userId).single()
+    : { data: null }
+
+  const to = profile?.email ?? customer.email
+  if (!to) return
+  const firstName = profile?.full_name?.split(' ')[0] || customer.name?.split(' ')[0] || 'there'
+
+  const priceId = sub.items.data[0]?.price.id
+  const plan = priceId === PLANS.teams.priceId ? 'teams'
+    : priceId === PLANS.pro.priceId ? 'pro'
+    : (profile?.plan as 'pro' | 'teams' | null) ?? 'pro'
+
+  const { error } = await sendSubscriptionCanceledEmail({
+    to, firstName, planName: PLANS[plan].name, accessEndsAt,
+  })
+  if (error) {
+    console.error('[stripe webhook] could not send cancellation email', { subscription: sub.id, error })
+  }
+}
+
 export async function POST(req: NextRequest) {
   const body = await req.text()
   const sig = req.headers.get('stripe-signature')!
@@ -240,7 +268,16 @@ export async function POST(req: NextRequest) {
       const sub = event.data.object as Stripe.Subscription
       const customer = await stripe.customers.retrieve(sub.customer as string)
       if (customer.deleted) break
-      const userId = (customer as Stripe.Customer).metadata?.supabase_user_id
+
+      // Cancelling from the billing portal schedules the cancellation for the
+      // end of the paid period. Confirm it once, when the flag flips on.
+      const previous = event.data.previous_attributes as Partial<Stripe.Subscription> | undefined
+      if (sub.cancel_at_period_end && previous?.cancel_at_period_end === false) {
+        const endsAt = sub.cancel_at ?? sub.items.data[0]?.current_period_end ?? null
+        await sendCancellationEmail(sub, customer, endsAt ? new Date(endsAt * 1000) : null)
+      }
+
+      const userId = customer.metadata?.supabase_user_id
       if (!userId) break
 
       await supabase.from('profiles').update({
@@ -254,7 +291,14 @@ export async function POST(req: NextRequest) {
       const sub = event.data.object as Stripe.Subscription
       const customer = await stripe.customers.retrieve(sub.customer as string)
       if (customer.deleted) break
-      const userId = (customer as Stripe.Customer).metadata?.supabase_user_id
+
+      // A scheduled cancellation was already confirmed when it was requested.
+      // Only an immediate cancellation needs an email here.
+      if (!sub.cancel_at_period_end) {
+        await sendCancellationEmail(sub, customer, null)
+      }
+
+      const userId = customer.metadata?.supabase_user_id
       if (!userId) break
 
       await supabase.from('profiles').update({
