@@ -14,7 +14,8 @@ const dashboardUrl = (path = '/dashboard') =>
 
 // ── Shared HTML helpers ────────────────────────────────────────────────────
 
-const LOGO_URL = 'https://lessai.io/logo.svg'
+// PNG, not SVG: Gmail and Outlook do not render SVG images in email.
+const LOGO_URL = 'https://www.lessai.io/logo-email.png'
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://lessai.io'
 const BRAND_GREEN = '#059669'
 const BRAND_GREEN_LIGHT = '#10b981'

@@ -21,7 +21,7 @@ export default function WelcomeEmail({ firstName, role, tools, stackSummary, das
 
           {/* Header */}
           <Section style={header}>
-            <Img src="https://lessai.io/logo.svg" width="28" height="28" alt="LessAI" style={logoImg} />
+            <Img src="https://www.lessai.io/logo-email.png" width="28" height="28" alt="LessAI" style={logoImg} />
             <Text style={logoText}>LessAI</Text>
           </Section>
 
@@ -86,7 +86,7 @@ export default function WelcomeEmail({ firstName, role, tools, stackSummary, das
           {/* Footer */}
           <Section style={footer}>
             <div style={footerLogo}>
-              <Img src="https://lessai.io/logo.svg" width="20" height="20" alt="LessAI" style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '6px' }} />
+              <Img src="https://www.lessai.io/logo-email.png" width="20" height="20" alt="LessAI" style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '6px' }} />
               <span style={footerBrand}>LessAI</span>
             </div>
             <Text style={footerText}>
