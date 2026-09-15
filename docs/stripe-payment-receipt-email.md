@@ -1,4 +1,4 @@
-# Billing emails (receipt, payment failed, cancellation)
+# Billing emails (trial ending, receipt, payment failed, cancellation)
 
 When a subscription invoice is charged, the Stripe webhook sends a branded
 billing receipt from `LessAI <hello@lessai.io>`. This covers:
@@ -27,10 +27,19 @@ subscription is ended immediately instead, `customer.subscription.deleted`
 sends the "Your LessAI Pro subscription has ended" variant. A subscription
 that ends after a scheduled cancellation does not email a second time.
 
-Code: `handleInvoicePaid`, `handleInvoicePaymentFailed`, and
-`sendCancellationEmail` in `app/api/stripe/webhook/route.ts`;
-`sendSubscriptionReceiptEmail`, `sendPaymentFailedEmail`, and
-`sendSubscriptionCanceledEmail` in `src/lib/email.ts`.
+Three days before a trial ends, Stripe fires
+`customer.subscription.trial_will_end` and the webhook sends a reminder
+(subject: "Your LessAI trial ends in 3 days — $12.00 on <date>") quoting the
+exact end date, first charge, and card on file, with a "Manage billing" link
+for cancelling. This is the only trial reminder LessAI sends: the former
+cron-based day-4 and day-7 emails were retired in favor of it, so the daily
+`trial-emails` cron now only sends the day-one support check-in.
+
+Code: `handleTrialWillEnd`, `handleInvoicePaid`, `handleInvoicePaymentFailed`,
+and `sendCancellationEmail` in `app/api/stripe/webhook/route.ts`;
+`sendTrialEndingEmail`, `sendSubscriptionReceiptEmail`,
+`sendPaymentFailedEmail`, and `sendSubscriptionCanceledEmail` in
+`src/lib/email.ts`.
 
 ## Required Stripe configuration
 
@@ -43,8 +52,9 @@ it already receives:
 checkout.session.completed
 customer.subscription.updated   (also sends the cancellation confirmation)
 customer.subscription.deleted
-invoice.paid              <- add this
-invoice.payment_failed    <- add this
+invoice.paid                          <- add this
+invoice.payment_failed                <- add this
+customer.subscription.trial_will_end  <- add this
 ```
 
 No new environment variables are needed. The route reuses
@@ -57,6 +67,7 @@ No new environment variables are needed. The route reuses
 stripe listen --forward-to localhost:3000/api/stripe/webhook
 stripe trigger invoice.paid
 stripe trigger invoice.payment_failed
+stripe trigger customer.subscription.trial_will_end
 ```
 
 To test the cancellation email, cancel a test subscription from the Stripe

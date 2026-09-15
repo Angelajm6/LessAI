@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe, PLANS } from '@/lib/stripe'
-import { sendPaymentFailedEmail, sendSubscriptionCanceledEmail, sendSubscriptionReceiptEmail } from '@/lib/email'
+import { sendPaymentFailedEmail, sendSubscriptionCanceledEmail, sendSubscriptionReceiptEmail, sendTrialEndingEmail } from '@/lib/email'
 import { createClient } from '@supabase/supabase-js'
 import Stripe from 'stripe'
 
@@ -202,6 +202,51 @@ async function sendCancellationEmail(sub: Stripe.Subscription, customer: Stripe.
   }
 }
 
+/**
+ * Remind the customer three days before their trial ends, quoting the exact
+ * end date, first charge, and card. Stripe fires `trial_will_end` once.
+ */
+async function handleTrialWillEnd(subscriptionId: string) {
+  const sub = await stripe.subscriptions.retrieve(subscriptionId, {
+    expand: ['default_payment_method', 'customer.invoice_settings.default_payment_method'],
+  })
+  if (!sub.trial_end) return
+  const customer = sub.customer
+  if (typeof customer === 'string' || customer.deleted) return
+
+  const userId = customer.metadata?.supabase_user_id
+  const { data: profile } = userId
+    ? await supabase.from('profiles').select('email, full_name, plan').eq('id', userId).single()
+    : { data: null }
+
+  const to = profile?.email ?? customer.email
+  if (!to) return
+  const firstName = profile?.full_name?.split(' ')[0] || customer.name?.split(' ')[0] || 'there'
+
+  const item = sub.items.data[0]
+  const priceId = item?.price.id
+  const plan = priceId === PLANS.teams.priceId ? 'teams'
+    : priceId === PLANS.pro.priceId ? 'pro'
+    : (profile?.plan as 'pro' | 'teams' | null) ?? 'pro'
+  const quantity = item?.quantity ?? 1
+  const unitAmount = item?.price.unit_amount ?? PLANS[plan].amount
+
+  const { error } = await sendTrialEndingEmail({
+    to,
+    firstName,
+    planName: PLANS[plan].name,
+    trialEndsAt: new Date(sub.trial_end * 1000),
+    amount: unitAmount * quantity,
+    currency: item?.price.currency ?? 'usd',
+    billingInterval: item?.price.recurring?.interval ?? 'month',
+    paymentMethodLabel:
+      describePaymentMethod(sub.default_payment_method) ??
+      describePaymentMethod(customer.invoice_settings?.default_payment_method),
+    quantity,
+  })
+  if (error) throw error
+}
+
 export async function POST(req: NextRequest) {
   const body = await req.text()
   const sig = req.headers.get('stripe-signature')!
@@ -258,6 +303,19 @@ export async function POST(req: NextRequest) {
       } catch (error) {
         console.error('[stripe webhook] invoice.payment_failed: could not send email', {
           invoice: invoice.id,
+          error: error instanceof Error ? error.message : error,
+        })
+      }
+      break
+    }
+
+    case 'customer.subscription.trial_will_end': {
+      const sub = event.data.object as Stripe.Subscription
+      try {
+        await handleTrialWillEnd(sub.id)
+      } catch (error) {
+        console.error('[stripe webhook] trial_will_end: could not send reminder', {
+          subscription: sub.id,
           error: error instanceof Error ? error.message : error,
         })
       }

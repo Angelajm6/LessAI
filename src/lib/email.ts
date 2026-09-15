@@ -309,93 +309,6 @@ export async function sendWelcomeEmail({
   return { data, error }
 }
 
-// ── Day 4 trial reminder ─────────────────────────────────────────────────────
-
-export async function sendTrialDay4Email({
-  to, firstName, tasksCompleted, toolCount,
-}: {
-  to: string; firstName: string; tasksCompleted: number; toolCount: number
-}) {
-  const remaining = Math.max(0, (toolCount * 5) - tasksCompleted)
-  const progressMsg = tasksCompleted === 0
-    ? "You haven't started your daily tasks yet — now's the perfect time."
-    : `You've completed ${tasksCompleted} task${tasksCompleted > 1 ? 's' : ''} so far. ${remaining > 0 ? `${remaining} more to go to finish your first week.` : "You've nailed the first week!"}`
-
-  const html = emailShell(`
-    <div style="padding:32px 32px 24px">
-      <div style="display:inline-block;background:#fef3c7;border:1px solid #fde68a;border-radius:100px;padding:4px 12px;font-size:12px;font-weight:700;color:#92400e;margin-bottom:16px">⏳ 3 days left in your trial</div>
-      <h1 style="font-size:24px;font-weight:800;color:#111827;margin:0 0 12px;line-height:1.3">Hey ${firstName}, your trial ends in 3 days</h1>
-      <p style="font-size:15px;color:#4b5563;margin:0 0 16px;line-height:1.6">
-        ${progressMsg}
-      </p>
-      <p style="font-size:15px;color:#4b5563;margin:0 0 24px;line-height:1.6">
-        If you keep your plan, you'll be charged automatically on day 8. If you want to cancel, just do it before then — no hard feelings.
-      </p>
-      <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:16px 20px;margin-bottom:24px">
-        <p style="font-size:13px;font-weight:700;color:#111827;margin:0 0 8px">What you haven't tried yet:</p>
-        <ul style="margin:0;padding-left:20px;font-size:13px;color:#4b5563;line-height:1.8">
-          <li>The <strong>before/after prompt comparison</strong> for each tool</li>
-          <li>Saving prompts to your personal library</li>
-          <li>Asking the AI coach a question specific to your role</li>
-        </ul>
-      </div>
-    </div>
-    <div style="padding:0 32px 32px;text-align:center">
-      ${ctaButton(dashboardUrl(), 'Continue my trial →')}
-      <p style="margin:12px 0 0;font-size:12px;color:#9ca3af">Or <a href="mailto:${SUPPORT_EMAIL}" style="color:#059669">reply to this email</a> if you have questions.</p>
-    </div>
-  `)
-
-  const { data, error } = await getResend().emails.send({
-    from: FROM, to,
-    replyTo: SUPPORT_EMAIL,
-    subject: `${firstName}, your LessAI trial ends in 3 days`,
-    html,
-  })
-  if (error) console.error('[email] sendTrialDay4Email error:', error)
-  return { data, error }
-}
-
-// ── Day 7 trial final notice ──────────────────────────────────────────────────
-
-export async function sendTrialDay7Email({
-  to, firstName,
-}: {
-  to: string; firstName: string
-}) {
-  const html = emailShell(`
-    <div style="padding:32px 32px 24px">
-      <div style="display:inline-block;background:#fee2e2;border:1px solid #fecaca;border-radius:100px;padding:4px 12px;font-size:12px;font-weight:700;color:#991b1b;margin-bottom:16px">🔔 Last day of your trial</div>
-      <h1 style="font-size:24px;font-weight:800;color:#111827;margin:0 0 12px;line-height:1.3">Your trial ends today, ${firstName}</h1>
-      <p style="font-size:15px;color:#4b5563;margin:0 0 16px;line-height:1.6">
-        Tomorrow your card will be charged for your monthly plan. If you want to cancel, today is the day.
-      </p>
-      <p style="font-size:15px;color:#4b5563;margin:0 0 24px;line-height:1.6">
-        If you're keeping it — great. Your prompt playbook, saved prompts, and task history all carry over. Nothing resets.
-      </p>
-      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px 20px;margin-bottom:24px">
-        <p style="font-size:13px;font-weight:700;color:#065f46;margin:0 0 4px">Why people keep LessAI after their trial:</p>
-        <p style="font-size:13px;color:#047857;margin:0;line-height:1.7">"I finally stopped getting generic AI answers. My prompts are specific now and the output is night and day." — early user</p>
-      </div>
-    </div>
-    <div style="padding:0 32px 16px;text-align:center">
-      ${ctaButton(dashboardUrl(), 'Keep my plan →')}
-    </div>
-    <div style="padding:0 32px 32px;text-align:center">
-      ${ctaButton(`mailto:${SUPPORT_EMAIL}`, 'Cancel my trial', 'secondary')}
-    </div>
-  `)
-
-  const { data, error } = await getResend().emails.send({
-    from: FROM, to,
-    replyTo: SUPPORT_EMAIL,
-    subject: `Last chance — your LessAI trial ends today`,
-    html,
-  })
-  if (error) console.error('[email] sendTrialDay7Email error:', error)
-  return { data, error }
-}
-
 // ── Streak reminder email ────────────────────────────────────────────────────
 
 export async function sendStreakReminderEmail({
@@ -892,5 +805,102 @@ export async function sendSubscriptionCanceledEmail(props: SubscriptionCanceledP
     html,
   })
   if (error) console.error('[email] sendSubscriptionCanceledEmail error:', error)
+  return { data, error }
+}
+
+// ── Trial ending reminder ────────────────────────────────────────────────────
+//
+// Sent from the Stripe `customer.subscription.trial_will_end` webhook, which
+// fires three days before the trial actually ends. Unlike the cron-based
+// day-4 reminder, this one quotes the exact date, amount, and card.
+
+export type TrialEndingProps = {
+  to: string
+  firstName: string
+  planName: string
+  trialEndsAt: Date
+  /** Amount of the first charge, in the smallest currency unit (cents). */
+  amount: number
+  currency: string
+  billingInterval: 'day' | 'week' | 'month' | 'year'
+  paymentMethodLabel: string | null
+  /** Seats on a Teams plan; 1 for Pro. */
+  quantity: number
+}
+
+export function renderTrialEndingEmail({
+  firstName, planName, trialEndsAt, amount, currency, billingInterval, paymentMethodLabel, quantity,
+}: Omit<TrialEndingProps, 'to'>) {
+  const price = formatMoney(amount, currency)
+  const intervalLabel = billingInterval === 'year' ? 'year' : billingInterval === 'week' ? 'week' : billingInterval === 'day' ? 'day' : 'month'
+  const daysLeft = Math.max(0, Math.ceil((trialEndsAt.getTime() - Date.now()) / 86_400_000))
+  const daysLabel = daysLeft === 0 ? 'Your trial ends today' : daysLeft === 1 ? '1 day left in your trial' : `${daysLeft} days left in your trial`
+  const seatsLabel = quantity > 1 ? ` · ${quantity} seats` : ''
+  const settingsUrl = dashboardUrl('/settings')
+
+  const html = emailShell(`
+    <div style="padding:36px 32px 28px">
+      <div style="display:inline-block;background:#fef3c7;border:1px solid #fde68a;border-radius:100px;padding:4px 12px;font-size:12px;font-weight:700;color:#92400e;margin-bottom:16px">⏳ ${daysLabel}</div>
+      <h1 style="font-size:25px;font-weight:800;color:#0a0a0a;margin:0 0 14px;line-height:1.25">Your free trial ends on ${formatDate(trialEndsAt)}.</h1>
+      <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.7">
+        Hi ${escapeHtml(firstName)}, a quick heads-up so nothing surprises you. When your trial ends we'll charge <strong>${price}</strong> to ${escapeHtml(paymentMethodLabel ?? 'your card on file')} and ${escapeHtml(planName)} continues automatically. If you're keeping it, there's nothing you need to do.
+      </p>
+
+      <div style="background:#f8f9fa;border:1px solid #eaecef;border-radius:12px;padding:18px 20px 16px;margin-bottom:22px">
+        <p style="font-size:11px;font-weight:700;color:${BRAND_GREEN};letter-spacing:0.08em;text-transform:uppercase;margin:0 0 4px">What happens next</p>
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td style="padding:11px 0;font-size:13px;color:#6b7280;border-bottom:1px solid #eaecef">Plan</td>
+            <td style="padding:11px 0;font-size:13px;color:#111827;font-weight:600;text-align:right;border-bottom:1px solid #eaecef">${escapeHtml(planName)}${seatsLabel}</td>
+          </tr>
+          <tr>
+            <td style="padding:11px 0;font-size:13px;color:#6b7280;border-bottom:1px solid #eaecef">Trial ends</td>
+            <td style="padding:11px 0;font-size:13px;color:#111827;font-weight:600;text-align:right;border-bottom:1px solid #eaecef">${formatDate(trialEndsAt)}</td>
+          </tr>
+          <tr>
+            <td style="padding:11px 0;font-size:13px;color:#6b7280;border-bottom:1px solid #eaecef">First charge</td>
+            <td style="padding:11px 0;font-size:13px;color:#111827;font-weight:600;text-align:right;border-bottom:1px solid #eaecef">${price} / ${intervalLabel}</td>
+          </tr>
+          <tr>
+            <td style="padding:11px 0 0;font-size:13px;color:#6b7280">Payment method</td>
+            <td style="padding:11px 0 0;font-size:13px;color:#111827;font-weight:600;text-align:right">${escapeHtml(paymentMethodLabel ?? 'Card on file')}</td>
+          </tr>
+        </table>
+      </div>
+
+      <div style="background:#f0fdf4;border-left:3px solid ${BRAND_GREEN_LIGHT};border-radius:0 8px 8px 0;padding:14px 18px;margin-bottom:8px">
+        <p style="font-size:13px;font-weight:700;color:#065f46;margin:0 0 3px">Not ready to commit?</p>
+        <p style="font-size:13px;color:#047857;margin:0;line-height:1.6">
+          Cancel any time before <strong>${formatDate(trialEndsAt)}</strong> from your billing settings and you won't be charged. You keep full access for the rest of the trial either way, and your playbook, saved prompts, and XP stay on your account.
+        </p>
+      </div>
+    </div>
+    <div style="padding:0 32px 36px;text-align:center">
+      ${ctaButton(dashboardUrl(), 'Keep practicing →')}
+      <p style="font-size:12px;color:#9ca3af;margin:14px 0 0">
+        <a href="${settingsUrl}" style="color:${BRAND_GREEN};font-weight:600;text-decoration:none">Manage billing</a> &nbsp;·&nbsp;
+        Questions? <a href="mailto:${SUPPORT_EMAIL}" style="color:${BRAND_GREEN};font-weight:600;text-decoration:none">${SUPPORT_EMAIL}</a>
+      </p>
+    </div>
+  `, { badge: 'TRIAL ENDING' })
+
+  const subject = daysLeft === 0
+    ? `Your LessAI trial ends today — ${price} on ${formatDate(trialEndsAt)}`
+    : `Your LessAI trial ends in ${daysLeft} day${daysLeft === 1 ? '' : 's'} — ${price} on ${formatDate(trialEndsAt)}`
+
+  return { subject, html }
+}
+
+export async function sendTrialEndingEmail(props: TrialEndingProps) {
+  const { to, ...rest } = props
+  const { subject, html } = renderTrialEndingEmail(rest)
+
+  const { data, error } = await getResend().emails.send({
+    from: FROM, to,
+    replyTo: SUPPORT_EMAIL,
+    subject,
+    html,
+  })
+  if (error) console.error('[email] sendTrialEndingEmail error:', error)
   return { data, error }
 }

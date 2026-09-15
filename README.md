@@ -149,7 +149,7 @@ All tables enforce Row Level Security — users can only read and write their ow
 | **Pro (Individual)** | Full prompt playbook, unlimited daily tasks, Prompt Lab, Command Center, saved prompts, XP system, weekly digest |
 | **Team** | Everything in Pro + admin dashboard, team leaderboard, invite links, skill gap reporting |
 
-Payments processed via Stripe Checkout. Webhooks update subscription status on all plan events (trial end, upgrade, cancellation) and send branded payment receipt, payment-failed, and cancellation emails — see `docs/stripe-payment-receipt-email.md`.
+Payments processed via Stripe Checkout. Webhooks update subscription status on all plan events (trial end, upgrade, cancellation) and send branded trial-ending, payment receipt, payment-failed, and cancellation emails — see `docs/stripe-payment-receipt-email.md`.
 
 ---
 
