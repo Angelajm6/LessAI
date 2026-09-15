@@ -15,12 +15,11 @@ exists as a full user named "LessAI Support" in the Bookore Systems Workspace,
 where `lessai.io` is a verified secondary domain. Read and answer support mail
 by signing in to that mailbox.
 
-The `POST /api/resend/inbound` route and the `RESEND_INBOUND_WEBHOOK_SECRET`
-and `SUPPORT_INBOX_FORWARD_TO` variables belong to an earlier plan to receive
-mail through Resend and forward it. That path is dormant: Resend never
-receives mail for this domain while the MX record points at Google. Leave the
-route in place or remove it, but do not set those variables expecting them to
-do anything.
+An earlier plan received mail through a Resend inbound webhook and forwarded
+it. That route was removed on 2026-09-15 because Resend never receives mail
+for this domain while the MX record points at Google. If a
+`RESEND_INBOUND_WEBHOOK_SECRET` or `SUPPORT_INBOX_FORWARD_TO` variable is
+still set in Vercel, it is unused and can be deleted.
 
 ## Required environment variables
 
