@@ -699,3 +699,104 @@ export async function sendSubscriptionReceiptEmail(props: SubscriptionReceiptPro
   if (error) console.error('[email] sendSubscriptionReceiptEmail error:', error)
   return { data, error }
 }
+
+// ── Subscription payment failed ──────────────────────────────────────────────
+//
+// Sent from the Stripe `invoice.payment_failed` webhook when a subscription
+// charge is declined. Stripe retries the charge automatically; this email asks
+// the customer to update their card before those retries run out.
+
+export type PaymentFailedProps = {
+  to: string
+  firstName: string
+  planName: string
+  /** Amount Stripe tried to charge, in the smallest currency unit (cents). */
+  amountDue: number
+  currency: string
+  paymentMethodLabel: string | null
+  /** Stripe's decline message, when available. */
+  failureReason: string | null
+  /** When Stripe will try the charge again; null when it will not retry. */
+  nextAttemptDate: Date | null
+  attemptCount: number
+  /** Stripe-hosted invoice page where the customer can pay directly. */
+  invoiceUrl: string | null
+}
+
+export function renderPaymentFailedEmail({
+  firstName, planName, amountDue, currency, paymentMethodLabel, failureReason,
+  nextAttemptDate, attemptCount, invoiceUrl,
+}: Omit<PaymentFailedProps, 'to'>) {
+  const amount = formatMoney(amountDue, currency)
+  const settingsUrl = dashboardUrl('/settings')
+  const willRetry = nextAttemptDate !== null
+
+  const html = emailShell(`
+    <div style="padding:36px 32px 28px">
+      <div style="display:inline-block;background:#fef3c7;border:1px solid #fde68a;border-radius:100px;padding:4px 12px;font-size:12px;font-weight:700;color:#92400e;margin-bottom:16px">⚠️ Payment unsuccessful</div>
+      <h1 style="font-size:25px;font-weight:800;color:#0a0a0a;margin:0 0 14px;line-height:1.25">We couldn't process your ${escapeHtml(planName)} payment.</h1>
+      <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.7">
+        Hi ${escapeHtml(firstName)}, your card was declined when we tried to charge <strong>${amount}</strong> for ${escapeHtml(planName)}.
+        Your access is still active for now. To keep it that way, update your payment method and we'll take care of the rest.
+      </p>
+
+      <div style="background:#f8f9fa;border:1px solid #eaecef;border-radius:12px;padding:18px 20px 16px;margin-bottom:22px">
+        <p style="font-size:11px;font-weight:700;color:#92400e;letter-spacing:0.08em;text-transform:uppercase;margin:0 0 4px">Payment details</p>
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td style="padding:11px 0;font-size:13px;color:#6b7280;border-bottom:1px solid #eaecef">Plan</td>
+            <td style="padding:11px 0;font-size:13px;color:#111827;font-weight:600;text-align:right;border-bottom:1px solid #eaecef">${escapeHtml(planName)}</td>
+          </tr>
+          <tr>
+            <td style="padding:11px 0;font-size:13px;color:#6b7280;border-bottom:1px solid #eaecef">Payment method</td>
+            <td style="padding:11px 0;font-size:13px;color:#111827;font-weight:600;text-align:right;border-bottom:1px solid #eaecef">${escapeHtml(paymentMethodLabel ?? 'Card on file')}</td>
+          </tr>
+          <tr>
+            <td style="padding:11px 0;font-size:13px;color:#6b7280;${failureReason ? 'border-bottom:1px solid #eaecef' : ''}">Amount due</td>
+            <td style="padding:11px 0;font-size:13px;color:#111827;font-weight:600;text-align:right;${failureReason ? 'border-bottom:1px solid #eaecef' : ''}">${amount}</td>
+          </tr>
+          ${failureReason ? `<tr>
+            <td style="padding:11px 0 0;font-size:13px;color:#6b7280;vertical-align:top">Reason</td>
+            <td style="padding:11px 0 0;font-size:13px;color:#b91c1c;font-weight:600;text-align:right;vertical-align:top">${escapeHtml(failureReason)}</td>
+          </tr>` : ''}
+        </table>
+      </div>
+
+      <div style="background:#fffbeb;border-left:3px solid #f59e0b;border-radius:0 8px 8px 0;padding:14px 18px;margin-bottom:8px">
+        <p style="font-size:13px;font-weight:700;color:#92400e;margin:0 0 3px">${willRetry ? 'What happens next' : 'Action needed'}</p>
+        <p style="font-size:13px;color:#78350f;margin:0;line-height:1.6">
+          ${willRetry
+            ? `We'll automatically try your card again on <strong>${formatDate(nextAttemptDate)}</strong>. If you update your payment method before then, the retry will use the new card.${attemptCount > 1 ? ` This was attempt ${attemptCount}.` : ''}`
+            : `We've run out of automatic retries. Please update your payment method now to keep your prompt playbook, saved prompts, and progress. Otherwise your subscription will be paused.`}
+        </p>
+      </div>
+    </div>
+    <div style="padding:0 32px 36px;text-align:center">
+      ${ctaButton(settingsUrl, 'Update payment method →', 'amber')}
+      <p style="font-size:12px;color:#9ca3af;margin:14px 0 0">
+        ${invoiceUrl ? `<a href="${invoiceUrl}" style="color:${BRAND_GREEN};font-weight:600;text-decoration:none">Pay this invoice</a> &nbsp;·&nbsp; ` : ''}
+        Questions? <a href="mailto:${SUPPORT_EMAIL}" style="color:${BRAND_GREEN};font-weight:600;text-decoration:none">${SUPPORT_EMAIL}</a>
+      </p>
+    </div>
+  `, { badge: 'ACTION NEEDED' })
+
+  const subject = willRetry
+    ? `Action needed: your ${planName} payment didn't go through`
+    : `Final notice: update your card to keep ${planName}`
+
+  return { subject, html }
+}
+
+export async function sendPaymentFailedEmail(props: PaymentFailedProps) {
+  const { to, ...rest } = props
+  const { subject, html } = renderPaymentFailedEmail(rest)
+
+  const { data, error } = await getResend().emails.send({
+    from: FROM, to,
+    replyTo: SUPPORT_EMAIL,
+    subject,
+    html,
+  })
+  if (error) console.error('[email] sendPaymentFailedEmail error:', error)
+  return { data, error }
+}

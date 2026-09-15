@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe, PLANS } from '@/lib/stripe'
-import { sendSubscriptionReceiptEmail } from '@/lib/email'
+import { sendPaymentFailedEmail, sendSubscriptionReceiptEmail } from '@/lib/email'
 import { createClient } from '@supabase/supabase-js'
 import Stripe from 'stripe'
 
@@ -27,24 +27,23 @@ function describePaymentMethod(pm: string | Stripe.PaymentMethod | null | undefi
 }
 
 /**
- * Send a branded billing receipt when a subscription invoice is charged.
- * This covers the first charge on day 8 (end of the free trial) and every
- * renewal after it. The $0 invoice created when a trial starts is skipped.
+ * Resolve everything the billing emails need from a subscription invoice:
+ * the recipient, plan, subscription, and a human-readable payment method.
+ * Returns null when the invoice is not tied to a subscription or no recipient
+ * can be determined.
  */
-async function handleInvoicePaid(invoice: Stripe.Invoice) {
-  if (invoice.amount_paid <= 0) return
-
+async function resolveInvoiceContext(invoice: Stripe.Invoice) {
   const subscriptionRef = invoice.parent?.subscription_details?.subscription
-  if (!subscriptionRef) return
+  if (!subscriptionRef) return null
   const subscriptionId = typeof subscriptionRef === 'string' ? subscriptionRef : subscriptionRef.id
 
   const customerId = typeof invoice.customer === 'string' ? invoice.customer : invoice.customer?.id
-  if (!customerId) return
+  if (!customerId) return null
 
   const customer = await stripe.customers.retrieve(customerId, {
     expand: ['invoice_settings.default_payment_method'],
   })
-  if (customer.deleted) return
+  if (customer.deleted) return null
 
   const userId = customer.metadata?.supabase_user_id
   const { data: profile } = userId
@@ -55,8 +54,8 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
   // their email. If that has not happened yet, fall back to the billing email.
   const to = profile?.email ?? invoice.customer_email ?? customer.email
   if (!to) {
-    console.warn('[stripe webhook] invoice.paid: no recipient for receipt', { invoice: invoice.id })
-    return
+    console.warn('[stripe webhook] no recipient for billing email', { invoice: invoice.id })
+    return null
   }
   const firstName = profile?.full_name?.split(' ')[0] || customer.name?.split(' ')[0] || 'there'
 
@@ -74,9 +73,24 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
     describePaymentMethod(subscription.default_payment_method) ??
     describePaymentMethod(customer.invoice_settings?.default_payment_method)
 
+  return { to, firstName, userId, subscription, item, plan, paymentMethodLabel }
+}
+
+/**
+ * Send a branded billing receipt when a subscription invoice is charged.
+ * This covers the first charge on day 8 (end of the free trial) and every
+ * renewal after it. The $0 invoice created when a trial starts is skipped.
+ */
+async function handleInvoicePaid(invoice: Stripe.Invoice) {
+  if (invoice.amount_paid <= 0) return
+
+  const ctx = await resolveInvoiceContext(invoice)
+  if (!ctx) return
+  const { to, firstName, userId, subscription, item, plan, paymentMethodLabel } = ctx
+
   // The trial-ending charge is the first paid invoice on this subscription.
   const { data: paidInvoices } = await stripe.invoices.list({
-    subscription: subscriptionId,
+    subscription: subscription.id,
     status: 'paid',
     limit: 100,
   })
@@ -109,6 +123,53 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
       subscription_status: subscription.status,
       subscription_id: subscription.id,
       plan,
+    }).eq('id', userId)
+  }
+}
+
+/**
+ * Ask the customer to update their card when a subscription charge is
+ * declined. Stripe keeps retrying on its own schedule; `next_payment_attempt`
+ * is null once those retries are exhausted.
+ */
+async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
+  if (invoice.amount_due <= 0) return
+
+  const ctx = await resolveInvoiceContext(invoice)
+  if (!ctx) return
+  const { to, firstName, userId, subscription, plan, paymentMethodLabel } = ctx
+
+  // The decline message lives on the PaymentIntent behind the invoice.
+  let failureReason: string | null = null
+  try {
+    const expanded = await stripe.invoices.retrieve(invoice.id, {
+      expand: ['payments.data.payment.payment_intent'],
+    })
+    const latest = expanded.payments?.data.at(-1)?.payment.payment_intent
+    if (latest && typeof latest !== 'string') {
+      failureReason = latest.last_payment_error?.message ?? null
+    }
+  } catch (error) {
+    console.warn('[stripe webhook] could not read decline reason', { invoice: invoice.id, error })
+  }
+
+  const { error } = await sendPaymentFailedEmail({
+    to,
+    firstName,
+    planName: PLANS[plan].name,
+    amountDue: invoice.amount_due,
+    currency: invoice.currency,
+    paymentMethodLabel,
+    failureReason,
+    nextAttemptDate: invoice.next_payment_attempt ? new Date(invoice.next_payment_attempt * 1000) : null,
+    attemptCount: invoice.attempt_count,
+    invoiceUrl: invoice.hosted_invoice_url ?? null,
+  })
+  if (error) throw error
+
+  if (userId) {
+    await supabase.from('profiles').update({
+      subscription_status: subscription.status,
     }).eq('id', userId)
   }
 }
@@ -155,6 +216,19 @@ export async function POST(req: NextRequest) {
         // Log and acknowledge. Returning an error would make Stripe retry the
         // event, which risks sending the same receipt more than once.
         console.error('[stripe webhook] invoice.paid: could not send receipt', {
+          invoice: invoice.id,
+          error: error instanceof Error ? error.message : error,
+        })
+      }
+      break
+    }
+
+    case 'invoice.payment_failed': {
+      const invoice = event.data.object as Stripe.Invoice
+      try {
+        await handleInvoicePaymentFailed(invoice)
+      } catch (error) {
+        console.error('[stripe webhook] invoice.payment_failed: could not send email', {
           invoice: invoice.id,
           error: error instanceof Error ? error.message : error,
         })

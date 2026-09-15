@@ -1,4 +1,4 @@
-# Payment receipt email
+# Billing emails (receipt and payment failed)
 
 When a subscription invoice is charged, the Stripe webhook sends a branded
 billing receipt from `LessAI <hello@lessai.io>`. This covers:
@@ -11,20 +11,30 @@ billing receipt from `LessAI <hello@lessai.io>`. This covers:
 The $0 invoice Stripe creates when a trial starts is ignored, so no receipt
 goes out at signup.
 
-Code: `handleInvoicePaid` in `app/api/stripe/webhook/route.ts` and
-`sendSubscriptionReceiptEmail` in `src/lib/email.ts`.
+When a subscription charge is declined, the webhook sends a payment-failed
+email instead (subject: "Action needed: your LessAI Pro payment didn't go
+through", or "Final notice: update your card to keep LessAI Pro" once Stripe
+has no retries left). It shows the amount, card, and decline reason, the date
+of the next automatic retry, and an "Update payment method" button that opens
+the billing settings page.
+
+Code: `handleInvoicePaid` and `handleInvoicePaymentFailed` in
+`app/api/stripe/webhook/route.ts`; `sendSubscriptionReceiptEmail` and
+`sendPaymentFailedEmail` in `src/lib/email.ts`.
 
 ## Required Stripe configuration
 
 The webhook endpoint in the Stripe Dashboard (Developers → Webhooks →
 `https://lessai.io/api/stripe/webhook`) must be subscribed to the
-`invoice.paid` event in addition to the events it already receives:
+`invoice.paid` and `invoice.payment_failed` events in addition to the events
+it already receives:
 
 ```text
 checkout.session.completed
 customer.subscription.updated
 customer.subscription.deleted
-invoice.paid            <- add this
+invoice.paid              <- add this
+invoice.payment_failed    <- add this
 ```
 
 No new environment variables are needed. The route reuses
@@ -36,6 +46,7 @@ No new environment variables are needed. The route reuses
 ```bash
 stripe listen --forward-to localhost:3000/api/stripe/webhook
 stripe trigger invoice.paid
+stripe trigger invoice.payment_failed
 ```
 
 To test the real trial-to-paid transition, create a test subscription with a
