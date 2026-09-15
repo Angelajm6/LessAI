@@ -14,6 +14,7 @@ LessAI tracks the new-user journey in two places at once:
 |---|---|---|
 | `NEXT_PUBLIC_AMPLITUDE_API_KEY` | Vercel (all environments) + `.env.local` | Browser project key. Public by design. Nothing tracks while it is unset. |
 | `NEXT_PUBLIC_AMPLITUDE_SERVER_ZONE` | Vercel + `.env.local` | `US` (current project) or `EU`. |
+| `NEXT_PUBLIC_AMPLITUDE_REPLAY_SAMPLE_RATE` | optional | Share of sessions recorded by Session Replay, `0`–`1`. Defaults to `1` (every session). Lower it when traffic outgrows the free replay quota. |
 | `PLATFORM_ADMIN_EMAILS` | Vercel (Production) | Comma-separated owners. Also the recipients of the attention digest. |
 
 Use a **separate Amplitude project** for Preview/Development so test signups
@@ -51,6 +52,9 @@ blockers. Browser events use `track()` from `src/lib/analytics/client.ts`.
 | `account_deleted` | account/delete route | (Amplitude only) |
 
 Page views, sessions and UTM attribution are autocaptured by the browser SDK.
+Session Replay runs through `@amplitude/plugin-session-replay-browser` with all
+inputs masked; open any user's event stream in Amplitude and click the replay
+icon next to an event to watch that session.
 The Supabase user id is the Amplitude user id, set by
 `src/components/Analytics.tsx` on every page load and on login.
 

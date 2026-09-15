@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@amplitude/analytics-browser": "^2.45.8",
+    "@amplitude/plugin-session-replay-browser": "^1.35.0",
     "@anthropic-ai/sdk": "^0.106.0",
     "@base-ui/react": "^1.6.0",
     "@react-email/components": "^1.0.12",
