@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { sendInviteEmail } from '@/lib/email'
+import { trackEvent } from '@/lib/analytics/server'
+import { EVENTS } from '@/lib/analytics/events'
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient()
@@ -52,6 +54,8 @@ export async function POST(req: NextRequest) {
   // Send invite email (non-blocking — link is always returned as fallback)
   sendInviteEmail({ to: email, inviteLink, adminFirstName, companyName })
     .catch(err => console.error('[email] invite email failed:', err))
+
+  await trackEvent({ userId: user.id, event: EVENTS.INVITE_SENT, properties: { company_id: profile.company_id } })
 
   return NextResponse.json({ ok: true, inviteLink })
 }

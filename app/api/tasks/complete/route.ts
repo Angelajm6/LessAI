@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { trackEvent } from '@/lib/analytics/server'
+import { EVENTS } from '@/lib/analytics/events'
 
 const LEVELS = [
   { name: 'Novice', min: 0 },
@@ -66,6 +68,13 @@ export async function POST(req: NextRequest) {
     .from('profiles')
     .update({ xp: newXp, streak: newStreak, streak_last_date: today })
     .eq('id', user.id)
+
+  await trackEvent({
+    userId: user.id,
+    event: EVENTS.TASK_COMPLETED,
+    properties: { tool, day, xp: newXp, streak: newStreak, level_up: levelUp, is_first_task: currentXp === 0 },
+    userProperties: { xp: newXp, streak: newStreak, level: getLevelName(newXp) },
+  })
 
   return NextResponse.json({ xp: newXp, streak: newStreak, levelUp, levelName: getLevelName(newXp) })
 }

@@ -3,6 +3,8 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { track } from '@/lib/analytics/client'
+import { EVENTS } from '@/lib/analytics/events'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ArrowRight, ArrowLeft, Sparkles, Building2, X, Plus, CheckCircle, Zap, BarChart2, BookOpen, RefreshCw, Globe, Loader2 } from 'lucide-react'
@@ -147,6 +149,14 @@ function OnboardingFlow() {
   const updateStackMode = searchParams.get('from') === 'stack'
   const demoMode = searchParams.get('demo') === 'true'
   const [step, setStep] = useState(updateStackMode ? 3 : 1)
+
+  useEffect(() => {
+    track(EVENTS.ONBOARDING_STEP_VIEWED, {
+      step,
+      label: STEP_LABELS[step - 1],
+      mode: updateStackMode ? 'update-stack' : demoMode ? 'demo' : 'signup',
+    })
+  }, [step, updateStackMode, demoMode])
   const [roles, setRoles] = useState<string[]>(() => demoMode ? ['Marketing'] : [])
   const [customRole, setCustomRole] = useState('')
   const [company, setCompany] = useState(() => demoMode ? 'Acme Corp' : '')

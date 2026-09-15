@@ -3,6 +3,9 @@
 import { useMemo, useState } from 'react'
 import { Activity, AlertTriangle, ArrowUpRight, CheckCircle2, Clock3, Mail, Search, UserMinus, Users } from 'lucide-react'
 
+const FUNNEL_WINDOWS = [7, 30, 90] as const
+type FunnelWindow = (typeof FUNNEL_WINDOWS)[number]
+
 export interface PlatformUser {
   id: string
   email: string
@@ -66,6 +69,19 @@ function segmentFor(user: PlatformUser, segment: Segment) {
   }
 }
 
+function funnelFor(users: PlatformUser[], days: FunnelWindow) {
+  const since = Date.now() - days * DAY
+  const cohort = users.filter(user => new Date(user.signedUpAt).getTime() >= since)
+  const hasSubscription = (user: PlatformUser) => ['trialing', 'active', 'past_due'].includes(user.subscriptionStatus ?? '')
+  return [
+    { label: 'Signed up', count: cohort.length },
+    { label: 'Completed onboarding', count: cohort.filter(user => user.onboarded).length },
+    { label: 'Completed first task', count: cohort.filter(user => user.tasksCompleted > 0).length },
+    { label: 'Started trial', count: cohort.filter(hasSubscription).length },
+    { label: 'Paying', count: cohort.filter(user => user.subscriptionStatus === 'active').length },
+  ]
+}
+
 function statusLabel(user: PlatformUser) {
   if (user.subscriptionStatus === 'canceled') return { label: 'Canceled', className: 'bg-rose-50 text-rose-700 border-rose-200' }
   if (trialEnding(user)) return { label: 'Trial ending', className: 'bg-amber-50 text-amber-700 border-amber-200' }
@@ -78,6 +94,8 @@ function statusLabel(user: PlatformUser) {
 export default function PlatformAdminClient({ users, supportEmail }: { users: PlatformUser[]; supportEmail: string }) {
   const [segment, setSegment] = useState<Segment>('all')
   const [query, setQuery] = useState('')
+  const [funnelWindow, setFunnelWindow] = useState<FunnelWindow>(30)
+  const funnel = useMemo(() => funnelFor(users, funnelWindow), [users, funnelWindow])
 
   const segments = useMemo(() => [
     { id: 'all' as const, label: 'All users', icon: Users, count: users.length },
@@ -116,6 +134,32 @@ export default function PlatformAdminClient({ users, supportEmail }: { users: Pl
           <Metric label="Active this week" value={users.filter(isActiveThisWeek).length} note="Completed at least one task" />
           <Metric label="Needs attention" value={users.filter(isAtRisk).length} note="Inactive for 7+ days" attention />
         </div>
+
+        <section className="mb-7 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Signup funnel</p>
+              <p className="mt-1 text-xs text-slate-500">Where users who signed up in the last {funnelWindow} days are right now. Each step is a share of the signups in that window.</p>
+            </div>
+            <div className="flex gap-1 rounded-lg bg-slate-100 p-1">
+              {FUNNEL_WINDOWS.map(days => <button key={days} onClick={() => setFunnelWindow(days)} className={`rounded-md px-3 py-1 text-xs font-bold transition ${funnelWindow === days ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>{days}d</button>)}
+            </div>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-5">
+            {funnel.map((step, index) => {
+              const base = funnel[0].count
+              const previous = index === 0 ? step.count : funnel[index - 1].count
+              const share = base ? Math.round((step.count / base) * 100) : 0
+              const stepRate = previous ? Math.round((step.count / previous) * 100) : 0
+              return <div key={step.label} className="rounded-xl border border-slate-100 bg-slate-50/60 p-4">
+                <p className="text-xs font-semibold text-slate-500">{step.label}</p>
+                <p className="mt-1 text-2xl font-black text-slate-900">{step.count}</p>
+                <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-200"><div className="h-full rounded-full bg-emerald-500" style={{ width: `${share}%` }} /></div>
+                <p className="mt-1.5 text-xs text-slate-500">{share}% of signups{index > 0 ? ` · ${stepRate}% of previous` : ''}</p>
+              </div>
+            })}
+          </div>
+        </section>
 
         <div className="mb-5 flex gap-2 overflow-x-auto pb-1">
           {segments.map(item => {

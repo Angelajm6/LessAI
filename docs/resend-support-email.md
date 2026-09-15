@@ -33,15 +33,14 @@ SUPPORT_EMAIL=hello@lessai.io  # optional, this is the default
 | Record | Value | Purpose |
 |---|---|---|
 | `lessai.io` MX | `smtp.google.com` | Inbound mail to Google Workspace |
+| `lessai.io` TXT | `v=spf1 include:_spf.google.com ~all` | SPF for mail sent directly from the Workspace mailbox |
 | `resend._domainkey.lessai.io` TXT | Resend's DKIM public key | Signs outbound mail as lessai.io |
 | `send.lessai.io` TXT | `v=spf1 include:amazonses.com ~all` | SPF for Resend's bounce address |
 | `send.lessai.io` MX | `feedback-smtp.eu-west-1.amazonses.com` | Bounce handling for Resend |
 | `_dmarc.lessai.io` TXT | `v=DMARC1; p=none;` | DMARC, monitoring only |
 
 Do not change the `lessai.io` MX record to Resend or anything else; that
-would cut off the support mailbox. Optional improvement: add
-`v=spf1 include:_spf.google.com ~all` as a TXT record on `lessai.io` so mail
-sent directly from the Workspace mailbox is fully authenticated too.
+would cut off the support mailbox. DNS is hosted at Namecheap.
 
 ## Sender logo in Gmail
 

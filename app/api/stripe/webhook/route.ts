@@ -3,6 +3,8 @@ import { stripe, PLANS } from '@/lib/stripe'
 import { sendPaymentFailedEmail, sendSubscriptionCanceledEmail, sendSubscriptionReceiptEmail, sendTrialEndingEmail } from '@/lib/email'
 import { createClient } from '@supabase/supabase-js'
 import Stripe from 'stripe'
+import { trackEvent } from '@/lib/analytics/server'
+import { EVENTS } from '@/lib/analytics/events'
 
 // Use service role so webhook can write without user session
 const supabase = createClient(
@@ -124,6 +126,13 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
       subscription_id: subscription.id,
       plan,
     }).eq('id', userId)
+
+    await trackEvent({
+      userId,
+      event: EVENTS.PAYMENT_SUCCEEDED,
+      properties: { plan, amount: invoice.amount_paid, currency: invoice.currency, is_first_payment: isFirstPayment },
+      userProperties: { plan, subscription_status: subscription.status },
+    })
   }
 }
 
@@ -171,6 +180,13 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
     await supabase.from('profiles').update({
       subscription_status: subscription.status,
     }).eq('id', userId)
+
+    await trackEvent({
+      userId,
+      event: EVENTS.PAYMENT_FAILED,
+      properties: { plan, amount: invoice.amount_due, currency: invoice.currency, retries_exhausted: invoice.next_payment_attempt === null },
+      userProperties: { subscription_status: subscription.status },
+    })
   }
 }
 
@@ -278,6 +294,13 @@ export async function POST(req: NextRequest) {
         plan: plan ?? 'pro',
         trial_end: trialEnd,
       }).eq('id', userId)
+
+      await trackEvent({
+        userId,
+        event: EVENTS.TRIAL_STARTED,
+        properties: { plan: plan ?? 'pro', source: 'checkout', trial_end: trialEnd },
+        userProperties: { plan: plan ?? 'pro', subscription_status: 'trialing' },
+      })
       break
     }
 
@@ -342,6 +365,22 @@ export async function POST(req: NextRequest) {
         subscription_status: sub.status,
         subscription_id: sub.id,
       }).eq('id', userId)
+
+      if (sub.cancel_at_period_end && previous?.cancel_at_period_end === false) {
+        await trackEvent({
+          userId,
+          event: EVENTS.SUBSCRIPTION_CANCELED,
+          properties: { subscription_status: sub.status, cancel_at: sub.cancel_at ? new Date(sub.cancel_at * 1000).toISOString() : null },
+        })
+      }
+      if (previous?.status && previous.status !== sub.status) {
+        await trackEvent({
+          userId,
+          event: EVENTS.SUBSCRIPTION_STATUS_CHANGED,
+          properties: { from: previous.status, to: sub.status },
+          userProperties: { subscription_status: sub.status },
+        })
+      }
       break
     }
 
@@ -363,6 +402,13 @@ export async function POST(req: NextRequest) {
         subscription_status: 'canceled',
         subscription_id: null,
       }).eq('id', userId)
+
+      await trackEvent({
+        userId,
+        event: EVENTS.SUBSCRIPTION_STATUS_CHANGED,
+        properties: { from: sub.status, to: 'canceled', immediate: !sub.cancel_at_period_end },
+        userProperties: { subscription_status: 'canceled' },
+      })
       break
     }
   }

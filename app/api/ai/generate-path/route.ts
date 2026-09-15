@@ -5,6 +5,8 @@ export const maxDuration = 60
 import { createClient } from '@/lib/supabase/server'
 import { generateStackMap } from '@/lib/claude'
 import { sendWelcomeEmail } from '@/lib/email'
+import { trackEvent } from '@/lib/analytics/server'
+import { EVENTS } from '@/lib/analytics/events'
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient()
@@ -47,6 +49,13 @@ export async function POST(req: NextRequest) {
 
   // Mark onboarding complete server-side (reliable — avoids client-side session race)
   await supabase.from('profiles').update({ onboarded: true }).eq('id', user.id)
+
+  await trackEvent({
+    userId: user.id,
+    event: EVENTS.ONBOARDING_COMPLETED,
+    properties: { role, tools, tool_count: tools.length, company_provided: Boolean(company) },
+    userProperties: { role, tools, onboarded: true },
+  })
 
   // Fire welcome email (non-blocking — don't fail the request if email fails)
   if (user.email) {

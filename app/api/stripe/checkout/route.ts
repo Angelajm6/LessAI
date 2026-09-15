@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { stripe, PLANS, Plan } from '@/lib/stripe'
+import { trackEvent } from '@/lib/analytics/server'
+import { EVENTS } from '@/lib/analytics/events'
 
 export async function POST(req: NextRequest) {
   try {
@@ -58,6 +60,8 @@ export async function POST(req: NextRequest) {
       cancel_url: `${appUrl}/pricing`,
       metadata: { supabase_user_id: user.id, plan },
     })
+
+    await trackEvent({ userId: user.id, event: EVENTS.CHECKOUT_STARTED, properties: { plan } })
 
     return NextResponse.json({ url: session.url })
   } catch (error) {

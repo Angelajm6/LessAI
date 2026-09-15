@@ -905,3 +905,84 @@ export async function sendTrialEndingEmail(props: TrialEndingProps) {
   if (error) console.error('[email] sendTrialEndingEmail error:', error)
   return { data, error }
 }
+
+// ── Owner digest: users who need attention today ────────────────────────────
+
+export interface AttentionDigestUser {
+  name: string
+  email: string
+  role: string | null
+  plan: string | null
+  reason: string
+}
+
+export interface AttentionDigestSection {
+  title: string
+  hint: string
+  users: AttentionDigestUser[]
+  tone: 'green' | 'amber' | 'red' | 'slate'
+}
+
+const DIGEST_TONES: Record<AttentionDigestSection['tone'], { bg: string; border: string; text: string }> = {
+  green: { bg: '#f0fdf4', border: '#10b981', text: '#065f46' },
+  amber: { bg: '#fffbeb', border: '#f59e0b', text: '#92400e' },
+  red: { bg: '#fef2f2', border: '#ef4444', text: '#991b1b' },
+  slate: { bg: '#f8fafc', border: '#94a3b8', text: '#334155' },
+}
+
+function renderDigestSection(section: AttentionDigestSection) {
+  if (section.users.length === 0) return ''
+  const tone = DIGEST_TONES[section.tone]
+  const rows = section.users.map(user => {
+    const subject = encodeURIComponent(`Checking in from LessAI`)
+    const meta = [user.role, user.plan].filter((value): value is string => Boolean(value)).map(escapeHtml).join(' · ')
+    return `
+      <tr>
+        <td style="padding:10px 0;border-top:1px solid #eef0f3;vertical-align:top">
+          <p style="margin:0;font-size:14px;font-weight:700;color:#0a0a0a">${escapeHtml(user.name)}</p>
+          <p style="margin:2px 0 0;font-size:12px;color:#6b7280">${escapeHtml(user.email)}${meta ? ` · ${meta}` : ''}</p>
+          <p style="margin:4px 0 0;font-size:13px;color:#374151;line-height:1.5">${escapeHtml(user.reason)}</p>
+        </td>
+        <td style="padding:10px 0 10px 12px;border-top:1px solid #eef0f3;vertical-align:top;text-align:right;white-space:nowrap">
+          <a href="mailto:${encodeURIComponent(user.email)}?subject=${subject}" style="background:${BRAND_GREEN};color:#ffffff;font-weight:700;font-size:12px;padding:8px 14px;border-radius:8px;text-decoration:none;display:inline-block">Email</a>
+        </td>
+      </tr>`
+  }).join('')
+
+  return `
+    <div style="margin:0 0 22px">
+      <div style="background:${tone.bg};border-left:3px solid ${tone.border};border-radius:0 8px 8px 0;padding:10px 14px;margin-bottom:6px">
+        <p style="margin:0;font-size:13px;font-weight:800;color:${tone.text}">${escapeHtml(section.title)} · ${section.users.length}</p>
+        <p style="margin:2px 0 0;font-size:12px;color:${tone.text};opacity:0.85">${escapeHtml(section.hint)}</p>
+      </div>
+      <table width="100%" cellpadding="0" cellspacing="0">${rows}</table>
+    </div>`
+}
+
+export async function sendAttentionDigestEmail({ to, sections }: { to: string[]; sections: AttentionDigestSection[] }) {
+  const total = sections.reduce((sum, section) => sum + section.users.length, 0)
+  const today = new Intl.DateTimeFormat('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date())
+
+  const html = emailShell(`
+    <div style="padding:32px 32px 8px">
+      <p style="font-size:13px;color:#6b7280;margin:0 0 6px">${today}</p>
+      <h1 style="font-size:24px;font-weight:800;color:#0a0a0a;margin:0 0 10px;line-height:1.25">${total} user${total === 1 ? '' : 's'} to reach out to today</h1>
+      <p style="font-size:14px;color:#374151;margin:0 0 24px;line-height:1.6">
+        Grouped by what is happening in their journey. Each row links to a ready-to-send email.
+        The full list lives in <a href="${APP_URL}/platform-admin" style="color:${BRAND_GREEN};font-weight:600;text-decoration:none">platform admin</a>.
+      </p>
+      ${sections.map(renderDigestSection).join('')}
+    </div>
+    <div style="padding:8px 32px 32px">
+      ${ctaButton(`${APP_URL}/platform-admin`, 'Open platform admin →')}
+    </div>
+  `, { badge: 'OWNER DIGEST', includeAccountLinks: false })
+
+  const { data, error } = await getResend().emails.send({
+    from: FROM, to,
+    subject: `${total} LessAI user${total === 1 ? '' : 's'} need${total === 1 ? 's' : ''} attention today`,
+    html,
+  })
+  if (error) console.error('[email] sendAttentionDigestEmail error:', error)
+  return { data, error }
+}

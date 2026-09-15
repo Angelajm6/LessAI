@@ -4,6 +4,8 @@ import { Suspense, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { identifyUser, track } from '@/lib/analytics/client'
+import { EVENTS } from '@/lib/analytics/events'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -36,6 +38,10 @@ function LoginForm() {
       }
 
       const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        identifyUser(user.id)
+        track(EVENTS.LOGGED_IN, { plan_intent: selectedPlan ?? 'none' })
+      }
       const { data: profile } = await supabase
         .from('profiles')
         .select('is_admin, onboarded')

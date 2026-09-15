@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
+import { trackEvent } from '@/lib/analytics/server'
+import { EVENTS } from '@/lib/analytics/events'
 
 export async function POST(req: NextRequest) {
   const { token, fullName, password } = await req.json()
@@ -48,6 +50,13 @@ export async function POST(req: NextRequest) {
 
   // Mark invite as used
   await serviceClient.from('invites').update({ used: true }).eq('id', invite.id)
+
+  await trackEvent({
+    userId: created.user.id,
+    event: EVENTS.SIGNED_UP,
+    properties: { method: 'invite', company_id: invite.company_id },
+    userProperties: { signup_method: 'invite', onboarded: false },
+  })
 
   return NextResponse.json({ ok: true })
 }

@@ -4,6 +4,8 @@ import { useState, Suspense } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { track } from '@/lib/analytics/client'
+import { EVENTS } from '@/lib/analytics/events'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -58,6 +60,7 @@ function SignupForm() {
     e.preventDefault()
     setLoading(true)
     setError('')
+    track(EVENTS.SIGNUP_SUBMITTED, { plan: plan ?? 'none', has_checkout_session: Boolean(checkoutSessionId) })
 
     const supabase = createClient()
 
@@ -83,6 +86,7 @@ function SignupForm() {
 
     if (data.user && !data.session) {
       // Email confirmation required — profile created after they click the link
+      track(EVENTS.SIGNUP_CONFIRMATION_SENT, { plan: plan ?? 'none' })
       setEmailSent(true)
       setLoading(false)
       return

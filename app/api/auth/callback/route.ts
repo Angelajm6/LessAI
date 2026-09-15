@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { sendSignupWelcomeEmail } from '@/lib/email'
+import { trackEvent } from '@/lib/analytics/server'
+import { EVENTS } from '@/lib/analytics/events'
 
 type StripeCheckoutSession = {
   status: string | null
@@ -95,6 +97,13 @@ async function attachPreSignupCheckout({
   }).eq('id', userId)
 
   if (error) throw new Error(`Could not link Stripe billing account: ${error.message}`)
+
+  await trackEvent({
+    userId,
+    event: EVENTS.TRIAL_STARTED,
+    properties: { plan, source: 'payment_link', subscription_status: subscription.status, trial_end: trialEnd },
+    userProperties: { plan, subscription_status: subscription.status },
+  })
   return plan === 'teams' ? 'teams' : 'pro'
 }
 
@@ -143,6 +152,13 @@ export async function GET(req: NextRequest) {
         // Send welcome email (fire-and-forget)
         const firstName = ((meta.full_name as string) ?? '').split(' ')[0] || 'there'
         sendSignupWelcomeEmail({ to: user.email ?? '', firstName }).catch(() => {})
+
+        await trackEvent({
+          userId: user.id,
+          event: EVENTS.SIGNED_UP,
+          properties: { method: 'email', has_checkout_session: Boolean(checkoutSessionId), company_name_provided: Boolean(companyName) },
+          userProperties: { signup_method: 'email', onboarded: false },
+        })
       }
 
       if (checkoutSessionId && user.email) {
